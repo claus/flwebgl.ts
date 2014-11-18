@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="UTF-8">
+		<title>shapes</title>
+		<script src="../lib/flwebgl-0.2.edit.js"></script>
+		<script>
+			var player, result = flwebgl.Player.S_OK;
+			var atlasList = [], content = undefined;
+
+			function loadContent() {
+				getAsset("assets/shapes.json", function (response) {content = JSON.parse(response); assetLoaded(); });
+				getAsset("assets/shapes_atlas.json", function (response) { atlasList.push({json:JSON.parse(response), image:"assets/shapes_atlas.png"}); assetLoaded(); });
+			}
+
+			function assetLoaded() {
+				if (atlasList.length == 1 && content) {
+					var canvas = document.getElementById("canvas");
+					player = new flwebgl.Player();
+
+					//Create textureatlas object for all the textures which you have
+					var textureAtlasList = [];
+					for (var i = 0; i < atlasList.length; i++) {
+						textureAtlasList.push(new flwebgl.TextureAtlas(atlasList[i].json, atlasList[i].image));
+					}
+
+					result = player.init(canvas, content, textureAtlasList, handleComplete);
+
+					if(result === flwebgl.Player.E_CONTEXT_CREATION_FAILED) {
+						document.getElementById("err_nowebglsupport").style.display="block";
+						return;
+					} else if(result === flwebgl.Player.E_REQUIRED_EXTENSION_NOT_PRESENT) {
+						document.getElementById("err_extensionnotpresent").style.display="block";
+						return;
+					}
+
+					//Resize the canvas and reset the viewport
+					var w = player.getStageWidth();
+					var h = player.getStageHeight();
+					canvas.width = w;
+					canvas.height = h;
+					player.setViewport(new flwebgl.geom.Rect(0, 0, w, h));
+				}
+			}
+
+			function getAsset(url, callbk) {
+				if (!window.XMLHttpRequest) {
+					document.getElementById("err_nowebglsupport").style.display="block";
+					return;
+				}
+
+				var req = new XMLHttpRequest();
+				req.onreadystatechange = function() {
+					if (req.readyState == 4 && req.status == 200)
+						callbk(req.responseText);
+				};
+				req.open("GET", url, true);
+				req.send();
+			}
+
+			function handleComplete() {
+				if(result === flwebgl.Player.S_OK) {
+					player.play();
+
+					// ==> This is a good place to add code <==
+				}
+			}
+		</script>
+	</head>
+	<body onload="loadContent();">
+		<canvas id="canvas" style="border: none;"></canvas>
+		<div class="error" id="err_nowebglsupport" style="display:none;"><span>Your browser does not support WebGL.</span>&nbsp;<span><a href="http://get.webgl.org">Check WebGL support.</a></span></div>
+		<div class="error" id="err_extensionnotpresent" style="display:none;">A required WebGL extension is not supported by your browser.</div>
+	</body>
+</html>

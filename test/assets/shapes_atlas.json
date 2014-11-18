@@ -1,0 +1,117 @@
+﻿
+{
+  "frames": {
+
+    "G_2": {
+      "frame": {
+        "x": 0,
+        "y": 202,
+        "w": 258,
+        "h": 4
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 258,
+        "h": 4
+      },
+      "sourceSize": {
+        "w": 258,
+        "h": 4
+      }
+    },
+    "S_1": {
+      "frame": {
+        "x": 206,
+        "y": 0,
+        "w": 4,
+        "h": 4
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 4,
+        "h": 4
+      },
+      "sourceSize": {
+        "w": 4,
+        "h": 4
+      }
+    },
+    "S_4": {
+      "frame": {
+        "x": 210,
+        "y": 0,
+        "w": 4,
+        "h": 4
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 4,
+        "h": 4
+      },
+      "sourceSize": {
+        "w": 4,
+        "h": 4
+      }
+    },
+    "S_5": {
+      "frame": {
+        "x": 202,
+        "y": 0,
+        "w": 4,
+        "h": 4
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 4,
+        "h": 4
+      },
+      "sourceSize": {
+        "w": 4,
+        "h": 4
+      }
+    },
+    "claus_200x200.png": {
+      "frame": {
+        "x": 0,
+        "y": 0,
+        "w": 202,
+        "h": 202
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 202,
+        "h": 202
+      },
+      "sourceSize": {
+        "w": 202,
+        "h": 202
+      }
+    }
+  },
+  "meta": {
+    "app": "Adobe Flash Professional",
+    "version": "14.1.0.96",
+    "image": "shapes_atlas.png",
+    "format": "RGBA8888",
+    "size": {
+      "w": 512,
+      "h": 512
+    },
+    "scale": "1"
+  }
+}
