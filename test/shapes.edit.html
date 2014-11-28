@@ -11,6 +11,8 @@
 			var atlasList = [];
 			var result = flwebgl.Player.S_OK;
 
+			flwebgl.util.Logger.setLevel(flwebgl.util.Logger.kLevel_Info);
+
 			function loadContent() {
 				getAsset("assets/shapes.json", function (response) {
 					content = JSON.parse(response);
