@@ -42,6 +42,8 @@
 					}
 
 					result = player.init(canvas, content, textureAtlasList, handleComplete);
+					*/
+					result = player.init(canvas, content, null, handleComplete);
 
 					if (result === flwebgl.Player.E_CONTEXT_CREATION_FAILED) {
 						document.getElementById("err_nowebglsupport").style.display="block";
@@ -51,6 +53,7 @@
 						return;
 					}
 
+					/*
 					// Resize the canvas and reset the viewport
 					var w = player.getStageWidth();
 					var h = player.getStageHeight();
