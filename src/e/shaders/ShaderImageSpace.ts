@@ -7,7 +7,7 @@ module flwebgl.e.shaders
 
   export class ShaderImageSpace implements IShader
   {
-    private gl: GL
+    private gl: GL;
 
     constructor() {
       console.log("ShaderImageSpace");

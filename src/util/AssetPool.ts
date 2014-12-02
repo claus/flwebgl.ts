@@ -29,7 +29,7 @@ module flwebgl.util
     }
 
     setMesh(mesh: Mesh) {
-      this.meshMap[mesh.getID()] = mesh;
+      this.meshMap[mesh.id] = mesh;
     }
     getMesh(id: string): Mesh {
       return this.meshMap[id];

@@ -25,14 +25,20 @@ module flwebgl.e
     get id(): string {
       return this._id;
     }
-
     get imageURL(): string {
       return this._imageURL;
+    }
+    get width(): number {
+      return this._width;
+    }
+    get height(): number {
+      return this._height;
     }
 
     setFrame(id: string, frame: Rect) {
       this._frames[id] = frame;
     }
+
     getFrame(id: string): Rect {
       return this._frames[id];
     }

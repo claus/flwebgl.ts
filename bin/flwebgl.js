@@ -1,12 +1,44 @@
 var flwebgl;
 (function (flwebgl) {
+    var geom;
+    (function (geom) {
+        var Color = (function () {
+            function Color(red, blue, green, alpha) {
+                if (alpha === void 0) { alpha = 255; }
+                this.red = 0;
+                this.blue = 0;
+                this.green = 0;
+                this.alpha = 0;
+                this.red = red;
+                this.blue = blue;
+                this.green = green;
+                this.alpha = alpha;
+            }
+            Color.prototype.equals = function (color) {
+                return (this.red === color.red) && (this.green === color.green) && (this.blue === color.blue) && (this.alpha === color.alpha);
+            };
+            return Color;
+        })();
+        geom.Color = Color;
+    })(geom = flwebgl.geom || (flwebgl.geom = {}));
+})(flwebgl || (flwebgl = {}));
+var flwebgl;
+(function (flwebgl) {
     var util;
     (function (util) {
+        var Color = flwebgl.geom.Color;
         var Utils = (function () {
             function Utils() {
             }
             Utils.isUndefined = function (object) {
                 return typeof object === "undefined";
+            };
+            Utils.getColor = function (color) {
+                var red = parseInt(color.substring(1, 3), 16);
+                var green = parseInt(color.substring(3, 5), 16);
+                var blue = parseInt(color.substring(5, 7), 16);
+                var alpha = (color.length > 7) ? parseInt(color.substring(7), 16) : 255;
+                return new Color(red, green, blue, alpha);
             };
             return Utils;
         })();
@@ -29,6 +61,7 @@ var flwebgl;
             this.cachingOptions = {};
             this.cacheAsBitmap = true;
             this.antialias = 1 /* ImageSpace */;
+            this.standardDerivatives = false;
             if (!Utils.isUndefined(options[PlayerOptions.kOption_LogErrors])) {
                 this.logErrors = !!options[PlayerOptions.kOption_LogErrors];
             }
@@ -68,30 +101,6 @@ var flwebgl;
 (function (flwebgl) {
     var geom;
     (function (geom) {
-        var Color = (function () {
-            function Color(red, blue, green, alpha) {
-                if (alpha === void 0) { alpha = 255; }
-                this.red = 0;
-                this.blue = 0;
-                this.green = 0;
-                this.alpha = 0;
-                this.red = red;
-                this.blue = blue;
-                this.green = green;
-                this.alpha = alpha;
-            }
-            Color.prototype.equals = function (color) {
-                return (this.red === color.red) && (this.green === color.green) && (this.blue === color.blue) && (this.alpha === color.alpha);
-            };
-            return Color;
-        })();
-        geom.Color = Color;
-    })(geom = flwebgl.geom || (flwebgl.geom = {}));
-})(flwebgl || (flwebgl = {}));
-var flwebgl;
-(function (flwebgl) {
-    var geom;
-    (function (geom) {
         var Rect = (function () {
             function Rect(left, top, width, height) {
                 if (left === void 0) { left = 0; }
@@ -111,17 +120,63 @@ var flwebgl;
                     this.isEmpty = false;
                 }
             }
-            Rect.prototype.intersects = function (a) {
-                if (this.isEmpty || a.isEmpty) {
+            Rect.prototype.intersects = function (rect) {
+                if (this.isEmpty || rect.isEmpty) {
                     return false;
                 }
                 else {
-                    return (a.left <= this.left + this.width) && (a.left + a.width >= this.left) && (a.top <= this.top + this.height) && (a.top + a.height >= this.top);
+                    return (rect.left <= this.left + this.width) && (rect.left + rect.width >= this.left) && (rect.top <= this.top + this.height) && (rect.top + rect.height >= this.top);
+                }
+            };
+            Rect.prototype.copy = function (rect) {
+                this.left = rect.left;
+                this.top = rect.top;
+                this.width = rect.width;
+                this.height = rect.height;
+                this.isEmpty = rect.isEmpty;
+            };
+            Rect.prototype.union = function (rect) {
+                if (this.isEmpty) {
+                    this.copy(rect);
+                }
+                else if (!rect.isEmpty) {
+                    var right = this.left + this.width;
+                    var bottom = this.top + this.height;
+                    this.left = Math.min(this.left, rect.left);
+                    this.top = Math.min(this.top, rect.top);
+                    this.width = Math.max(right, rect.left + rect.width) - this.left;
+                    this.height = Math.max(bottom, rect.top + rect.height) - this.top;
                 }
             };
             return Rect;
         })();
         geom.Rect = Rect;
+    })(geom = flwebgl.geom || (flwebgl.geom = {}));
+})(flwebgl || (flwebgl = {}));
+var flwebgl;
+(function (flwebgl) {
+    var geom;
+    (function (geom) {
+        var Point = (function () {
+            function Point(x, y) {
+                this.x = x;
+                this.y = y;
+            }
+            Point.prototype.add = function (point) {
+                var p = new Point(this.x, this.y);
+                p.x += point.x;
+                p.y += point.y;
+                return p;
+            };
+            Point.prototype.sub = function (point) {
+                var p = new Point(this.x, this.y);
+                p.x -= point.x;
+                p.y -= point.y;
+                return p;
+            };
+            return Point;
+        })();
+        geom.Point = Point;
     })(geom = flwebgl.geom || (flwebgl.geom = {}));
 })(flwebgl || (flwebgl = {}));
 var flwebgl;
@@ -147,6 +202,9 @@ var flwebgl;
                     this.setValues(values);
                 }
             }
+            Matrix.prototype.isInvertible = function () {
+                return this._isIdentity ? true : this.values[1] * this.values[4] - this.values[0] * this.values[5] !== 0;
+            };
             Object.defineProperty(Matrix.prototype, "isIdentity", {
                 get: function () {
                     return this._isIdentity;
@@ -161,6 +219,159 @@ var flwebgl;
                 this.values = [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1];
                 this._isIdentity = true;
                 return this;
+            };
+            Matrix.prototype.equals = function (matrix) {
+                return this.values[0] == matrix.values[0] && this.values[1] == matrix.values[1] && this.values[4] == matrix.values[4] && this.values[5] == matrix.values[5] && this.values[12] == matrix.values[12] && this.values[13] == matrix.values[13] && this.values[10] == matrix.values[10];
+            };
+            Matrix.prototype.getValues = function () {
+                return [
+                    this.values[0],
+                    this.values[1],
+                    this.values[4],
+                    this.values[5],
+                    this.values[12],
+                    this.values[13]
+                ];
+            };
+            Matrix.prototype.clone = function () {
+                return (new Matrix()).copy(this);
+            };
+            Matrix.prototype.copy = function (matrix) {
+                for (var i = 0; i < 16; i++) {
+                    this.values[i] = matrix.values[i];
+                }
+                this._isIdentity = matrix.isIdentity;
+                return this;
+            };
+            Matrix.prototype.concat = function (matrix) {
+                if (this._isIdentity) {
+                    if (matrix.isIdentity) {
+                        this.values[10] *= matrix.values[10];
+                        return this;
+                    }
+                    this.values[0] = matrix.values[0];
+                    this.values[1] = matrix.values[1];
+                    this.values[4] = matrix.values[4];
+                    this.values[5] = matrix.values[5];
+                    this.values[12] = matrix.values[12];
+                    this.values[13] = matrix.values[13];
+                    this.values[10] *= matrix.values[10];
+                    this._isIdentity = matrix.isIdentity;
+                    return this;
+                }
+                if (matrix.isIdentity) {
+                    this.values[10] *= matrix.values[10];
+                    return this;
+                }
+                var a = matrix.values[0] * this.values[0] + matrix.values[4] * this.values[1];
+                var b = matrix.values[1] * this.values[0] + matrix.values[5] * this.values[1];
+                var c = matrix.values[0] * this.values[4] + matrix.values[4] * this.values[5];
+                var d = matrix.values[1] * this.values[4] + matrix.values[5] * this.values[5];
+                var tx = matrix.values[0] * this.values[12] + matrix.values[4] * this.values[13] + matrix.values[12];
+                var ty = matrix.values[1] * this.values[12] + matrix.values[5] * this.values[13] + matrix.values[13];
+                this.values[0] = a;
+                this.values[1] = b;
+                this.values[4] = c;
+                this.values[5] = d;
+                this.values[12] = tx;
+                this.values[13] = ty;
+                this.values[10] = matrix.values[10] * this.values[10];
+                return this;
+            };
+            Matrix.prototype.multiply = function (matrix) {
+                if (this._isIdentity) {
+                    if (matrix.isIdentity) {
+                        this.values[10] *= matrix.values[10];
+                    }
+                    else {
+                        this.values[0] = matrix.values[0];
+                        this.values[1] = matrix.values[1];
+                        this.values[4] = matrix.values[4];
+                        this.values[5] = matrix.values[5];
+                        this.values[12] = matrix.values[12];
+                        this.values[13] = matrix.values[13];
+                        this.values[10] *= matrix.values[10];
+                        this._isIdentity = matrix.isIdentity;
+                    }
+                }
+                else if (matrix.isIdentity) {
+                    this.values[10] *= matrix.values[10];
+                }
+                else {
+                    var a = this.values[0] * matrix.values[0] + this.values[4] * matrix.values[1];
+                    var b = this.values[1] * matrix.values[0] + this.values[5] * matrix.values[1];
+                    var c = this.values[0] * matrix.values[4] + this.values[4] * matrix.values[5];
+                    var d = this.values[1] * matrix.values[4] + this.values[5] * matrix.values[5];
+                    var tx = this.values[0] * matrix.values[12] + this.values[4] * matrix.values[13] + this.values[12];
+                    var ty = this.values[1] * matrix.values[12] + this.values[5] * matrix.values[13] + this.values[13];
+                    this.values[0] = a;
+                    this.values[1] = b;
+                    this.values[4] = c;
+                    this.values[5] = d;
+                    this.values[12] = tx;
+                    this.values[13] = ty;
+                    this.values[10] = this.values[10] * matrix.values[10];
+                }
+            };
+            Matrix.prototype.transformPoint = function (point) {
+                return new geom.Point(this.values[0] * point.x + this.values[4] * point.y + this.values[12], this.values[1] * point.x + this.values[5] * point.y + this.values[13]);
+            };
+            Matrix.prototype.transformBoundsAABB = function (rect) {
+                var p = new geom.Point(rect.left, rect.top);
+                var tl = this.transformPoint(p);
+                p.x = rect.left + rect.width;
+                var tr = this.transformPoint(p);
+                p.y = rect.top + rect.height;
+                var br = this.transformPoint(p);
+                p.x = rect.left;
+                var bl = this.transformPoint(p);
+                var p1x = Math.min(tl.x, tr.x, br.x, bl.x);
+                var p2x = Math.max(tl.x, tr.x, br.x, bl.x);
+                var p1y = Math.min(tl.y, tr.y, br.y, bl.y);
+                var p2y = Math.max(tl.y, tr.y, br.y, bl.y);
+                return new geom.Rect(p1x, p1y, p2x - p1x, p2y - p1y);
+            };
+            Matrix.prototype.invert = function () {
+                if (this._isIdentity) {
+                    return this;
+                }
+                var a = this.values[0];
+                var b = this.values[1];
+                var c = this.values[4];
+                var d = this.values[5];
+                var tx = this.values[12];
+                var ty = this.values[13];
+                var det = b * c - a * d;
+                if (det == 0) {
+                    this.identity();
+                    return this;
+                }
+                this.identity();
+                this.values[0] = -d / det;
+                this.values[1] = b / det;
+                this.values[4] = c / det;
+                this.values[5] = -a / det;
+                this.values[12] = (tx * d - ty * c) / det;
+                this.values[13] = (ty * a - tx * b) / det;
+                this._isIdentity = false;
+                return this;
+            };
+            Matrix.prototype.translate = function (tx, ty) {
+                this.values[12] += tx;
+                this.values[13] += ty;
+                if (this.values[12] !== 0 || this.values[13] !== 0) {
+                    this._isIdentity = false;
+                }
+                return this;
+            };
+            Matrix.prototype.setValue = function (column, row, value) {
+                this.values[4 * row + column] = value;
+                if (column !== 2 && row !== 2) {
+                    this._isIdentity = false;
+                }
+            };
+            Matrix.prototype.getValue = function (column, row) {
+                return this.values[4 * row + column];
             };
             return Matrix;
         })();
@@ -233,6 +444,20 @@ var flwebgl;
             Object.defineProperty(TextureAtlas.prototype, "imageURL", {
                 get: function () {
                     return this._imageURL;
+                },
+                enumerable: true,
+                configurable: true
+            });
+            Object.defineProperty(TextureAtlas.prototype, "width", {
+                get: function () {
+                    return this._width;
+                },
+                enumerable: true,
+                configurable: true
+            });
+            Object.defineProperty(TextureAtlas.prototype, "height", {
+                get: function () {
+                    return this._height;
                 },
                 enumerable: true,
                 configurable: true
@@ -1158,15 +1383,177 @@ var flwebgl;
 })(flwebgl || (flwebgl = {}));
 var flwebgl;
 (function (flwebgl) {
+    var media;
+    (function (media) {
+        var SoundFactory = (function () {
+            function SoundFactory() {
+            }
+            return SoundFactory;
+        })();
+        media.SoundFactory = SoundFactory;
+    })(media = flwebgl.media || (flwebgl.media = {}));
+})(flwebgl || (flwebgl = {}));
+var flwebgl;
+(function (flwebgl) {
     var e;
     (function (e) {
+        var VertexAttribute = (function () {
+            function VertexAttribute(byteOffset, name, type, size) {
+                this.byteOffset = byteOffset;
+                this.name = name;
+                this.type = type;
+                this.size = size;
+            }
+            return VertexAttribute;
+        })();
+        e.VertexAttribute = VertexAttribute;
+    })(e = flwebgl.e || (flwebgl.e = {}));
+})(flwebgl || (flwebgl = {}));
+var flwebgl;
+(function (flwebgl) {
+    var e;
+    (function (e) {
+        var VertexAttributes = (function () {
+            function VertexAttributes(attrs, totalSize) {
+                if (attrs === void 0) { attrs = []; }
+                if (totalSize === void 0) { totalSize = 0; }
+                this.attrs = attrs;
+                this.totalSize = totalSize;
+            }
+            return VertexAttributes;
+        })();
+        e.VertexAttributes = VertexAttributes;
+    })(e = flwebgl.e || (flwebgl.e = {}));
+})(flwebgl || (flwebgl = {}));
+var flwebgl;
+(function (flwebgl) {
+    var e;
+    (function (e) {
+        var VertexData = (function () {
+            function VertexData(vertices, vertexAttributes) {
+                this.vertices = vertices;
+                this.vertexAttributes = vertexAttributes;
+            }
+            return VertexData;
+        })();
+        e.VertexData = VertexData;
+    })(e = flwebgl.e || (flwebgl.e = {}));
+})(flwebgl || (flwebgl = {}));
+var flwebgl;
+(function (flwebgl) {
+    var e;
+    (function (e) {
+        var VertexAttributesArray = (function () {
+            function VertexAttributesArray() {
+                this.ta = [];
+            }
+            return VertexAttributesArray;
+        })();
+        e.VertexAttributesArray = VertexAttributesArray;
+        var ca = (function () {
+            function ca(name, isOpaque) {
+                this.name = name;
+                this.isOpaque = isOpaque;
+                this.fillMode = 0;
+                this.vertexDataMap = {};
+                this.he = new VertexAttributesArray();
+            }
+            ca.prototype.getID = function () {
+                return -1;
+            };
+            ca.prototype.getVertexData = function (atlasID) {
+                return (atlasID != undefined) ? this.vertexDataMap[atlasID] : void 0;
+            };
+            ca.prototype.setVertexData = function (atlasID, vertexData) {
+                this.vertexDataMap[atlasID] = vertexData;
+                for (var i = 0; i < vertexData.length; i++) {
+                    this.he.ta.push(vertexData[i].vertexAttributes);
+                }
+            };
+            ca.prototype.setIndices = function (indices) {
+                this.indices = new Uint16Array(indices);
+            };
+            ca.prototype.sa = function () {
+                return this.indices.length;
+            };
+            ca.prototype.getAtlasIDs = function () {
+                var atlasIDs = [];
+                for (var atlasID in this.vertexDataMap) {
+                    atlasIDs.push(atlasID);
+                }
+                return atlasIDs;
+            };
+            ca.kFill_Extend = "Extend";
+            ca.kFill_Repeat = "Repeat";
+            ca.kFill_Reflect = "Reflect";
+            ca.fillModeMap = {
+                Extend: 1,
+                Repeat: 2,
+                Reflect: 3
+            };
+            return ca;
+        })();
+        e.ca = ca;
+    })(e = flwebgl.e || (flwebgl.e = {}));
+})(flwebgl || (flwebgl = {}));
+var flwebgl;
+(function (flwebgl) {
+    var e;
+    (function (e) {
+        var Rect = flwebgl.geom.Rect;
         var Mesh = (function () {
             function Mesh(id) {
-                this.id = id;
+                this._id = id;
+                this.fd = {};
+                this.fd["" + Mesh.INTERNAL] = [];
+                this.fd["" + Mesh.EXTERNAL] = [];
+                this.fd["" + Mesh.bb] = [];
             }
-            Mesh.prototype.getID = function () {
-                return this.id;
+            Object.defineProperty(Mesh.prototype, "id", {
+                get: function () {
+                    return this._id;
+                },
+                enumerable: true,
+                configurable: true
+            });
+            Mesh.prototype.Nb = function (edgeType, h) {
+                this.fd["" + edgeType].push(h);
             };
+            Mesh.prototype.yf = function (edgeType, i) {
+                if (i < this.ra(edgeType)) {
+                    return this.fd["" + edgeType][i];
+                }
+            };
+            Mesh.prototype.ra = function (edgeType) {
+                return this.fd["" + edgeType].length;
+            };
+            Mesh.prototype.calculateBounds = function () {
+                this.bounds = new Rect();
+                var len = this.ra(Mesh.EXTERNAL);
+                for (var i = 0; i < len; i++) {
+                    var yf = this.yf(Mesh.EXTERNAL, i);
+                    var atlasIDs = yf.getAtlasIDs();
+                    var vertexDataArr = yf.getVertexData(atlasIDs[0]);
+                    for (var j = 0; j < vertexDataArr.length; j++) {
+                        var vertexData = vertexDataArr[j];
+                        var attrs = vertexData.vertexAttributes.attrs;
+                        for (var k = 0; k < attrs.length; ++k) {
+                            var attr = attrs[k];
+                            if (attr.name === "POSITION0") {
+                                var vertices = vertexData.vertices;
+                                var stride = vertexData.vertexAttributes.totalSize / Float32Array.BYTES_PER_ELEMENT;
+                                for (var l = attr.byteOffset / Float32Array.BYTES_PER_ELEMENT; l < vertices.length; l += stride) {
+                                    this.bounds.union(new Rect(vertices[l], vertices[l + 1], 0, 0));
+                                }
+                                break;
+                            }
+                        }
+                    }
+                }
+            };
+            Mesh.INTERNAL = 1;
+            Mesh.EXTERNAL = 2;
+            Mesh.bb = 3;
             return Mesh;
         })();
         e.Mesh = Mesh;
@@ -1259,7 +1646,7 @@ var flwebgl;
                 this.nextAvailableAssetID = -1;
             }
             AssetPool.prototype.setMesh = function (mesh) {
-                this.meshMap[mesh.getID()] = mesh;
+                this.meshMap[mesh.id] = mesh;
             };
             AssetPool.prototype.getMesh = function (id) {
                 return this.meshMap[id];
@@ -1330,8 +1717,709 @@ var flwebgl;
 })(flwebgl || (flwebgl = {}));
 var flwebgl;
 (function (flwebgl) {
+    var geom;
+    (function (geom) {
+        var Matrix3x3 = (function () {
+            function Matrix3x3(matrix) {
+                this.values = Array(9);
+                if (matrix instanceof Matrix3x3) {
+                    this.copy(matrix);
+                }
+                else if (matrix instanceof Array && matrix.length == 9) {
+                    this.copyValues(matrix);
+                }
+                else {
+                    this.identity();
+                }
+            }
+            Matrix3x3.prototype.identity = function () {
+                this.values = [1, 0, 0, 0, 1, 0, 0, 0, 1];
+            };
+            Matrix3x3.prototype.copy = function (matrix) {
+                for (var i = 0; i < 9; i++) {
+                    this.values[i] = matrix.values[i];
+                }
+            };
+            Matrix3x3.prototype.concat = function (matrix) {
+                var v0 = this.values[0] * matrix.values[0] + this.values[3] * matrix.values[1] + this.values[6] * matrix.values[2];
+                var v1 = this.values[1] * matrix.values[0] + this.values[4] * matrix.values[1] + this.values[7] * matrix.values[2];
+                var v2 = this.values[2] * matrix.values[0] + this.values[5] * matrix.values[1] + this.values[8] * matrix.values[2];
+                var v3 = this.values[0] * matrix.values[3] + this.values[3] * matrix.values[4] + this.values[6] * matrix.values[5];
+                var v4 = this.values[1] * matrix.values[3] + this.values[4] * matrix.values[4] + this.values[7] * matrix.values[5];
+                var v5 = this.values[2] * matrix.values[3] + this.values[5] * matrix.values[4] + this.values[8] * matrix.values[5];
+                var v6 = this.values[0] * matrix.values[6] + this.values[3] * matrix.values[7] + this.values[6] * matrix.values[8];
+                var v7 = this.values[1] * matrix.values[6] + this.values[4] * matrix.values[7] + this.values[7] * matrix.values[8];
+                var v8 = this.values[2] * matrix.values[6] + this.values[5] * matrix.values[7] + this.values[8] * matrix.values[8];
+                this.values[0] = v0;
+                this.values[1] = v1;
+                this.values[2] = v2;
+                this.values[3] = v3;
+                this.values[4] = v4;
+                this.values[5] = v5;
+                this.values[6] = v6;
+                this.values[7] = v7;
+                this.values[8] = v8;
+            };
+            Matrix3x3.prototype.transformPoint = function (point) {
+                return new geom.Point(this.values[0] * point.x + this.values[3] * point.y + this.values[6], this.values[1] * point.x + this.values[4] * point.y + this.values[7]);
+            };
+            Matrix3x3.prototype.invert = function () {
+                var v0 = this.values[0];
+                var v1 = this.values[1];
+                var v3 = this.values[3];
+                var v4 = this.values[4];
+                var v6 = this.values[6];
+                var v7 = this.values[7];
+                var det = v0 * (v4 - v7) + v3 * (v7 - v1) + v6 * (v1 - v4);
+                if (det !== 0) {
+                    this.values[0] = v4 - v7;
+                    this.values[1] = v7 - v1;
+                    this.values[2] = v1 - v4;
+                    this.values[3] = v6 - v3;
+                    this.values[4] = v0 - v6;
+                    this.values[5] = v3 - v0;
+                    this.values[6] = v3 * v7 - v6 * v4;
+                    this.values[7] = v6 * v1 - v0 * v7;
+                    this.values[8] = v0 * v4 - v3 * v1;
+                    this.divide(det);
+                }
+            };
+            Matrix3x3.prototype.divide = function (divisor) {
+                this.values[0] /= divisor;
+                this.values[1] /= divisor;
+                this.values[2] /= divisor;
+                this.values[3] /= divisor;
+                this.values[4] /= divisor;
+                this.values[5] /= divisor;
+                this.values[6] /= divisor;
+                this.values[7] /= divisor;
+                this.values[8] /= divisor;
+            };
+            Matrix3x3.prototype.copyValues = function (values) {
+                for (var i = 0; i < 9; i++) {
+                    this.values[i] = values[i];
+                }
+            };
+            return Matrix3x3;
+        })();
+        geom.Matrix3x3 = Matrix3x3;
+    })(geom = flwebgl.geom || (flwebgl.geom = {}));
+})(flwebgl || (flwebgl = {}));
+var flwebgl;
+(function (flwebgl) {
+    var TextureAtlas = (function () {
+        function TextureAtlas(textureJSON, imageURL) {
+            this.textureJSON = textureJSON;
+            this.imageURL = imageURL;
+        }
+        return TextureAtlas;
+    })();
+    flwebgl.TextureAtlas = TextureAtlas;
+})(flwebgl || (flwebgl = {}));
+var flwebgl;
+(function (flwebgl) {
+    var xj;
+    (function (xj) {
+        var parsers;
+        (function (parsers) {
+            var Mesh = flwebgl.e.Mesh;
+            var ParserRelease = (function () {
+                function ParserRelease(content, parser, assetPool) {
+                    this.content = content;
+                    this.parser = parser;
+                    this.assetPool = assetPool;
+                    this.ac = -1;
+                }
+                ParserRelease.prototype.parseSounds = function () {
+                    return true;
+                };
+                ParserRelease.prototype.parseFills = function () {
+                    var fills = this.content[ParserRelease.kFills];
+                    if (fills.length === 0) {
+                        return true;
+                    }
+                    this.fillIDNameMap = {};
+                    this.fillNameIsOpaqueMap = {};
+                    this.fillNameStyleMap = {};
+                    for (var i = 0; i < fills.length; i++) {
+                        var fill = fills[i];
+                        var id = "" + fill[0];
+                        var style = fill[1];
+                        var name = fill[2];
+                        var isOpaque = (fill[3] == "T");
+                        this.fillIDNameMap[id] = name;
+                        this.fillNameIsOpaqueMap[name] = isOpaque;
+                        this.fillNameStyleMap[name] = style;
+                    }
+                    return true;
+                };
+                ParserRelease.prototype.parseShapes = function () {
+                    var shapes = this.content[ParserRelease.kShapes];
+                    if (shapes.length === 0) {
+                        return true;
+                    }
+                    for (var i = 0; i < shapes.length; i++) {
+                        var shape = shapes[i];
+                        var meshAsset = new Mesh(shape[0]);
+                        for (var j = 1; j < shape.length; j++) {
+                            var mesh = shape[j];
+                            var id = mesh[0];
+                            var vertices = mesh[1];
+                            var internalIndices = mesh[2];
+                            var edgeIndices = mesh[3];
+                            var concaveCurveIndices = mesh[4];
+                            var convexCurveIndices = mesh[5];
+                            var fillMatrix = [];
+                            var fillOverflow = "";
+                            var fillIsBitmapClipped = false;
+                            var fillName = this.fillIDNameMap[id];
+                            var fillIsOpaque = this.fillNameIsOpaqueMap[fillName];
+                            var fillStyle = this.fillNameStyleMap[fillName];
+                            switch (fillStyle) {
+                                case ParserRelease.kLinearGradient:
+                                    fillMatrix = mesh[6];
+                                    fillOverflow = mesh[7];
+                                    break;
+                                case ParserRelease.kBitmap:
+                                    fillMatrix = mesh[6];
+                                    fillIsBitmapClipped = mesh[7];
+                                    break;
+                            }
+                            var f = this.parser.If(vertices, fillName, fillStyle, fillMatrix, fillOverflow, fillIsBitmapClipped, fillIsOpaque, internalIndices);
+                            var q = this.parser.If(vertices, fillName, fillStyle, fillMatrix, fillOverflow, fillIsBitmapClipped, fillIsOpaque, [], concaveCurveIndices, convexCurveIndices, edgeIndices);
+                            var t = this.parser.dj(vertices, concaveCurveIndices, convexCurveIndices, edgeIndices, fillName, fillStyle, fillIsOpaque, fillMatrix, fillOverflow, fillIsBitmapClipped);
+                            var k;
+                            if (f.length) {
+                                for (k = 0; k < f.length; k++) {
+                                    meshAsset.Nb(Mesh.INTERNAL, f[k]);
+                                }
+                            }
+                            if (q.length) {
+                                for (k = 0; k < q.length; k++) {
+                                    meshAsset.Nb(Mesh.EXTERNAL, q[k]);
+                                }
+                            }
+                            if (t && t.length) {
+                                for (k = 0; k < t.length; k++) {
+                                    meshAsset.Nb(Mesh.bb, t[k]);
+                                }
+                            }
+                        }
+                        meshAsset.calculateBounds();
+                        this.assetPool.setMesh(meshAsset);
+                    }
+                    return true;
+                };
+                ParserRelease.prototype.parseTimelines = function () {
+                    return true;
+                };
+                ParserRelease.kSolid = "s";
+                ParserRelease.kLinearGradient = "lG";
+                ParserRelease.kBitmap = "b";
+                ParserRelease.kFills = "fills";
+                ParserRelease.kShapes = "shapes";
+                ParserRelease.kTimelines = "timelines";
+                ParserRelease.kSounds = "sounds";
+                ParserRelease.kSrc = "src";
+                return ParserRelease;
+            })();
+            parsers.ParserRelease = ParserRelease;
+        })(parsers = xj.parsers || (xj.parsers = {}));
+    })(xj = flwebgl.xj || (flwebgl.xj = {}));
+})(flwebgl || (flwebgl = {}));
+var flwebgl;
+(function (flwebgl) {
+    var xj;
+    (function (xj) {
+        var parsers;
+        (function (parsers) {
+            var ParserDebug = (function () {
+                function ParserDebug(content, parser, assetPool) {
+                }
+                ParserDebug.prototype.parseSounds = function () {
+                    return true;
+                };
+                ParserDebug.prototype.parseFills = function () {
+                    return true;
+                };
+                ParserDebug.prototype.parseShapes = function () {
+                    return true;
+                };
+                ParserDebug.prototype.parseTimelines = function () {
+                    return true;
+                };
+                ParserDebug.kSolid = "solid";
+                ParserDebug.kLinearGradient = "linearGradient";
+                ParserDebug.kBitmap = "bitmap";
+                ParserDebug.kId = "id";
+                ParserDebug.kName = "name";
+                ParserDebug.kLinkageName = "linkageName";
+                ParserDebug.kIsScene = "isScene";
+                ParserDebug.kLabels = "labels";
+                ParserDebug.kFrameNum = "frameNum";
+                ParserDebug.kFills = "fills";
+                ParserDebug.kStyle = "style";
+                ParserDebug.kIsOpaque = "isOpaque";
+                ParserDebug.kShapes = "shapes";
+                ParserDebug.kMeshes = "meshes";
+                ParserDebug.kInternalIndices = "internalIndices";
+                ParserDebug.kConcaveCurveIndices = "concaveCurveIndices";
+                ParserDebug.kConvexCurveIndices = "convexCurveIndices";
+                ParserDebug.kEdgeIndices = "edgeIndices";
+                ParserDebug.kVertices = "vertices";
+                ParserDebug.kFillId = "fillId";
+                ParserDebug.kFillMatrix = "fillMatrix";
+                ParserDebug.kOverflow = "overflow";
+                ParserDebug.kIsBitmapClipped = "isBitmapClipped";
+                ParserDebug.kTimelines = "timelines";
+                ParserDebug.kScripts = "scripts";
+                ParserDebug.kScript = "script";
+                ParserDebug.kFrames = "frames";
+                ParserDebug.kSounds = "sounds";
+                ParserDebug.kSrc = "src";
+                ParserDebug.kFramesCmds = "frameCmds";
+                return ParserDebug;
+            })();
+            parsers.ParserDebug = ParserDebug;
+        })(parsers = xj.parsers || (xj.parsers = {}));
+    })(xj = flwebgl.xj || (flwebgl.xj = {}));
+})(flwebgl || (flwebgl = {}));
+var flwebgl;
+(function (flwebgl) {
+    var xj;
+    (function (xj) {
+        var Point = flwebgl.geom.Point;
+        var Rect = flwebgl.geom.Rect;
+        var Matrix = flwebgl.geom.Matrix;
+        var Matrix3x3 = flwebgl.geom.Matrix3x3;
+        var Utils = flwebgl.util.Utils;
+        var GL = flwebgl.e.GL;
+        var ca = flwebgl.e.ca;
+        var Mesh = flwebgl.e.Mesh;
+        var TextureAtlas = flwebgl.e.TextureAtlas;
+        var VertexData = flwebgl.e.VertexData;
+        var VertexAttribute = flwebgl.e.VertexAttribute;
+        var VertexAttributes = flwebgl.e.VertexAttributes;
+        var ParserRelease = flwebgl.xj.parsers.ParserRelease;
+        var ParserDebug = flwebgl.xj.parsers.ParserDebug;
+        var StageInfo = (function () {
+            function StageInfo(width, height, color, frameRate, loop, timelines) {
+                this.width = width;
+                this.height = height;
+                this.color = color;
+                this.frameRate = frameRate;
+                this.loop = loop;
+                this.timelines = timelines;
+            }
+            return StageInfo;
+        })();
+        xj.StageInfo = StageInfo;
+        var BufferData = (function () {
+            function BufferData(vertices, indices) {
+                if (vertices === void 0) { vertices = []; }
+                if (indices === void 0) { indices = []; }
+                this.vertices = vertices;
+                this.indices = indices;
+            }
+            return BufferData;
+        })();
+        xj.BufferData = BufferData;
+        var Parser = (function () {
+            function Parser(assetPool) {
+                this.assetPool = assetPool;
+            }
+            Parser.prototype.init = function (content, textures, options) {
+                if (textures) {
+                    for (var i = 0; i < textures.length; i++) {
+                        var texture = textures[i];
+                        if (!this.parseTextureAtlas(texture.textureJSON, texture.imageURL, "" + i)) {
+                            return null;
+                        }
+                    }
+                }
+                return this.parse(content, options);
+            };
+            Parser.prototype.parse = function (content, options) {
+                if (typeof content === "string") {
+                    content = JSON.parse(content);
+                }
+                var header = content[Parser.kHeader];
+                var stageSize = header[Parser.kStageSize];
+                var stageInfo = new StageInfo(stageSize[Parser.kWidth], stageSize[Parser.kHeight], Utils.getColor(header[Parser.kStageColor]), header[Parser.kFrameRate], header[Parser.kLoop], header[Parser.kSceneTimelines]);
+                var p = (header[Parser.kReadable] == true) ? new ParserDebug(content, this, this.assetPool) : new ParserRelease(content, this, this.assetPool);
+                this.enableCacheAsBitmap = options.cacheAsBitmap;
+                this.enableStandardDerivatives = options.standardDerivatives;
+                this.S = this.enableStandardDerivatives ? 11 : 7;
+                if (!p.parseSounds() || !p.parseFills()) {
+                    return stageInfo;
+                }
+                this.vertexAttributes = new VertexAttributes();
+                var y = new VertexAttribute(0, "POSITION0", GL.FLOAT, 2);
+                var w = new VertexAttribute(2 * Float32Array.BYTES_PER_ELEMENT, "TEXCOORD0", GL.FLOAT, 2);
+                var t = new VertexAttribute(4 * Float32Array.BYTES_PER_ELEMENT, "TEXCOORD1", GL.FLOAT, 1);
+                var q = new VertexAttribute(5 * Float32Array.BYTES_PER_ELEMENT, "TEXCOORD2", GL.FLOAT, 2);
+                if (this.enableStandardDerivatives) {
+                    var r = new VertexAttribute(7 * Float32Array.BYTES_PER_ELEMENT, "TEXCOORD3", GL.FLOAT, 2);
+                    var u = new VertexAttribute(9 * Float32Array.BYTES_PER_ELEMENT, "TEXCOORD4", GL.FLOAT, 2);
+                    this.vertexAttributes.attrs = [y, w, t, q, r, u];
+                }
+                else {
+                    this.vertexAttributes.attrs = [y, w, t, q];
+                }
+                this.vertexAttributes.totalSize = this.S * Float32Array.BYTES_PER_ELEMENT;
+                if (!p.parseShapes() || !p.parseTimelines()) {
+                    return stageInfo;
+                }
+                return stageInfo;
+            };
+            Parser.prototype.parseTextureAtlas = function (textureJSON, imageURL, atlasID) {
+                if (!textureJSON) {
+                    return false;
+                }
+                var frames = textureJSON[Parser.kFrames];
+                if (!frames) {
+                    return false;
+                }
+                var width = textureJSON[Parser.kMeta][Parser.kSize][Parser.kW];
+                var height = textureJSON[Parser.kMeta][Parser.kSize][Parser.kH];
+                var textureAtlas = new TextureAtlas(atlasID, imageURL, width, height);
+                for (var id in frames) {
+                    var frame = frames[id][Parser.kFrame];
+                    var rect = new Rect(frame[Parser.kX] + 1, frame[Parser.kY] + 1, frame[Parser.kW] - 2, frame[Parser.kH] - 2);
+                    textureAtlas.setFrame(id, rect);
+                }
+                this.assetPool.setTextureAtlas(textureAtlas);
+                return true;
+            };
+            Parser.prototype.If = function (vertices, fillName, fillStyle, fillMatrix, fillOverflow, fillIsBitmapClipped, fillIsOpaque, internalIndices, concaveCurveIndices, convexCurveIndices, edgeIndices) {
+                if (internalIndices === void 0) { internalIndices = []; }
+                if (concaveCurveIndices === void 0) { concaveCurveIndices = []; }
+                if (convexCurveIndices === void 0) { convexCurveIndices = []; }
+                if (edgeIndices === void 0) { edgeIndices = []; }
+                if (internalIndices.length == 0 && concaveCurveIndices.length == 0 && convexCurveIndices.length == 0 && edgeIndices.length == 0) {
+                    return [];
+                }
+                var C = [];
+                var bufferDataArray;
+                var edgeType;
+                if (internalIndices.length > 0) {
+                    edgeType = Mesh.INTERNAL;
+                    bufferDataArray = this.createInternalBuffers(vertices, internalIndices);
+                }
+                else {
+                    edgeType = Mesh.EXTERNAL;
+                    bufferDataArray = this.createExternalBuffers(vertices, concaveCurveIndices, convexCurveIndices, edgeIndices);
+                }
+                for (var i = 0; i < bufferDataArray.length; i++) {
+                    var bufferData = bufferDataArray[i];
+                    var u = new ca(fillName, fillIsOpaque);
+                    var r = this.injectLoopBlinnTexCoords(bufferData, fillName, fillStyle, fillMatrix);
+                    for (var atlasID in r) {
+                        var fillVertices = r[atlasID];
+                        if (this.enableStandardDerivatives) {
+                            this.injectStandardDerivativeTexCoords(edgeType, fillVertices, bufferData.indices.length);
+                        }
+                        u.setVertexData(atlasID, [new VertexData(new Float32Array(fillVertices), this.vertexAttributes)]);
+                        u.setIndices(bufferData.indices);
+                    }
+                    u.fillMode = this.getFillMode(fillStyle, fillOverflow, fillIsBitmapClipped);
+                    C.push(u);
+                }
+                return C;
+            };
+            Parser.prototype.dj = function (vertices, concaveCurveIndices, convexCurveIndices, edgeIndices, fillName, fillStyle, fillIsOpaque, fillMatrix, fillOverflow, fillIsBitmapClipped) {
+                return null;
+            };
+            Parser.prototype.createInternalBuffers = function (vertices, indices) {
+                var bufferDataArray = [];
+                var start = 0;
+                var end = 0;
+                var texCoords = [new Point(0, 1), new Point(0, 1), new Point(0, 1)];
+                while (end < indices.length) {
+                    start = end;
+                    end = (indices.length - end > GL.MAX_VERTICES) ? end + GL.MAX_VERTICES : indices.length;
+                    bufferDataArray.push(this.af(vertices, indices, start, end, texCoords, 100000));
+                }
+                return bufferDataArray;
+            };
+            Parser.prototype.createExternalBuffers = function (vertices, concaveCurveIndices, convexCurveIndices, edgeIndices) {
+                var bufferDataArray = [];
+                var w = 0;
+                var t = 0;
+                var start = 0;
+                var endConcave = 0;
+                var endConvex = 0;
+                var endEdge = 0;
+                var curveTexCoords = [Parser.tex[0], Parser.tex[1], Parser.tex[2]];
+                var edgeTexCoords = [new Point(0, 0), new Point(0, 1), new Point(0, 0)];
+                var totalIndices = concaveCurveIndices.length + convexCurveIndices.length + edgeIndices.length;
+                while (t < totalIndices) {
+                    var bufferData = new BufferData();
+                    w = t;
+                    t = (totalIndices - t > GL.MAX_VERTICES) ? t + GL.MAX_VERTICES : totalIndices;
+                    w = t - w;
+                    start = endConcave;
+                    endConcave = (endConcave < concaveCurveIndices.length) ? (w > concaveCurveIndices.length - endConcave) ? concaveCurveIndices.length : endConcave + w : endConcave;
+                    w -= (endConcave - start);
+                    if (start != endConcave) {
+                        bufferData = this.af(vertices, concaveCurveIndices, start, endConcave, curveTexCoords, -1);
+                    }
+                    if (w > 0) {
+                        start = endConvex;
+                        endConvex = (endConvex < convexCurveIndices.length) ? (w > convexCurveIndices.length - endConvex) ? convexCurveIndices.length : endConvex + w : endConvex;
+                        w -= endConvex - start;
+                        bufferData = this.af(vertices, convexCurveIndices, start, endConvex, curveTexCoords, 1, bufferData);
+                    }
+                    if (w > 0) {
+                        start = endEdge;
+                        endEdge = (endEdge < edgeIndices.length) ? (w > edgeIndices.length - endEdge) ? edgeIndices.length : endEdge + w : endEdge;
+                        bufferData = this.af(vertices, edgeIndices, start, endEdge, edgeTexCoords, 1, bufferData);
+                    }
+                    bufferDataArray.push(bufferData);
+                }
+                return bufferDataArray;
+            };
+            Parser.prototype.af = function (vertices, indices, start, end, texCoords, isConvexMultiplier, bufferData) {
+                if (!bufferData) {
+                    bufferData = new BufferData();
+                }
+                var bufVertices = bufferData.vertices;
+                var bufIndices = bufferData.indices;
+                var bufVertexOffset = bufVertices.length;
+                var bufIndexOffset = bufIndices.length;
+                var iIndex = 0;
+                while (start < end) {
+                    for (var i = 0; i < 3; i++) {
+                        var index = indices[start + i];
+                        bufIndices[bufIndexOffset + iIndex] = iIndex;
+                        bufVertices[bufVertexOffset++] = vertices[2 * index];
+                        bufVertices[bufVertexOffset++] = vertices[2 * index + 1];
+                        bufVertices[bufVertexOffset++] = texCoords[i].x;
+                        bufVertices[bufVertexOffset++] = texCoords[i].y;
+                        bufVertices[bufVertexOffset++] = isConvexMultiplier;
+                        for (var iVertex = 5; iVertex < this.S; iVertex++) {
+                            bufVertices[bufVertexOffset++] = null;
+                        }
+                        iIndex++;
+                    }
+                    start += 3;
+                }
+                return bufferData;
+            };
+            Parser.prototype.injectLoopBlinnTexCoords = function (bufferData, fillName, fillStyle, fillMatrix) {
+                var d = {};
+                var atlases = this.assetPool.getTextureAtlases();
+                var offset = this.enableStandardDerivatives ? this.S - 6 : this.S - 2;
+                for (var i = 0; i < atlases.length; i++) {
+                    var atlas = atlases[i];
+                    var frame = atlas.getFrame(fillName);
+                    if (frame !== void 0) {
+                        var textureWidth = atlas.width;
+                        var textureHeight = atlas.height;
+                        switch (fillStyle) {
+                            case ParserRelease.kSolid:
+                            case ParserDebug.kSolid:
+                                this.injectLoopBlinnTexCoords_SolidFill(bufferData.vertices, this.S, offset, textureWidth, textureHeight, frame, bufferData.indices.length);
+                                break;
+                            case ParserRelease.kLinearGradient:
+                            case ParserDebug.kLinearGradient:
+                                this.injectLoopBlinnTexCoords_LinearGradientFill(bufferData.vertices, this.S, offset, bufferData.indices.length, fillMatrix);
+                                break;
+                            case ParserRelease.kBitmap:
+                            case ParserDebug.kBitmap:
+                                this.injectLoopBlinnTexCoords_BitmapFill(bufferData.vertices, this.S, offset, bufferData.indices.length, fillMatrix, frame.width, frame.height);
+                                break;
+                        }
+                        if (bufferData.vertices && bufferData.vertices.length > 0) {
+                            d[atlas.id] = bufferData.vertices;
+                        }
+                    }
+                }
+                return d;
+            };
+            Parser.prototype.injectLoopBlinnTexCoords_SolidFill = function (vertices, stride, offset, textureWidth, textureHeight, frame, count) {
+                if (count > 0) {
+                    var texCoord = new Point(frame.left + frame.width / 2, frame.top + frame.height / 2);
+                    texCoord.x /= textureWidth;
+                    texCoord.y /= textureHeight;
+                    for (var i = 0; i < count; i++) {
+                        vertices[offset] = texCoord.x;
+                        vertices[offset + 1] = texCoord.y;
+                        offset += stride;
+                    }
+                }
+            };
+            Parser.prototype.injectLoopBlinnTexCoords_LinearGradientFill = function (vertices, stride, offset, count, matrixValues) {
+                if (count > 0 && matrixValues.length == 6) {
+                    var matrix = new Matrix(matrixValues);
+                    matrix.multiply(Parser.fillMatrixIdentity);
+                    var isInvertible = matrix.isInvertible();
+                    if (isInvertible) {
+                        matrix.invert();
+                    }
+                    var iVert = 0;
+                    var iTex = offset;
+                    for (var i = 0; i < count; i++) {
+                        if (!isInvertible) {
+                            vertices[iTex] = 0.5;
+                        }
+                        else {
+                            var texCoord = matrix.transformPoint(new Point(vertices[iVert], vertices[iVert + 1]));
+                            vertices[iTex] = texCoord.x;
+                        }
+                        vertices[iTex + 1] = 0.5;
+                        iVert += stride;
+                        iTex += stride;
+                    }
+                }
+            };
+            Parser.prototype.injectLoopBlinnTexCoords_BitmapFill = function (vertices, stride, offset, count, matrixValues, bitmapWidth, bitmapHeight) {
+                if (count > 0 && matrixValues.length == 6) {
+                    var matrix = new Matrix(matrixValues);
+                    matrix.invert();
+                    bitmapWidth /= 20;
+                    bitmapHeight /= 20;
+                    matrix.setValue(0, 0, matrix.getValue(0, 0) / bitmapWidth);
+                    matrix.setValue(1, 0, matrix.getValue(1, 0) / bitmapHeight);
+                    matrix.setValue(0, 1, matrix.getValue(0, 1) / bitmapWidth);
+                    matrix.setValue(1, 1, matrix.getValue(1, 1) / bitmapHeight);
+                    matrix.setValue(0, 3, matrix.getValue(0, 3) / bitmapWidth);
+                    matrix.setValue(1, 3, matrix.getValue(1, 3) / bitmapHeight);
+                    var posOffset = 0;
+                    var texOffset = offset;
+                    for (var i = 0; i < count; i++) {
+                        var texCoord = matrix.transformPoint(new Point(vertices[posOffset], vertices[posOffset + 1]));
+                        vertices[texOffset] = texCoord.x;
+                        vertices[texOffset + 1] = texCoord.y;
+                        posOffset += stride;
+                        texOffset += stride;
+                    }
+                }
+            };
+            Parser.prototype.injectStandardDerivativeTexCoords = function (edgeType, vertices, count) {
+                var offset = this.S - 4;
+                var stride = this.S;
+                var len = count * stride;
+                var i = 0;
+                switch (edgeType) {
+                    case Mesh.INTERNAL:
+                        while (i < len) {
+                            vertices[offset] = 0;
+                            vertices[offset + 1] = 1;
+                            vertices[offset + 2] = 0;
+                            vertices[offset + 3] = 1;
+                            offset += stride;
+                            i += stride;
+                        }
+                        break;
+                    case Mesh.EXTERNAL:
+                    case Mesh.bb:
+                        while (i < len) {
+                            var stride2 = stride * 2;
+                            var texCoords = [];
+                            texCoords.push(new Point(vertices[i], vertices[i + 1]));
+                            texCoords.push(new Point(vertices[i + stride], vertices[i + 1 + stride]));
+                            texCoords.push(new Point(vertices[i + stride2], vertices[i + 1 + stride2]));
+                            var d = this.bl([
+                                vertices[i + 2],
+                                vertices[i + 3],
+                                1,
+                                vertices[i + 2 + stride],
+                                vertices[i + 3 + stride],
+                                1,
+                                vertices[i + 2 + stride2],
+                                vertices[i + 3 + stride2],
+                                1
+                            ], texCoords);
+                            vertices[offset] = d[0].x;
+                            vertices[offset + 1] = d[0].y;
+                            vertices[offset + 2] = d[1].x;
+                            vertices[offset + 3] = d[1].y;
+                            vertices[offset + stride] = d[0].x;
+                            vertices[offset + 1 + stride] = d[0].y;
+                            vertices[offset + 2 + stride] = d[1].x;
+                            vertices[offset + 3 + stride] = d[1].y;
+                            vertices[offset + stride2] = d[0].x;
+                            vertices[offset + 1 + stride2] = d[0].y;
+                            vertices[offset + 2 + stride2] = d[1].x;
+                            vertices[offset + 3 + stride2] = d[1].y;
+                            offset += stride * 3;
+                            i += stride * 3;
+                        }
+                        break;
+                }
+            };
+            Parser.prototype.bl = function (matrixValues, texCoords) {
+                var p2 = texCoords[1].sub(texCoords[0]);
+                var p3 = texCoords[2].sub(texCoords[0]);
+                var m1 = new Matrix3x3([0, 0, 1, p2.x, p2.y, 1, p3.x, p3.y, 1]);
+                m1.invert();
+                var x = matrixValues[0];
+                var y = matrixValues[1];
+                matrixValues[0] = 0;
+                matrixValues[1] = 0;
+                matrixValues[3] -= x;
+                matrixValues[4] -= y;
+                matrixValues[6] -= x;
+                matrixValues[7] -= y;
+                var m2 = new Matrix3x3(matrixValues);
+                m2.concat(m1);
+                return [
+                    m2.transformPoint(new Point(1, 0)),
+                    m2.transformPoint(new Point(0, 1))
+                ];
+            };
+            Parser.prototype.getFillMode = function (fillStyle, fillOverflow, fillIsBitmapClipped) {
+                var fillMode = 0;
+                switch (fillStyle) {
+                    case ParserRelease.kLinearGradient:
+                    case ParserDebug.kLinearGradient:
+                        fillMode = ca.fillModeMap[fillOverflow];
+                        break;
+                    case ParserRelease.kBitmap:
+                    case ParserDebug.kBitmap:
+                        fillMode = ca.fillModeMap[fillIsBitmapClipped ? ca.kFill_Repeat : ca.kFill_Extend];
+                        break;
+                }
+                return fillMode;
+            };
+            Parser.tex = [
+                new Point(0, 0),
+                new Point(0.5, 0),
+                new Point(1, 1),
+                new Point(0, 1),
+                new Point(0.25, -0.25),
+                new Point(1, 0.75)
+            ];
+            Parser.fillMatrixIdentity = new Matrix([1638.4, 0, 0, 1638.4, -819.2, -819.2]);
+            Parser.kHeader = "header";
+            Parser.kStageSize = "stageSize";
+            Parser.kWidth = "width";
+            Parser.kHeight = "height";
+            Parser.kStageColor = "stageColor";
+            Parser.kFrameRate = "frameRate";
+            Parser.kReadable = "readable";
+            Parser.kLoop = "loop";
+            Parser.kSceneTimelines = "sceneTimelines";
+            Parser.kFrames = "frames";
+            Parser.kFrame = "frame";
+            Parser.kMeta = "meta";
+            Parser.kSize = "size";
+            Parser.kX = "x";
+            Parser.kY = "y";
+            Parser.kW = "w";
+            Parser.kH = "h";
+            return Parser;
+        })();
+        xj.Parser = Parser;
+    })(xj = flwebgl.xj || (flwebgl.xj = {}));
+})(flwebgl || (flwebgl = {}));
+var flwebgl;
+(function (flwebgl) {
     var Renderer = flwebgl.e.Renderer;
+    var SoundFactory = flwebgl.media.SoundFactory;
     var AssetPool = flwebgl.util.AssetPool;
+    var Parser = flwebgl.xj.Parser;
     var Player = (function () {
         function Player() {
             this.assetPool = new AssetPool();
@@ -1349,6 +2437,11 @@ var flwebgl;
             catch (error) {
                 return Player.E_CONTEXT_CREATION_FAILED;
             }
+            this.completeCBK = callback;
+            this.soundFactory = new SoundFactory();
+            this.options.standardDerivatives = this.renderer.hasExtension("OES_standard_derivatives");
+            this.parser = new Parser(this.assetPool);
+            var b = this.parser.init(content, textures, this.options);
         };
         Player.S_OK = 0;
         Player.E_ERR = 1;

@@ -16,6 +16,7 @@ module flwebgl
     cachingOptions = {};
     cacheAsBitmap = true;
     antialias = AAType.ImageSpace;
+    standardDerivatives = false;
 
     constructor(options: any = {}) {
       if (!Utils.isUndefined(options[PlayerOptions.kOption_LogErrors])) {

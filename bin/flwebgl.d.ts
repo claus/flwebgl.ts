@@ -1,6 +1,18 @@
+declare module flwebgl.geom {
+    class Color {
+        red: number;
+        blue: number;
+        green: number;
+        alpha: number;
+        constructor(red: number, blue: number, green: number, alpha?: number);
+        equals(color: Color): boolean;
+    }
+}
 declare module flwebgl.util {
+    import Color = flwebgl.geom.Color;
     class Utils {
         static isUndefined(object: any): boolean;
+        static getColor: (color: string) => Color;
     }
 }
 declare module flwebgl {
@@ -14,22 +26,13 @@ declare module flwebgl {
         cachingOptions: {};
         cacheAsBitmap: boolean;
         antialias: AAType;
+        standardDerivatives: boolean;
         constructor(options?: any);
         private static kOption_LogErrors;
         private static kOption_AAType;
         private static kOption_Caching;
         private static kOption_CacheAsBitmap;
         private static kOption_StandardDerivatives;
-    }
-}
-declare module flwebgl.geom {
-    class Color {
-        red: number;
-        blue: number;
-        green: number;
-        alpha: number;
-        constructor(red: number, blue: number, green: number, alpha?: number);
-        equals(color: Color): boolean;
     }
 }
 declare module flwebgl.geom {
@@ -40,18 +43,42 @@ declare module flwebgl.geom {
         height: number;
         isEmpty: boolean;
         constructor(left?: number, top?: number, width?: number, height?: number);
-        intersects(a: any): boolean;
+        intersects(rect: Rect): boolean;
+        copy(rect: Rect): void;
+        union(rect: Rect): void;
+    }
+}
+declare module flwebgl.geom {
+    class Point {
+        x: number;
+        y: number;
+        constructor(x: number, y: number);
+        add(point: Point): Point;
+        sub(point: Point): Point;
     }
 }
 declare module flwebgl.geom {
     class Matrix {
         values: number[];
         private _isIdentity;
-        constructor(values: number[]);
+        constructor(values?: number[]);
+        isInvertible(): boolean;
         isIdentity: boolean;
         private setIsIdentity();
         identity(): Matrix;
+        equals(matrix: Matrix): boolean;
+        getValues(): number[];
         setValues: (values: number[]) => void;
+        clone(): Matrix;
+        copy(matrix: Matrix): Matrix;
+        concat(matrix: Matrix): Matrix;
+        multiply(matrix: Matrix): void;
+        transformPoint(point: Point): Point;
+        transformBoundsAABB(rect: Rect): Rect;
+        invert(): Matrix;
+        translate(tx: number, ty: number): Matrix;
+        setValue(column: number, row: number, value: number): void;
+        getValue(column: number, row: number): number;
     }
 }
 declare module flwebgl.e {
@@ -78,6 +105,8 @@ declare module flwebgl.e {
         constructor(id: string, imageURL: string, width: number, height: number);
         id: string;
         imageURL: string;
+        width: number;
+        height: number;
         setFrame(id: string, frame: Rect): void;
         getFrame(id: string): Rect;
     }
@@ -405,11 +434,77 @@ declare module flwebgl.e {
         static Gj: number;
     }
 }
+declare module flwebgl.media {
+    class SoundFactory {
+        constructor();
+    }
+}
+declare module flwebgl.e {
+    class VertexAttribute {
+        byteOffset: number;
+        name: string;
+        type: number;
+        size: number;
+        constructor(byteOffset: number, name: string, type: number, size: number);
+    }
+}
+declare module flwebgl.e {
+    class VertexAttributes {
+        attrs: VertexAttribute[];
+        totalSize: number;
+        constructor(attrs?: VertexAttribute[], totalSize?: number);
+    }
+}
+declare module flwebgl.e {
+    class VertexData {
+        vertices: Float32Array;
+        vertexAttributes: VertexAttributes;
+        constructor(vertices: Float32Array, vertexAttributes: VertexAttributes);
+    }
+}
+declare module flwebgl.e {
+    class VertexAttributesArray {
+        ta: VertexAttributes[];
+        constructor();
+    }
+    class ca {
+        name: string;
+        isOpaque: boolean;
+        fillMode: number;
+        indices: Uint16Array;
+        vertexDataMap: any;
+        he: VertexAttributesArray;
+        constructor(name: string, isOpaque: boolean);
+        getID(): number;
+        getVertexData(atlasID: string): VertexData[];
+        setVertexData(atlasID: string, vertexData: VertexData[]): void;
+        setIndices(indices: number[]): void;
+        sa(): number;
+        getAtlasIDs(): string[];
+        static kFill_Extend: string;
+        static kFill_Repeat: string;
+        static kFill_Reflect: string;
+        static fillModeMap: {
+            Extend: number;
+            Repeat: number;
+            Reflect: number;
+        };
+    }
+}
 declare module flwebgl.e {
     class Mesh {
-        id: any;
-        constructor(id: any);
-        getID(): any;
+        private _id;
+        private fd;
+        private bounds;
+        constructor(id: string);
+        id: string;
+        Nb(edgeType: number, h: ca): void;
+        yf(edgeType: number, i: number): ca;
+        ra(edgeType: number): any;
+        calculateBounds(): void;
+        static INTERNAL: number;
+        static EXTERNAL: number;
+        static bb: number;
     }
 }
 declare module flwebgl.B {
@@ -461,6 +556,166 @@ declare module flwebgl.util {
         destroy(): void;
     }
 }
+declare module flwebgl.geom {
+    class Matrix3x3 {
+        values: number[];
+        constructor(matrix: any);
+        identity(): void;
+        copy(matrix: Matrix3x3): void;
+        concat(matrix: Matrix3x3): void;
+        transformPoint(point: Point): Point;
+        invert(): void;
+        divide(divisor: number): void;
+        copyValues(values: number[]): void;
+    }
+}
+declare module flwebgl {
+    class TextureAtlas {
+        textureJSON: any;
+        imageURL: string;
+        constructor(textureJSON: any, imageURL: string);
+    }
+}
+declare module flwebgl.xj.parsers {
+    interface IParser {
+        parseSounds(): boolean;
+        parseFills(): boolean;
+        parseShapes(): boolean;
+        parseTimelines(): boolean;
+    }
+}
+declare module flwebgl.xj.parsers {
+    import AssetPool = flwebgl.util.AssetPool;
+    import Parser = flwebgl.xj.Parser;
+    class ParserRelease implements IParser {
+        private content;
+        private parser;
+        private assetPool;
+        private ac;
+        private fillIDNameMap;
+        private fillNameIsOpaqueMap;
+        private fillNameStyleMap;
+        constructor(content: any, parser: Parser, assetPool: AssetPool);
+        parseSounds(): boolean;
+        parseFills(): boolean;
+        parseShapes(): boolean;
+        parseTimelines(): boolean;
+        static kSolid: string;
+        static kLinearGradient: string;
+        static kBitmap: string;
+        static kFills: string;
+        static kShapes: string;
+        static kTimelines: string;
+        static kSounds: string;
+        static kSrc: string;
+    }
+}
+declare module flwebgl.xj.parsers {
+    import AssetPool = flwebgl.util.AssetPool;
+    import Parser = flwebgl.xj.Parser;
+    class ParserDebug implements IParser {
+        constructor(content: any, parser: Parser, assetPool: AssetPool);
+        parseSounds(): boolean;
+        parseFills(): boolean;
+        parseShapes(): boolean;
+        parseTimelines(): boolean;
+        static kSolid: string;
+        static kLinearGradient: string;
+        static kBitmap: string;
+        static kId: string;
+        static kName: string;
+        static kLinkageName: string;
+        static kIsScene: string;
+        static kLabels: string;
+        static kFrameNum: string;
+        static kFills: string;
+        static kStyle: string;
+        static kIsOpaque: string;
+        static kShapes: string;
+        static kMeshes: string;
+        static kInternalIndices: string;
+        static kConcaveCurveIndices: string;
+        static kConvexCurveIndices: string;
+        static kEdgeIndices: string;
+        static kVertices: string;
+        static kFillId: string;
+        static kFillMatrix: string;
+        static kOverflow: string;
+        static kIsBitmapClipped: string;
+        static kTimelines: string;
+        static kScripts: string;
+        static kScript: string;
+        static kFrames: string;
+        static kSounds: string;
+        static kSrc: string;
+        static kFramesCmds: string;
+    }
+}
+declare module flwebgl.xj {
+    import Color = flwebgl.geom.Color;
+    import Point = flwebgl.geom.Point;
+    import Rect = flwebgl.geom.Rect;
+    import Matrix = flwebgl.geom.Matrix;
+    import AssetPool = flwebgl.util.AssetPool;
+    import ca = flwebgl.e.ca;
+    import PlayerOptions = flwebgl.PlayerOptions;
+    class StageInfo {
+        width: number;
+        height: number;
+        color: Color;
+        frameRate: number;
+        loop: boolean;
+        timelines: any;
+        constructor(width: number, height: number, color: Color, frameRate: number, loop: boolean, timelines: any);
+    }
+    class BufferData {
+        vertices: number[];
+        indices: number[];
+        constructor(vertices?: number[], indices?: number[]);
+    }
+    class Parser {
+        private assetPool;
+        private enableCacheAsBitmap;
+        private enableStandardDerivatives;
+        private vertexAttributes;
+        private S;
+        constructor(assetPool: AssetPool);
+        init(content: any, textures: flwebgl.TextureAtlas[], options: PlayerOptions): StageInfo;
+        parse(content: any, options: PlayerOptions): StageInfo;
+        parseTextureAtlas(textureJSON: any, imageURL: string, atlasID: string): boolean;
+        If(vertices: number[], fillName: string, fillStyle: string, fillMatrix: number[], fillOverflow: string, fillIsBitmapClipped: boolean, fillIsOpaque: boolean, internalIndices?: number[], concaveCurveIndices?: number[], convexCurveIndices?: number[], edgeIndices?: number[]): ca[];
+        dj(vertices: any, concaveCurveIndices: any, convexCurveIndices: any, edgeIndices: any, fillName: any, fillStyle: any, fillIsOpaque: any, fillMatrix: any, fillOverflow: any, fillIsBitmapClipped: any): ca[];
+        createInternalBuffers(vertices: any, indices: any): BufferData[];
+        createExternalBuffers(vertices: any, concaveCurveIndices: any, convexCurveIndices: any, edgeIndices: any): BufferData[];
+        af(vertices: any, indices: any, start: any, end: any, texCoords: any, isConvexMultiplier: any, bufferData?: BufferData): BufferData;
+        injectLoopBlinnTexCoords(bufferData: BufferData, fillName: string, fillStyle: string, fillMatrix: number[]): {};
+        injectLoopBlinnTexCoords_SolidFill(vertices: number[], stride: number, offset: number, textureWidth: number, textureHeight: number, frame: Rect, count: number): void;
+        injectLoopBlinnTexCoords_LinearGradientFill(vertices: number[], stride: number, offset: number, count: number, matrixValues: number[]): void;
+        injectLoopBlinnTexCoords_BitmapFill(vertices: number[], stride: number, offset: number, count: number, matrixValues: number[], bitmapWidth: number, bitmapHeight: number): void;
+        injectStandardDerivativeTexCoords(edgeType: any, vertices: any, count: any): void;
+        bl(matrixValues: number[], texCoords: Point[]): Point[];
+        getFillMode(fillStyle: string, fillOverflow: string, fillIsBitmapClipped: boolean): number;
+        static tex: Point[];
+        static fillMatrixIdentity: Matrix;
+        static kHeader: string;
+        static kStageSize: string;
+        static kWidth: string;
+        static kHeight: string;
+        static kStageColor: string;
+        static kFrameRate: string;
+        static kReadable: string;
+        static kLoop: string;
+        static kSceneTimelines: string;
+        static kFrames: string;
+        static kFrame: string;
+        static kMeta: string;
+        static kSize: string;
+        static kX: string;
+        static kY: string;
+        static kW: string;
+        static kH: string;
+    }
+}
 declare module flwebgl {
     import AssetPool = flwebgl.util.AssetPool;
     class Player {
@@ -468,8 +723,11 @@ declare module flwebgl {
         private canvas;
         private options;
         private renderer;
+        private soundFactory;
+        private parser;
+        private completeCBK;
         constructor();
-        init(canvas: HTMLCanvasElement, content: any, textures: any, callback: any, options?: any): number;
+        init(canvas: HTMLCanvasElement, content: any, textures: TextureAtlas[], callback: any, options?: any): number;
         static S_OK: number;
         static E_ERR: number;
         static E_INVALID_PARAM: number;

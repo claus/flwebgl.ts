@@ -32,9 +32,6 @@
 					var canvas = document.getElementById("canvas");
 					player = new flwebgl.Player();
 
-					console.log(player);
-
-					/*
 					// Create textureatlas object for all the textures which you have
 					var textureAtlasList = [];
 					for (var i = 0; i < atlasList.length; i++) {
@@ -42,8 +39,6 @@
 					}
 
 					result = player.init(canvas, content, textureAtlasList, handleComplete);
-					*/
-					result = player.init(canvas, content, null, handleComplete);
 
 					if (result === flwebgl.Player.E_CONTEXT_CREATION_FAILED) {
 						document.getElementById("err_nowebglsupport").style.display="block";

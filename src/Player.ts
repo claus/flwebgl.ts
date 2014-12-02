@@ -1,13 +1,18 @@
 /// <reference path="e/Renderer.ts" />
+/// <reference path="media/SoundFactory.ts" />
 /// <reference path="util/AssetPool.ts" />
 /// <reference path="util/Utils.ts" />
+/// <reference path="xj/Parser.ts" />
 /// <reference path="PlayerOptions.ts" />
+/// <reference path="TextureAtlas.ts" />
 
 module flwebgl
 {
   import Renderer = flwebgl.e.Renderer;
+  import SoundFactory = flwebgl.media.SoundFactory;
   import AssetPool = flwebgl.util.AssetPool;
   import Utils = flwebgl.util.Utils;
+  import Parser = flwebgl.xj.Parser;
 
   export class Player
   {
@@ -16,12 +21,15 @@ module flwebgl
     private canvas: HTMLCanvasElement;
     private options: PlayerOptions;
     private renderer: Renderer;
+    private soundFactory: SoundFactory;
+    private parser: Parser;
+    private completeCBK: any;
 
     constructor() {
       this.assetPool = new AssetPool();
     }
 
-    init(canvas: HTMLCanvasElement, content: any, textures: any, callback: any, options: any = {}) {
+    init(canvas: HTMLCanvasElement, content: any, textures: TextureAtlas[], callback: any, options: any = {}) {
       if (!canvas || !content) {
         return Player.E_INVALID_PARAM;
       }
@@ -32,6 +40,11 @@ module flwebgl
       } catch (error) {
         return Player.E_CONTEXT_CREATION_FAILED;
       }
+      this.completeCBK = callback;
+      this.soundFactory = new SoundFactory();
+      this.options.standardDerivatives = this.renderer.hasExtension("OES_standard_derivatives");
+      this.parser = new Parser(this.assetPool);
+      var b = this.parser.init(content, textures, this.options);
     }
 
     static S_OK = 0;
