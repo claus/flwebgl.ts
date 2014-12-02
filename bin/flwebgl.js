@@ -61,7 +61,7 @@ var flwebgl;
             this.cachingOptions = {};
             this.cacheAsBitmap = true;
             this.antialias = 1 /* ImageSpace */;
-            this.standardDerivatives = false;
+            this.emulateStandardDerivatives = false;
             if (!Utils.isUndefined(options[PlayerOptions.kOption_LogErrors])) {
                 this.logErrors = !!options[PlayerOptions.kOption_LogErrors];
             }
@@ -146,6 +146,21 @@ var flwebgl;
                     this.top = Math.min(this.top, rect.top);
                     this.width = Math.max(right, rect.left + rect.width) - this.left;
                     this.height = Math.max(bottom, rect.top + rect.height) - this.top;
+                }
+            };
+            Rect.prototype.expand = function (x, y) {
+                if (this.isEmpty) {
+                    this.left = x;
+                    this.top = y;
+                    this.isEmpty = false;
+                }
+                else {
+                    var right = this.left + this.width;
+                    var bottom = this.top + this.height;
+                    this.left = Math.min(this.left, x);
+                    this.top = Math.min(this.top, y);
+                    this.width = Math.max(right, x) - this.left;
+                    this.height = Math.max(bottom, y) - this.top;
                 }
             };
             return Rect;
@@ -1458,9 +1473,13 @@ var flwebgl;
                 this.vertexDataMap = {};
                 this.he = new VertexAttributesArray();
             }
-            ca.prototype.getID = function () {
-                return -1;
-            };
+            Object.defineProperty(ca.prototype, "id", {
+                get: function () {
+                    return -1;
+                },
+                enumerable: true,
+                configurable: true
+            });
             ca.prototype.getVertexData = function (atlasID) {
                 return (atlasID != undefined) ? this.vertexDataMap[atlasID] : void 0;
             };
@@ -1505,9 +1524,9 @@ var flwebgl;
             function Mesh(id) {
                 this._id = id;
                 this.fd = {};
-                this.fd["" + Mesh.INTERNAL] = [];
-                this.fd["" + Mesh.EXTERNAL] = [];
-                this.fd["" + Mesh.bb] = [];
+                this.fd[Mesh.INTERNAL] = [];
+                this.fd[Mesh.EXTERNAL] = [];
+                this.fd[Mesh.bb] = [];
             }
             Object.defineProperty(Mesh.prototype, "id", {
                 get: function () {
@@ -1517,20 +1536,20 @@ var flwebgl;
                 configurable: true
             });
             Mesh.prototype.Nb = function (edgeType, h) {
-                this.fd["" + edgeType].push(h);
+                this.fd[edgeType].push(h);
             };
             Mesh.prototype.yf = function (edgeType, i) {
                 if (i < this.ra(edgeType)) {
-                    return this.fd["" + edgeType][i];
+                    return this.fd[edgeType][i];
                 }
             };
             Mesh.prototype.ra = function (edgeType) {
-                return this.fd["" + edgeType].length;
+                return this.fd[edgeType].length;
             };
             Mesh.prototype.calculateBounds = function () {
                 this.bounds = new Rect();
-                var len = this.ra(Mesh.EXTERNAL);
-                for (var i = 0; i < len; i++) {
+                var count = this.ra(Mesh.EXTERNAL);
+                for (var i = 0; i < count; i++) {
                     var yf = this.yf(Mesh.EXTERNAL, i);
                     var atlasIDs = yf.getAtlasIDs();
                     var vertexDataArr = yf.getVertexData(atlasIDs[0]);
@@ -1543,7 +1562,7 @@ var flwebgl;
                                 var vertices = vertexData.vertices;
                                 var stride = vertexData.vertexAttributes.totalSize / Float32Array.BYTES_PER_ELEMENT;
                                 for (var l = attr.byteOffset / Float32Array.BYTES_PER_ELEMENT; l < vertices.length; l += stride) {
-                                    this.bounds.union(new Rect(vertices[l], vertices[l + 1], 0, 0));
+                                    this.bounds.expand(vertices[l], vertices[l + 1]);
                                 }
                                 break;
                             }
@@ -1551,9 +1570,9 @@ var flwebgl;
                     }
                 }
             };
-            Mesh.INTERNAL = 1;
-            Mesh.EXTERNAL = 2;
-            Mesh.bb = 3;
+            Mesh.INTERNAL = "1";
+            Mesh.EXTERNAL = "2";
+            Mesh.bb = "3";
             return Mesh;
         })();
         e.Mesh = Mesh;
@@ -2048,8 +2067,8 @@ var flwebgl;
                 var stageInfo = new StageInfo(stageSize[Parser.kWidth], stageSize[Parser.kHeight], Utils.getColor(header[Parser.kStageColor]), header[Parser.kFrameRate], header[Parser.kLoop], header[Parser.kSceneTimelines]);
                 var p = (header[Parser.kReadable] == true) ? new ParserDebug(content, this, this.assetPool) : new ParserRelease(content, this, this.assetPool);
                 this.enableCacheAsBitmap = options.cacheAsBitmap;
-                this.enableStandardDerivatives = options.standardDerivatives;
-                this.S = this.enableStandardDerivatives ? 11 : 7;
+                this.emulateStandardDerivatives = options.emulateStandardDerivatives;
+                this.S = this.emulateStandardDerivatives ? 11 : 7;
                 if (!p.parseSounds() || !p.parseFills()) {
                     return stageInfo;
                 }
@@ -2058,7 +2077,7 @@ var flwebgl;
                 var w = new VertexAttribute(2 * Float32Array.BYTES_PER_ELEMENT, "TEXCOORD0", GL.FLOAT, 2);
                 var t = new VertexAttribute(4 * Float32Array.BYTES_PER_ELEMENT, "TEXCOORD1", GL.FLOAT, 1);
                 var q = new VertexAttribute(5 * Float32Array.BYTES_PER_ELEMENT, "TEXCOORD2", GL.FLOAT, 2);
-                if (this.enableStandardDerivatives) {
+                if (this.emulateStandardDerivatives) {
                     var r = new VertexAttribute(7 * Float32Array.BYTES_PER_ELEMENT, "TEXCOORD3", GL.FLOAT, 2);
                     var u = new VertexAttribute(9 * Float32Array.BYTES_PER_ELEMENT, "TEXCOORD4", GL.FLOAT, 2);
                     this.vertexAttributes.attrs = [y, w, t, q, r, u];
@@ -2116,7 +2135,7 @@ var flwebgl;
                     var r = this.injectLoopBlinnTexCoords(bufferData, fillName, fillStyle, fillMatrix);
                     for (var atlasID in r) {
                         var fillVertices = r[atlasID];
-                        if (this.enableStandardDerivatives) {
+                        if (this.emulateStandardDerivatives) {
                             this.injectStandardDerivativeTexCoords(edgeType, fillVertices, bufferData.indices.length);
                         }
                         u.setVertexData(atlasID, [new VertexData(new Float32Array(fillVertices), this.vertexAttributes)]);
@@ -2128,7 +2147,190 @@ var flwebgl;
                 return C;
             };
             Parser.prototype.dj = function (vertices, concaveCurveIndices, convexCurveIndices, edgeIndices, fillName, fillStyle, fillIsOpaque, fillMatrix, fillOverflow, fillIsBitmapClipped) {
-                return null;
+                var C = 0;
+                var v = 0;
+                var B = 0;
+                var I = 0;
+                var X = [];
+                var index0, index1, index2;
+                var vertex0, vertex1, vertex2;
+                var p1x, p1y, p2x, p2y;
+                var p1len, p2len;
+                var U = 3 * Math.floor(GL.MAX_VERTICES / 6);
+                var count = concaveCurveIndices.length + convexCurveIndices.length + edgeIndices.length;
+                while (C < count) {
+                    var A = C;
+                    C = (count - C > U) ? C + U : count;
+                    var L = C - A;
+                    var resVertices = [];
+                    var resIndices = [];
+                    var indexOffs = 0;
+                    var vertexOffs = 0;
+                    var W = this.ec(7);
+                    var x = B;
+                    B = (B < convexCurveIndices.length) ? ((convexCurveIndices.length - B < L) ? convexCurveIndices.length : B + L) : B;
+                    L = L - (B - x);
+                    var curIndices = convexCurveIndices;
+                    var texCoord0 = this.ec(0);
+                    var texCoord1 = this.ec(1);
+                    var texCoord2 = this.ec(2);
+                    for (; x < B; x += 3) {
+                        index0 = curIndices[x];
+                        index1 = curIndices[x + 1];
+                        index2 = curIndices[x + 2];
+                        vertex0 = new Point(vertices[2 * index0], vertices[2 * index0 + 1]);
+                        vertex1 = new Point(vertices[2 * index1], vertices[2 * index1 + 1]);
+                        vertex2 = new Point(vertices[2 * index2], vertices[2 * index2 + 1]);
+                        p1x = vertex0.x - vertex1.x;
+                        p1y = vertex0.y - vertex1.y;
+                        p2x = vertex1.x - vertex2.x;
+                        p2y = vertex1.y - vertex2.y;
+                        p1len = Math.sqrt(p1x * p1x + p1y * p1y);
+                        p2len = Math.sqrt(p2x * p2x + p2y * p2y);
+                        var P = new Point(vertex0.x - 2 * (-p1y / p1len), vertex0.y - 2 * (p1x / p1len));
+                        var Q = new Point(vertex2.x - 2 * (-p2y / p2len), vertex2.y - 2 * (p2x / p2len));
+                        var V = this.wi([vertex0, vertex1, vertex2], [texCoord0, texCoord1, texCoord2], [P, vertex1, Q]);
+                        this.Sc(resVertices, resIndices, [vertex0, P, vertex1], [texCoord0, V[0], texCoord1], [1, 1, 1], vertexOffs, indexOffs);
+                        vertexOffs += 3 * this.S;
+                        indexOffs += 3;
+                        this.Sc(resVertices, resIndices, [vertex1, Q, vertex2], [texCoord1, V[2], texCoord2], [1, 1, 1], vertexOffs, indexOffs);
+                        vertexOffs += 3 * this.S;
+                        indexOffs += 3;
+                    }
+                    if (L > 0) {
+                        x = v;
+                        v = (v < concaveCurveIndices.length) ? ((concaveCurveIndices.length - v < L) ? concaveCurveIndices.length : v + L) : v;
+                        L -= v - x;
+                        texCoord0 = this.ec(4);
+                        texCoord1 = this.ec(5);
+                        texCoord2 = this.ec(6);
+                        curIndices = concaveCurveIndices;
+                        for (; x < v; x += 3) {
+                            index0 = curIndices[x];
+                            index1 = curIndices[x + 1];
+                            index2 = curIndices[x + 2];
+                            vertex0 = new Point(vertices[2 * index0], vertices[2 * index0 + 1]);
+                            vertex1 = new Point(vertices[2 * index1], vertices[2 * index1 + 1]);
+                            vertex2 = new Point(vertices[2 * index2], vertices[2 * index2 + 1]);
+                            p1x = (vertex0.x + vertex2.x) / 2;
+                            p1y = (vertex0.y + vertex2.y) / 2;
+                            p2x = vertex2.x - vertex0.x;
+                            p2y = vertex2.y - vertex0.y;
+                            p2len = Math.sqrt(p2x * p2x + p2y * p2y);
+                            P = new Point(vertex0.x + 0.1 * Math.min(2, p2len) * (-p2y / p2len), vertex0.y + 0.1 * Math.min(2, p2len) * (p2x / p2len));
+                            var Y = new Point(p1x, p1y);
+                            Q = new Point(vertex2.x + 0.1 * Math.min(2, p2len) * (-p2y / p2len), vertex2.y + 0.1 * Math.min(2, p2len) * (p2x / p2len));
+                            V = this.wi([vertex0, vertex1, vertex2], [texCoord0, texCoord1, texCoord2], [P, Y, Q]);
+                            this.Sc(resVertices, resIndices, [vertex0, P, vertex2], [texCoord0, V[0], texCoord2], [-1, -1, -1], vertexOffs, indexOffs);
+                            vertexOffs += 3 * this.S;
+                            indexOffs += 3;
+                            this.Sc(resVertices, resIndices, [vertex2, P, Q], [texCoord2, V[0], V[2]], [-1, -1, -1], vertexOffs, indexOffs);
+                            vertexOffs += 3 * this.S;
+                            indexOffs += 3;
+                        }
+                    }
+                    if (L > 0) {
+                        var K = I;
+                        I = I < edgeIndices.length ? edgeIndices.length - I < L ? edgeIndices.length : I + L : I;
+                        curIndices = edgeIndices;
+                        texCoord0 = this.ec(4);
+                        texCoord1 = this.ec(4);
+                        for (x = K; x < I; x += 3) {
+                            index0 = curIndices[x];
+                            index1 = curIndices[x + 1];
+                            index2 = curIndices[x + 2];
+                            vertex0 = new Point(vertices[2 * index0], vertices[2 * index0 + 1]);
+                            vertex1 = new Point(vertices[2 * index1], vertices[2 * index1 + 1]);
+                            vertex2 = new Point(vertices[2 * index2], vertices[2 * index2 + 1]);
+                            p1x = vertex2.x - vertex0.x;
+                            p1y = vertex2.y - vertex0.y;
+                            p1len = Math.sqrt(p1x * p1x + p1y * p1y);
+                            P = new Point(vertex0.x - 2 * (-p1y / p1len), vertex0.y - 2 * (p1x / p1len));
+                            Y = new Point(vertex2.x - 2 * (-p1y / p1len), vertex2.y - 2 * (p1x / p1len));
+                            this.Sc(resVertices, resIndices, [vertex0, P, vertex2], [texCoord0, W, texCoord1], [-1, -1, -1], vertexOffs, indexOffs);
+                            vertexOffs += 3 * this.S;
+                            indexOffs += 3;
+                            this.Sc(resVertices, resIndices, [P, Y, vertex2], [W, W, texCoord1], [-1, -1, -1], vertexOffs, indexOffs);
+                            vertexOffs += 3 * this.S;
+                            indexOffs += 3;
+                        }
+                    }
+                    if (resIndices.length == 0) {
+                        return null;
+                    }
+                    var bufferData = new BufferData(resVertices, resIndices);
+                    var u = new ca(fillName, fillIsOpaque);
+                    var r = this.injectLoopBlinnTexCoords(bufferData, fillName, fillStyle, fillMatrix);
+                    var edgeType = Mesh.bb;
+                    for (var atlasID in r) {
+                        var fillVertices = r[atlasID];
+                        if (this.emulateStandardDerivatives) {
+                            this.injectStandardDerivativeTexCoords(edgeType, fillVertices, bufferData.indices.length);
+                        }
+                        u.setVertexData(atlasID, [new VertexData(new Float32Array(fillVertices), this.vertexAttributes)]);
+                        u.setIndices(bufferData.indices);
+                    }
+                    u.fillMode = this.getFillMode(fillStyle, fillOverflow, fillIsBitmapClipped);
+                    X.push(u);
+                }
+                return X;
+            };
+            Parser.prototype.Sc = function (vertices, indices, positions, texCoords, isConvexMultipliers, vertexOffs, indexOffs) {
+                vertices[vertexOffs + 0] = positions[0].x;
+                vertices[vertexOffs + 1] = positions[0].y;
+                vertices[vertexOffs + 2] = texCoords[0].x;
+                vertices[vertexOffs + 3] = texCoords[0].y;
+                vertices[vertexOffs + 4] = isConvexMultipliers[0];
+                vertexOffs += this.S;
+                vertices[vertexOffs + 0] = positions[1].x;
+                vertices[vertexOffs + 1] = positions[1].y;
+                vertices[vertexOffs + 2] = texCoords[1].x;
+                vertices[vertexOffs + 3] = texCoords[1].y;
+                vertices[vertexOffs + 4] = isConvexMultipliers[1];
+                vertexOffs += this.S;
+                vertices[vertexOffs + 0] = positions[2].x;
+                vertices[vertexOffs + 1] = positions[2].y;
+                vertices[vertexOffs + 2] = texCoords[2].x;
+                vertices[vertexOffs + 3] = texCoords[2].y;
+                vertices[vertexOffs + 4] = isConvexMultipliers[2];
+                indices[indexOffs + 0] = indexOffs + 0;
+                indices[indexOffs + 1] = indexOffs + 1;
+                indices[indexOffs + 2] = indexOffs + 2;
+            };
+            Parser.prototype.ec = function (a) {
+                if (a >= 9) {
+                    return Parser.tex[a - 5];
+                }
+                if (a >= 4) {
+                    a -= 4;
+                }
+                if (a == 4) {
+                    a = 3;
+                }
+                return Parser.tex[a];
+            };
+            Parser.prototype.wi = function (a, b, h) {
+                var k = [];
+                var a1delta = a[1].sub(a[0]);
+                var a2delta = a[2].sub(a[0]);
+                var b1delta = b[1].sub(b[0]);
+                var b2delta = b[2].sub(b[0]);
+                var det1 = 1 / (b1delta.x * b2delta.y - b2delta.x * b1delta.y);
+                var s = (b2delta.y * a1delta.x - b1delta.y * a2delta.x) * det1;
+                var t = (b2delta.y * a1delta.y - b1delta.y * a2delta.y) * det1;
+                var u = (-b2delta.x * a1delta.x + b1delta.x * a2delta.x) * det1;
+                var v = (-b2delta.x * a1delta.y + b1delta.x * a2delta.y) * det1;
+                var det2 = 1 / (s * v - t * u);
+                s = s * det2;
+                t = -t * det2;
+                u = -u * det2;
+                v = v * det2;
+                for (var i = 0; i < h.length; i++) {
+                    var pt = h[i].sub(a[0]);
+                    var pt2 = new Point(pt.x * v + pt.y * u, pt.x * t + pt.y * s);
+                    k.push(pt2.add(b[0]));
+                }
+                return k;
             };
             Parser.prototype.createInternalBuffers = function (vertices, indices) {
                 var bufferDataArray = [];
@@ -2209,7 +2411,7 @@ var flwebgl;
             Parser.prototype.injectLoopBlinnTexCoords = function (bufferData, fillName, fillStyle, fillMatrix) {
                 var d = {};
                 var atlases = this.assetPool.getTextureAtlases();
-                var offset = this.enableStandardDerivatives ? this.S - 6 : this.S - 2;
+                var offset = this.emulateStandardDerivatives ? this.S - 6 : this.S - 2;
                 for (var i = 0; i < atlases.length; i++) {
                     var atlas = atlases[i];
                     var frame = atlas.getFrame(fillName);
@@ -2439,9 +2641,9 @@ var flwebgl;
             }
             this.completeCBK = callback;
             this.soundFactory = new SoundFactory();
-            this.options.standardDerivatives = this.renderer.hasExtension("OES_standard_derivatives");
+            this.options.emulateStandardDerivatives = !this.renderer.hasExtension("OES_standard_derivatives");
             this.parser = new Parser(this.assetPool);
-            var b = this.parser.init(content, textures, this.options);
+            var stageInfo = this.parser.init(content, textures, this.options);
         };
         Player.S_OK = 0;
         Player.E_ERR = 1;

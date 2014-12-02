@@ -25,7 +25,7 @@ module flwebgl.e
       this.he = new VertexAttributesArray();
     }
 
-    getID(): number {
+    get id(): number {
       return -1;
     }
 

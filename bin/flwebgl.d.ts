@@ -26,7 +26,7 @@ declare module flwebgl {
         cachingOptions: {};
         cacheAsBitmap: boolean;
         antialias: AAType;
-        standardDerivatives: boolean;
+        emulateStandardDerivatives: boolean;
         constructor(options?: any);
         private static kOption_LogErrors;
         private static kOption_AAType;
@@ -46,6 +46,7 @@ declare module flwebgl.geom {
         intersects(rect: Rect): boolean;
         copy(rect: Rect): void;
         union(rect: Rect): void;
+        expand(x: number, y: number): void;
     }
 }
 declare module flwebgl.geom {
@@ -475,7 +476,7 @@ declare module flwebgl.e {
         vertexDataMap: any;
         he: VertexAttributesArray;
         constructor(name: string, isOpaque: boolean);
-        getID(): number;
+        id: number;
         getVertexData(atlasID: string): VertexData[];
         setVertexData(atlasID: string, vertexData: VertexData[]): void;
         setIndices(indices: number[]): void;
@@ -498,13 +499,13 @@ declare module flwebgl.e {
         private bounds;
         constructor(id: string);
         id: string;
-        Nb(edgeType: number, h: ca): void;
-        yf(edgeType: number, i: number): ca;
-        ra(edgeType: number): any;
+        Nb(edgeType: string, h: ca): void;
+        yf(edgeType: string, i: number): ca;
+        ra(edgeType: string): any;
         calculateBounds(): void;
-        static INTERNAL: number;
-        static EXTERNAL: number;
-        static bb: number;
+        static INTERNAL: string;
+        static EXTERNAL: string;
+        static bb: string;
     }
 }
 declare module flwebgl.B {
@@ -676,7 +677,7 @@ declare module flwebgl.xj {
     class Parser {
         private assetPool;
         private enableCacheAsBitmap;
-        private enableStandardDerivatives;
+        private emulateStandardDerivatives;
         private vertexAttributes;
         private S;
         constructor(assetPool: AssetPool);
@@ -685,6 +686,9 @@ declare module flwebgl.xj {
         parseTextureAtlas(textureJSON: any, imageURL: string, atlasID: string): boolean;
         If(vertices: number[], fillName: string, fillStyle: string, fillMatrix: number[], fillOverflow: string, fillIsBitmapClipped: boolean, fillIsOpaque: boolean, internalIndices?: number[], concaveCurveIndices?: number[], convexCurveIndices?: number[], edgeIndices?: number[]): ca[];
         dj(vertices: any, concaveCurveIndices: any, convexCurveIndices: any, edgeIndices: any, fillName: any, fillStyle: any, fillIsOpaque: any, fillMatrix: any, fillOverflow: any, fillIsBitmapClipped: any): ca[];
+        Sc(vertices: number[], indices: number[], positions: Point[], texCoords: Point[], isConvexMultipliers: number[], vertexOffs: any, indexOffs: any): void;
+        ec(a: any): Point;
+        wi(a: any, b: any, h: any): Point[];
         createInternalBuffers(vertices: any, indices: any): BufferData[];
         createExternalBuffers(vertices: any, concaveCurveIndices: any, convexCurveIndices: any, edgeIndices: any): BufferData[];
         af(vertices: any, indices: any, start: any, end: any, texCoords: any, isConvexMultiplier: any, bufferData?: BufferData): BufferData;

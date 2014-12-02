@@ -15,33 +15,33 @@ module flwebgl.e
     constructor(id: string) {
       this._id = id;
       this.fd = {};
-      this.fd["" + Mesh.INTERNAL] = [];
-      this.fd["" + Mesh.EXTERNAL] = [];
-      this.fd["" + Mesh.bb] = [];
+      this.fd[Mesh.INTERNAL] = [];
+      this.fd[Mesh.EXTERNAL] = [];
+      this.fd[Mesh.bb] = [];
     }
 
     get id(): string {
       return this._id;
     }
 
-    Nb(edgeType: number, h: ca) {
-      this.fd["" + edgeType].push(h);
+    Nb(edgeType: string, h: ca) {
+      this.fd[edgeType].push(h);
     }
 
-    yf(edgeType: number, i: number): ca {
+    yf(edgeType: string, i: number): ca {
       if (i < this.ra(edgeType)) {
-        return this.fd["" + edgeType][i];
+        return this.fd[edgeType][i];
       }
     }
 
-    ra(edgeType: number) {
-      return this.fd["" + edgeType].length;
+    ra(edgeType: string) {
+      return this.fd[edgeType].length;
     }
 
     calculateBounds() {
       this.bounds = new Rect();
-      var len = this.ra(Mesh.EXTERNAL);
-      for (var i = 0; i < len; i++) {
+      var count = this.ra(Mesh.EXTERNAL);
+      for (var i = 0; i < count; i++) {
         var yf = this.yf(Mesh.EXTERNAL, i);
         var atlasIDs = yf.getAtlasIDs();
         var vertexDataArr = yf.getVertexData(atlasIDs[0]);
@@ -54,7 +54,7 @@ module flwebgl.e
               var vertices = vertexData.vertices;
               var stride = vertexData.vertexAttributes.totalSize / Float32Array.BYTES_PER_ELEMENT;
               for (var l = attr.byteOffset / Float32Array.BYTES_PER_ELEMENT; l < vertices.length; l += stride) {
-                this.bounds.union(new Rect(vertices[l], vertices[l + 1], 0, 0));
+                this.bounds.expand(vertices[l], vertices[l + 1]);
               }
               break;
             }
@@ -63,8 +63,8 @@ module flwebgl.e
       }
     }
 
-    static INTERNAL = 1;
-    static EXTERNAL = 2;
-    static bb = 3;
+    static INTERNAL = "1";
+    static EXTERNAL = "2";
+    static bb = "3";
   }
 }

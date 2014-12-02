@@ -49,5 +49,20 @@ module flwebgl.geom
         this.height = Math.max(bottom, rect.top + rect.height) - this.top;
       }
     }
+
+    expand(x: number, y: number) {
+      if (this.isEmpty) {
+        this.left = x;
+        this.top = y;
+        this.isEmpty = false;
+      } else {
+        var right = this.left + this.width;
+        var bottom = this.top + this.height;
+        this.left = Math.min(this.left, x);
+        this.top = Math.min(this.top, y);
+        this.width = Math.max(right, x) - this.left;
+        this.height = Math.max(bottom, y) - this.top;
+      }
+    }
   }
 }

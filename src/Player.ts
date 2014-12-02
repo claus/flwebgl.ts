@@ -42,9 +42,9 @@ module flwebgl
       }
       this.completeCBK = callback;
       this.soundFactory = new SoundFactory();
-      this.options.standardDerivatives = this.renderer.hasExtension("OES_standard_derivatives");
+      this.options.emulateStandardDerivatives = !this.renderer.hasExtension("OES_standard_derivatives");
       this.parser = new Parser(this.assetPool);
-      var b = this.parser.init(content, textures, this.options);
+      var stageInfo = this.parser.init(content, textures, this.options);
     }
 
     static S_OK = 0;
