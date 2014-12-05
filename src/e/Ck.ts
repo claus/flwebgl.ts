@@ -85,7 +85,7 @@ module flwebgl.e
         for (var d = 0; d < e.length; ++d) {
           var l = this.Uc.getAttribs(e[d].pc);
           this.gl.kc(l.location);
-          this.gl.vertexAttribPointer(l.location, l.size, l.type, l.Hf, c, e[d].byteOffset);
+          this.gl.vertexAttribPointer(l.location, l.size, l.type, l.Hf, c, e[d].location);
         }
         */
       }

@@ -11,7 +11,6 @@
 /// <reference path="../e/TextureAtlas.ts" />
 /// <reference path="../e/VertexData.ts" />
 /// <reference path="../e/VertexAttribute.ts" />
-/// <reference path="../e/VertexAttributes.ts" />
 /// <reference path="../PlayerOptions.ts" />
 /// <reference path="../TextureAtlas.ts" />
 /// <reference path="parsers/IParser.ts" />

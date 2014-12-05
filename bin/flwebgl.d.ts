@@ -147,12 +147,12 @@ declare module flwebgl.e {
     import PlayerOptions = flwebgl.PlayerOptions;
     import Color = flwebgl.geom.Color;
     import Rect = flwebgl.geom.Rect;
+    import Matrix = flwebgl.geom.Matrix;
     class GL {
         private ctx;
         private ei;
         private logErrors;
         private viewport;
-        private viewMatrix;
         private renderTarget;
         private textureAtlases;
         private vao;
@@ -166,6 +166,7 @@ declare module flwebgl.e {
         private programIDCounter;
         private backgroundColor;
         private depthTestEnabled;
+        viewMatrix: Matrix;
         constructor(canvas: HTMLCanvasElement, options: PlayerOptions);
         getViewport(): Rect;
         setViewport(rect: Rect, flipY?: boolean): void;
@@ -203,7 +204,7 @@ declare module flwebgl.e {
         framebufferRenderbuffer(target: number, attachment: number, renderBufferTarget: number, renderBuffer: WebGLRenderbuffer): void;
         drawElements(count: number): void;
         drawArrays(mode: number, first: number, count: number): void;
-        bufferData(target: number, size: number, usage: number): void;
+        bufferData(target: number, sizeOrBuffer: any, usage: number): void;
         bufferSubData(target: number, offset: number, data: ArrayBuffer): void;
         setBackgroundColor(color: Color): void;
         getBackgroundColor(): Color;
@@ -351,7 +352,7 @@ declare module flwebgl.e {
 declare module flwebgl.e.renderers {
     import GL = flwebgl.e.GL;
     interface IRenderer {
-        setGL(gl: GL): any;
+        setGL(gl: GL): boolean;
         destroy(): any;
     }
 }
@@ -390,14 +391,13 @@ declare module flwebgl.geom {
 }
 declare module flwebgl.e {
     class VertexAttribute {
-        byteOffset: number;
+        location: number;
         name: string;
         type: number;
         size: number;
-        constructor(byteOffset: number, name: string, type: number, size: number);
+        hf: boolean;
+        constructor(location: number, name: string, type: number, size: number, hf?: boolean);
     }
-}
-declare module flwebgl.e {
     class VertexAttributes {
         attrs: VertexAttribute[];
         totalSize: number;
@@ -518,14 +518,66 @@ declare module flwebgl.e.shaders {
         destroy(): void;
     }
 }
+declare module flwebgl.e {
+    class Uniform {
+        location: any;
+        type: any;
+        size: any;
+        no: any;
+        constructor(location: any, type: any, size: any, no: any);
+        static Jd: number;
+        static Q: number;
+    }
+    class Uniforms {
+        uniforms: Uniform[];
+        totalSize: number;
+        bo: number;
+        constructor(uniforms: Uniform[]);
+    }
+    class UniformValue {
+        uniform: Uniform;
+        value: any;
+        constructor(uniform: Uniform, value: any);
+    }
+}
+declare module flwebgl.e.renderers {
+    enum RenderPassIndex {
+        oc = 0,
+        Tb = 1,
+        Mc = 3,
+    }
+}
 declare module flwebgl.e.shaders {
     import GL = flwebgl.e.GL;
+    import Uniforms = flwebgl.e.Uniforms;
     class ShaderImageSpaceStdDev implements IShader {
         private gl;
+        private _id;
+        private _attribs;
+        private _uniforms;
+        private uniformMap;
+        private program;
+        private vertexShader;
+        private vertexShaderSrc;
+        private fragmentShader;
+        private fragmentShaderSrc;
+        private modelViewMatrix;
+        private ao;
         constructor();
-        setGL(gl: GL): void;
+        id: number;
+        uniforms: Uniforms;
+        attribs: VertexAttributes;
+        setGL(gl: GL): boolean;
         Xb(): void;
         e(a: any, b: any): void;
+        xg(a: any): void;
+        zg(a: any): void;
+        yg(a: any): void;
+        Fg(): void;
+        Hg(): void;
+        Gg(): void;
+        Ia(a: any, passIndex: number): void;
+        setup(): boolean;
         destroy(): void;
     }
 }
@@ -533,10 +585,26 @@ declare module flwebgl.e.shaders {
     import GL = flwebgl.e.GL;
     class ShaderImageSpaceCoverage implements IShader {
         private gl;
+        private _id;
+        private program;
+        private vertexShader;
+        private vertexShaderSrc;
+        private fragmentShader;
+        private fragmentShaderSrc;
+        private vertexBuffer;
+        private indexBuffer;
+        private uniformLocColorMap;
+        private uniformLocCoverageMap;
+        private vertexBufferValues;
+        private indexBufferValues;
         constructor();
-        setGL(gl: GL): void;
+        id: number;
+        setGL(gl: GL): boolean;
         Xb(): void;
-        e(a: any, b: any): void;
+        e(a: any, b?: any): void;
+        Eg(): void;
+        setUniformValues(colorMapTexture: any, coverageMapTexture: any): void;
+        setup(): boolean;
         destroy(): void;
     }
 }
@@ -557,7 +625,7 @@ declare module flwebgl.e.renderers {
         private Yc;
         private Zc;
         constructor();
-        setGL(gl: GL): any;
+        setGL(gl: GL): boolean;
         e(a: any): void;
         ld(): void;
         nf(a: any): void;
@@ -568,9 +636,6 @@ declare module flwebgl.e.renderers {
         yi(): any;
         Yk(): number;
         destroy(): void;
-        static oc: number;
-        static Tb: number;
-        static Mc: number;
     }
 }
 declare module flwebgl.e.renderers {
@@ -578,7 +643,7 @@ declare module flwebgl.e.renderers {
     class RendererMSAA implements IRenderer {
         private gl;
         constructor();
-        setGL(value: GL): void;
+        setGL(value: GL): boolean;
         destroy(): void;
     }
 }

@@ -1,5 +1,5 @@
 /// <reference path="VertexData.ts" />
-/// <reference path="VertexAttributes.ts" />
+/// <reference path="VertexAttribute.ts" />
 
 module flwebgl.e
 {

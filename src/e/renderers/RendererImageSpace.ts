@@ -9,6 +9,7 @@
 /// <reference path="../shaders/ShaderImageSpaceStdDev.ts" />
 /// <reference path="../shaders/ShaderImageSpaceCoverage.ts" />
 /// <reference path="IRenderer.ts" />
+/// <reference path="RenderPassIndex.ts" />
 
 module flwebgl.e.renderers
 {
@@ -23,7 +24,6 @@ module flwebgl.e.renderers
   import ShaderImageSpaceStdDev = flwebgl.e.shaders.ShaderImageSpaceStdDev;
   import ShaderImageSpaceCoverage = flwebgl.e.shaders.ShaderImageSpaceCoverage;
 
-  // TODO
   export class RendererImageSpace implements IRenderer
   {
     private gl: GL;
@@ -43,7 +43,7 @@ module flwebgl.e.renderers
       this.fe = 0;
     }
 
-    setGL(gl: GL) {
+    setGL(gl: GL): boolean {
       this.gl = gl;
       this.shader = gl.hasExtension("OES_standard_derivatives") ? new ShaderImageSpaceStdDev() : new ShaderImageSpace();
       this.shaderCoverage = new ShaderImageSpaceCoverage();
@@ -60,8 +60,8 @@ module flwebgl.e.renderers
       this.rl = this.gl.getRenderTarget();
       this.ld();
       this.Qg(a);
-      this.nf(RendererImageSpace.oc);
-      this.Ia(RendererImageSpace.oc, this.cg);
+      this.nf(RenderPassIndex.oc);
+      this.Ia(RenderPassIndex.oc, this.cg);
       for (a = 0; a < this.Ab.length; ++a) {
         var c = this.Ab[a].type;
         var d = this.Ab[a].sf;
@@ -74,8 +74,8 @@ module flwebgl.e.renderers
       c = this.gl.activateRenderTargetTexture(this.Zc);
       this.shaderCoverage.Xb();
       this.shaderCoverage.e(void 0, {
-        am: a,
-        bm: c
+        colorMapTexture: a,
+        coverageMapTexture: c
       });
     }
 
@@ -105,11 +105,11 @@ module flwebgl.e.renderers
 
     nf(a) {
       switch (a) {
-        case RendererImageSpace.oc:
+        case RenderPassIndex.oc:
           this.gl.activateRenderTarget(this.Yc);
           break;
-        case RendererImageSpace.Tb:
-        case RendererImageSpace.Mc:
+        case RenderPassIndex.Tb:
+        case RenderPassIndex.Mc:
           this.gl.activateRenderTarget(this.Zc);
           break;
       }
@@ -179,7 +179,7 @@ module flwebgl.e.renderers
                 t.Dc(y[i]);
               }
               this.Ab.push({
-                type: RendererImageSpace.Tb,
+                type: RenderPassIndex.Tb,
                 sf: t
               });
               l = [];
@@ -241,7 +241,7 @@ module flwebgl.e.renderers
               q.Dc(w[e]);
             }
             this.Ab.push({
-              type: RendererImageSpace.Mc,
+              type: RenderPassIndex.Mc,
               sf: q
             })
           }
@@ -250,7 +250,7 @@ module flwebgl.e.renderers
             t.Dc(y[e]);
           }
           this.Ab.push({
-            type: RendererImageSpace.Tb,
+            type: RenderPassIndex.Tb,
             sf: t
           });
         }
@@ -258,7 +258,7 @@ module flwebgl.e.renderers
       }
       if (l.length > 0) {
         this.Ab.push({
-          type: RendererImageSpace.Tb,
+          type: RenderPassIndex.Tb,
           sf: t
         });
       }
@@ -266,11 +266,11 @@ module flwebgl.e.renderers
 
     Qi(a) {
       switch (a) {
-        case RendererImageSpace.oc:
+        case RenderPassIndex.oc:
           this.gl.depthMask(true);
           break;
-        case RendererImageSpace.Tb:
-        case RendererImageSpace.Mc:
+        case RenderPassIndex.Tb:
+        case RenderPassIndex.Mc:
           this.gl.depthMask(false);
           break;
       }
@@ -312,9 +312,5 @@ module flwebgl.e.renderers
         this.gl.deleteRenderTargetTexture(this.We[a]);
       }
     }
-
-    static oc = 0;
-    static Tb = 1;
-    static Mc = 2;
   }
 }

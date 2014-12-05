@@ -880,8 +880,8 @@ var flwebgl;
             GL.prototype.drawArrays = function (mode, first, count) {
                 this.ctx.drawArrays(mode, first, count);
             };
-            GL.prototype.bufferData = function (target, size, usage) {
-                this.ctx.bufferData(target, size, usage);
+            GL.prototype.bufferData = function (target, sizeOrBuffer, usage) {
+                this.ctx.bufferData(target, sizeOrBuffer, usage);
             };
             GL.prototype.bufferSubData = function (target, offset, data) {
                 this.ctx.bufferSubData(target, offset, data);
@@ -964,6 +964,7 @@ var flwebgl;
                         return shader;
                     }
                     else {
+                        console.log(this.ctx.getShaderInfoLog(shader));
                         return null;
                     }
                 }
@@ -1064,6 +1065,7 @@ var flwebgl;
                 var names = this.ctx.getSupportedExtensions();
                 for (var i = 0; i < names.length; i++) {
                     if (names[i].toLowerCase() === name) {
+                        this.ctx.getExtension(name);
                         return true;
                     }
                 }
@@ -1331,21 +1333,17 @@ var flwebgl;
     var e;
     (function (e) {
         var VertexAttribute = (function () {
-            function VertexAttribute(byteOffset, name, type, size) {
-                this.byteOffset = byteOffset;
+            function VertexAttribute(location, name, type, size, hf) {
+                if (hf === void 0) { hf = false; }
+                this.location = location;
                 this.name = name;
                 this.type = type;
                 this.size = size;
+                this.hf = hf;
             }
             return VertexAttribute;
         })();
         e.VertexAttribute = VertexAttribute;
-    })(e = flwebgl.e || (flwebgl.e = {}));
-})(flwebgl || (flwebgl = {}));
-var flwebgl;
-(function (flwebgl) {
-    var e;
-    (function (e) {
         var VertexAttributes = (function () {
             function VertexAttributes(attrs, totalSize) {
                 if (attrs === void 0) { attrs = []; }
@@ -1479,7 +1477,7 @@ var flwebgl;
                             if (attr.name === "POSITION0") {
                                 var vertices = vertexData.vertices;
                                 var stride = vertexData.vertexAttributes.totalSize / Float32Array.BYTES_PER_ELEMENT;
-                                for (var l = attr.byteOffset / Float32Array.BYTES_PER_ELEMENT; l < vertices.length; l += stride) {
+                                for (var l = attr.location / Float32Array.BYTES_PER_ELEMENT; l < vertices.length; l += stride) {
                                     this.bounds.expand(vertices[l], vertices[l + 1]);
                                 }
                                 break;
@@ -1503,7 +1501,6 @@ var flwebgl;
         var Utils = flwebgl.util.Utils;
         var MeshInstanced = (function () {
             function MeshInstanced(shape) {
-                console.log(shape);
                 this.shape = shape;
                 this.dirty = true;
                 this.Gb = {};
@@ -1659,18 +1656,262 @@ var flwebgl;
 (function (flwebgl) {
     var e;
     (function (e) {
+        var Uniform = (function () {
+            function Uniform(location, type, size, no) {
+                this.location = location;
+                this.type = type;
+                this.size = size;
+                this.no = no;
+            }
+            Uniform.Jd = 0;
+            Uniform.Q = 1;
+            return Uniform;
+        })();
+        e.Uniform = Uniform;
+        var Uniforms = (function () {
+            function Uniforms(uniforms) {
+                this.uniforms = uniforms;
+                this.totalSize = 0;
+                this.bo = 0;
+                for (var i = 0; i < this.uniforms.length; i++) {
+                    var size = 0;
+                    var uniform = this.uniforms[i];
+                    switch (uniform.type) {
+                        case e.GL.INT:
+                        case e.GL.FLOAT:
+                        case e.GL.SAMPLER_2D:
+                            size = Math.ceil(uniform.size / 4);
+                            break;
+                        case e.GL.INT_VEC2:
+                        case e.GL.FLOAT_VEC2:
+                            size = Math.ceil(2 * uniform.size / 4);
+                            break;
+                        case e.GL.INT_VEC3:
+                        case e.GL.FLOAT_VEC3:
+                            size = Math.ceil(3 * uniform.size / 4);
+                            break;
+                        case e.GL.INT_VEC4:
+                        case e.GL.FLOAT_VEC4:
+                            size = uniform.size;
+                            break;
+                        case e.GL.FLOAT_MAT4:
+                            size = 4 * uniform.size;
+                            break;
+                    }
+                    this.totalSize += size;
+                }
+            }
+            return Uniforms;
+        })();
+        e.Uniforms = Uniforms;
+        var UniformValue = (function () {
+            function UniformValue(uniform, value) {
+                this.uniform = uniform;
+                this.value = value;
+            }
+            return UniformValue;
+        })();
+        e.UniformValue = UniformValue;
+    })(e = flwebgl.e || (flwebgl.e = {}));
+})(flwebgl || (flwebgl = {}));
+var flwebgl;
+(function (flwebgl) {
+    var e;
+    (function (e) {
+        var renderers;
+        (function (renderers) {
+            (function (RenderPassIndex) {
+                RenderPassIndex[RenderPassIndex["oc"] = 0] = "oc";
+                RenderPassIndex[RenderPassIndex["Tb"] = 1] = "Tb";
+                RenderPassIndex[RenderPassIndex["Mc"] = 3] = "Mc";
+            })(renderers.RenderPassIndex || (renderers.RenderPassIndex = {}));
+            var RenderPassIndex = renderers.RenderPassIndex;
+        })(renderers = e.renderers || (e.renderers = {}));
+    })(e = flwebgl.e || (flwebgl.e = {}));
+})(flwebgl || (flwebgl = {}));
+var flwebgl;
+(function (flwebgl) {
+    var e;
+    (function (e) {
         var shaders;
         (function (shaders) {
+            var GL = flwebgl.e.GL;
+            var Uniform = flwebgl.e.Uniform;
+            var Uniforms = flwebgl.e.Uniforms;
+            var UniformValue = flwebgl.e.UniformValue;
+            var RenderPassIndex = flwebgl.e.renderers.RenderPassIndex;
+            var Matrix = flwebgl.geom.Matrix;
             var ShaderImageSpaceStdDev = (function () {
                 function ShaderImageSpaceStdDev() {
                     console.log("ShaderImageSpaceStdDev");
                 }
+                Object.defineProperty(ShaderImageSpaceStdDev.prototype, "id", {
+                    get: function () {
+                        return this._id;
+                    },
+                    enumerable: true,
+                    configurable: true
+                });
+                Object.defineProperty(ShaderImageSpaceStdDev.prototype, "uniforms", {
+                    get: function () {
+                        return this._uniforms;
+                    },
+                    enumerable: true,
+                    configurable: true
+                });
+                Object.defineProperty(ShaderImageSpaceStdDev.prototype, "attribs", {
+                    get: function () {
+                        return this._attribs;
+                    },
+                    enumerable: true,
+                    configurable: true
+                });
                 ShaderImageSpaceStdDev.prototype.setGL = function (gl) {
                     this.gl = gl;
+                    if (!this.setup())
+                        return false;
+                    this.modelViewMatrix = new Matrix();
+                    return true;
                 };
                 ShaderImageSpaceStdDev.prototype.Xb = function () {
+                    this.gl.useProgram(this.program);
                 };
                 ShaderImageSpaceStdDev.prototype.e = function (a, b) {
+                    switch (b) {
+                        case 0 /* oc */:
+                            this.xg(a);
+                            break;
+                        case 1 /* Tb */:
+                            this.zg(a);
+                            break;
+                        case 3 /* Mc */:
+                            this.yg(a);
+                            break;
+                    }
+                };
+                ShaderImageSpaceStdDev.prototype.xg = function (a) {
+                    this.Fg();
+                    this.Ia(a, 0 /* oc */);
+                };
+                ShaderImageSpaceStdDev.prototype.zg = function (a) {
+                    this.Hg();
+                    this.Ia(a, 1 /* Tb */);
+                };
+                ShaderImageSpaceStdDev.prototype.yg = function (a) {
+                    this.Gg();
+                    this.Ia(a, 3 /* Mc */);
+                };
+                ShaderImageSpaceStdDev.prototype.Fg = function () {
+                    this.gl.disable(GL.BLEND);
+                    this.gl.depthMask(true);
+                    this.gl.enable(GL.DEPTH_TEST);
+                };
+                ShaderImageSpaceStdDev.prototype.Hg = function () {
+                    this.gl.depthMask(false);
+                    this.gl.enable(GL.DEPTH_TEST);
+                    this.gl.enable(GL.BLEND);
+                    this.gl.blendFuncSeparate(GL.SRC_ALPHA_SATURATE, GL.ONE, GL.ONE, GL.ONE);
+                };
+                ShaderImageSpaceStdDev.prototype.Gg = function () {
+                    this.gl.depthMask(false);
+                    this.gl.enable(GL.DEPTH_TEST);
+                    this.gl.enable(GL.BLEND);
+                    this.gl.blendFunc(GL.ONE_MINUS_DST_ALPHA, GL.ONE);
+                };
+                ShaderImageSpaceStdDev.prototype.Ia = function (a, passIndex) {
+                    var c = a.F.length;
+                    var viewMatrix = this.gl.viewMatrix;
+                    for (var f = 0; f < c; f++) {
+                        var l = a.mc(f);
+                        if (l.dirty) {
+                            var frameID = l.ka.name;
+                            var texture = this.gl.getTextureAtlasByFrameID(frameID);
+                            var frame = texture.getFrame(frameID);
+                            var cxform = l.getColorTransform();
+                            var samplerIndex = l.lb;
+                            var overflowType = l.ka.fillMode;
+                            var width = texture.width;
+                            var height = texture.height;
+                            this.modelViewMatrix.identity();
+                            this.modelViewMatrix.multiply(viewMatrix);
+                            this.modelViewMatrix.multiply(l.getTransform());
+                            var uniforms = l.getUniforms(this._id);
+                            var samplers = [];
+                            samplers[0] = 2 * Math.floor(samplerIndex / 2);
+                            samplers[1] = samplers[0] + 1;
+                            samplerIndex %= 2;
+                            if (!uniforms) {
+                                uniforms = [];
+                                uniforms.push(new UniformValue(this.uniformMap.uMVMatrix, this.modelViewMatrix.values));
+                                uniforms.push(new UniformValue(this.uniformMap.uSamplers, samplers));
+                                uniforms.push(new UniformValue(this.uniformMap.uSamplerIndex, [samplerIndex]));
+                                uniforms.push(new UniformValue(this.uniformMap.uColorXformMultiplier, [cxform.redMultiplier, cxform.greenMultiplier, cxform.blueMultiplier, cxform.alphaMultiplier]));
+                                uniforms.push(new UniformValue(this.uniformMap.uColorXformOffset, [cxform.redOffset / 255, cxform.greenOffset / 255, cxform.blueOffset / 255, cxform.alphaOffset / 255]));
+                                uniforms.push(new UniformValue(this.uniformMap.uOverflowTypeAndPassIndex, [overflowType, passIndex]));
+                                uniforms.push(new UniformValue(this.uniformMap.uFrame, [frame.left / width, frame.top / height, frame.width / width, frame.height / height]));
+                            }
+                            else {
+                                uniforms[0].value = this.modelViewMatrix.values;
+                                uniforms[1].value = samplers;
+                                uniforms[2].value = [samplerIndex];
+                                uniforms[3].value = [cxform.redMultiplier, cxform.greenMultiplier, cxform.blueMultiplier, cxform.alphaMultiplier];
+                                uniforms[4].value = [cxform.redOffset / 255, cxform.greenOffset / 255, cxform.blueOffset / 255, cxform.alphaOffset / 255];
+                                uniforms[5].value = [overflowType, passIndex];
+                                uniforms[6].value = [frame.left / width, frame.top / height, frame.width / width, frame.height / height];
+                            }
+                            l.setUniforms(this._id, uniforms);
+                        }
+                    }
+                    if (a.F.length > 0) {
+                        this.gl.e(this, a.mc(0).ka.he, a.F);
+                    }
+                };
+                ShaderImageSpaceStdDev.prototype.setup = function () {
+                    this.vertexShaderSrc = "attribute vec2 aVertexPosition; \n" + "attribute vec2 aLoopBlinnTextureCoord; \n" + "attribute vec2 aTextureCoord; \n" + "attribute float aIsConvex; \n" + "uniform mat4 uMVMatrix; \n" + "varying vec4 vTexCoord; \n" + "varying float vIsConvex; \n" + "void main(void) { \n" + "gl_Position = uMVMatrix * vec4(aVertexPosition, 1.0, 1.0); \n" + "vTexCoord = vec4(aLoopBlinnTextureCoord, aTextureCoord); \n" + "vIsConvex = aIsConvex; \n" + "}";
+                    this.fragmentShaderSrc = "#extension GL_OES_standard_derivatives : enable \n" + "precision mediump float; \n" + "varying vec4 vTexCoord; \n" + "varying float vIsConvex; \n" + "uniform vec4 uColorXformMultiplier; \n" + "uniform vec4 uColorXformOffset; \n" + "uniform sampler2D uSamplers[2]; \n" + "uniform int uSamplerIndex; \n" + "uniform ivec2 uOverflowTypeAndPassIndex; \n" + "uniform vec4 uFrame; \n" + "void main(void) { \n" + "vec2 px = dFdx(vTexCoord.xy); \n" + "vec2 py = dFdy(vTexCoord.xy); \n" + "vec2 f = (2.0 * vTexCoord.x) * vec2(px.x, py.x) - vec2(px.y, py.y); \n" + "float sd = vIsConvex * (vTexCoord.x * vTexCoord.x - vTexCoord.y) / length(f); \n" + "float alpha = min(0.5 - sd, 1.0); \n" + "float t = max(1.0 - float(uOverflowTypeAndPassIndex.y), 0.0); \n" + "if (alpha < t || alpha == 0.0 || (uOverflowTypeAndPassIndex.y == 1 && alpha == 1.0)) \n" + "discard; \n" + "vec2 uv; \n" + "if (uOverflowTypeAndPassIndex.x == 0) { /* solid fill */ \n" + "uv = vTexCoord.zw; \n" + "} else if (uOverflowTypeAndPassIndex.x == 1) { /* gradient and bitmap fill with overflow type extend */ \n" + "uv = clamp(vTexCoord.zw, vec2(0.0, 0.0), vec2(1.0, 1.0)) * uFrame.zw + uFrame.xy; \n" + "} else if (uOverflowTypeAndPassIndex.x == 2) { /* gradient and bitmap fill with overflow type repeat */ \n" + "uv = fract(vTexCoord.zw) * uFrame.zw + uFrame.xy; \n" + "} else if (uOverflowTypeAndPassIndex.x == 3) { /* gradient fill with overflow type reflect */ \n" + "uv = vTexCoord.zw; \n" + "if (uv.s > 1.0) { \n" + "float integerPart = floor(uv.s); \n" + "float fracPart = mod(uv.s, 1.0); \n" + "float odd = mod(integerPart, 2.0); \n" + "if (odd == 1.0) { /* if the uv.s lies on the odd number of band towards the right side */ \n" + "uv.s = 1.0 - fracPart; \n" + "} else { /* if the uv.s lies on the even number of band towards the right side */ \n" + "uv.s = fracPart; \n" + "} \n" + "} else if (uv.s < 0.0) { \n" + "float integerPart = floor(uv.s); \n" + "float fracPart = mod(uv.s, 1.0); \n" + "float odd = mod(integerPart, 2.0); \n" + "if (integerPart == 0.0) { /* special case for left side */ \n" + "uv.s = fracPart; \n" + "} else if (odd == 1.0) { /* if the uv.s lies on the odd number of band towards the left side */ \n" + "uv.s = 1.0 - fracPart; \n" + "} else { /* if the uv.s lies on the even number of band towards the left side */ \n" + "uv.s = fracPart; \n" + "} \n" + "} \n" + "uv = (uFrame.xy + (uv * uFrame.zw)); \n" + "} \n" + "vec4 c = texture2D(uSamplers[0], uv); \n" + "if (uSamplerIndex == 1) {\n" + "c = texture2D(uSamplers[1], uv); \n" + "} \n" + "c = c * uColorXformMultiplier + uColorXformOffset; \n" + "c.a = c.a * alpha; \n" + "if (uOverflowTypeAndPassIndex.y == 2) {\n" + "c.rgb = c.rgb * c.a; \n" + "} \n" + "gl_FragColor = c; \n" + "}";
+                    this.vertexShader = this.gl.createShader(GL.VERTEX_SHADER, this.vertexShaderSrc);
+                    this.fragmentShader = this.gl.createShader(GL.FRAGMENT_SHADER, this.fragmentShaderSrc);
+                    this.program = this.gl.createProgram();
+                    this.gl.attachShader(this.program, this.vertexShader);
+                    this.gl.attachShader(this.program, this.fragmentShader);
+                    this._id = this.gl.linkProgram(this.program);
+                    if (this._id < 0) {
+                        this.gl.deleteProgram(this.program);
+                        return false;
+                    }
+                    var ul0 = this.gl.getUniformLocation(this.program, "uMVMatrix");
+                    var ul1 = this.gl.getUniformLocation(this.program, "uSamplers");
+                    var ul2 = this.gl.getUniformLocation(this.program, "uSamplerIndex");
+                    var ul3 = this.gl.getUniformLocation(this.program, "uColorXformMultiplier");
+                    var ul4 = this.gl.getUniformLocation(this.program, "uColorXformOffset");
+                    var ul5 = this.gl.getUniformLocation(this.program, "uOverflowTypeAndPassIndex");
+                    var ul6 = this.gl.getUniformLocation(this.program, "uFrame");
+                    var u0 = new Uniform(ul0, GL.FLOAT_MAT4, 1, Uniform.Jd);
+                    var u1 = new Uniform(ul1, GL.SAMPLER_2D, this.ao, Uniform.Q);
+                    var u2 = new Uniform(ul2, GL.INT, 1, Uniform.Q);
+                    var u3 = new Uniform(ul3, GL.FLOAT_VEC4, 1, Uniform.Q);
+                    var u4 = new Uniform(ul4, GL.FLOAT_VEC4, 1, Uniform.Q);
+                    var u5 = new Uniform(ul5, GL.INT_VEC2, 1, Uniform.Q);
+                    var u6 = new Uniform(ul6, GL.FLOAT_VEC4, 1, Uniform.Q);
+                    this._uniforms = new Uniforms([u0, u1, u3, u4, u5, u6]);
+                    this.uniformMap = {};
+                    this.uniformMap.uMVMatrix = u0;
+                    this.uniformMap.uSamplers = u1;
+                    this.uniformMap.uSamplerIndex = u2;
+                    this.uniformMap.uColorXformMultiplier = u3;
+                    this.uniformMap.uColorXformOffset = u4;
+                    this.uniformMap.uOverflowTypeAndPassIndex = u5;
+                    this.uniformMap.uFrame = u6;
+                    var al0 = this.gl.getAttribLocation(this.program, "aVertexPosition");
+                    var al1 = this.gl.getAttribLocation(this.program, "aLoopBlinnTextureCoord");
+                    var al2 = this.gl.getAttribLocation(this.program, "aIsConvex");
+                    var al3 = this.gl.getAttribLocation(this.program, "aTextureCoord");
+                    var a0 = new e.VertexAttribute(al0, "POSITION0", GL.FLOAT, 2);
+                    var a1 = new e.VertexAttribute(al1, "TEXCOORD0", GL.FLOAT, 2);
+                    var a2 = new e.VertexAttribute(al2, "TEXCOORD1", GL.FLOAT, 1);
+                    var a3 = new e.VertexAttribute(al3, "TEXCOORD2", GL.FLOAT, 2);
+                    this._attribs = new e.VertexAttributes([a0, a1, a2, a3]);
+                    return true;
                 };
                 ShaderImageSpaceStdDev.prototype.destroy = function () {
                 };
@@ -1686,18 +1927,85 @@ var flwebgl;
     (function (e) {
         var shaders;
         (function (shaders) {
+            var GL = flwebgl.e.GL;
             var ShaderImageSpaceCoverage = (function () {
                 function ShaderImageSpaceCoverage() {
                     console.log("ShaderImageSpaceCoverage");
                 }
+                Object.defineProperty(ShaderImageSpaceCoverage.prototype, "id", {
+                    get: function () {
+                        return this._id;
+                    },
+                    enumerable: true,
+                    configurable: true
+                });
                 ShaderImageSpaceCoverage.prototype.setGL = function (gl) {
                     this.gl = gl;
+                    return this.setup();
                 };
                 ShaderImageSpaceCoverage.prototype.Xb = function () {
+                    this.gl.useProgram(this.program);
+                    this.gl.bindBuffer(GL.ARRAY_BUFFER, this.vertexBuffer);
+                    this.gl.bindBuffer(GL.ELEMENT_ARRAY_BUFFER, this.indexBuffer);
+                    this.gl.useProgram(this.program);
+                    this.gl.disable(GL.BLEND);
+                    this.gl.depthMask(false);
+                    this.gl.disable(GL.DEPTH_TEST);
+                    this.Eg();
                 };
                 ShaderImageSpaceCoverage.prototype.e = function (a, b) {
+                    this.setUniformValues(b.colorMapTexture, b.coverageMapTexture);
+                    this.gl.drawElements(this.indexBufferValues.length);
+                };
+                ShaderImageSpaceCoverage.prototype.Eg = function () {
+                    this.gl.vertexAttribPointer(0, 2, GL.FLOAT, false, 0, 0);
+                    this.gl.vertexAttribPointer(1, 2, GL.FLOAT, false, 0, 32);
+                };
+                ShaderImageSpaceCoverage.prototype.setUniformValues = function (colorMapTexture, coverageMapTexture) {
+                    this.gl.uniform1i(this.uniformLocColorMap, colorMapTexture);
+                    this.gl.uniform1i(this.uniformLocCoverageMap, coverageMapTexture);
+                };
+                ShaderImageSpaceCoverage.prototype.setup = function () {
+                    this.vertexShaderSrc = "attribute vec2 aVertexPosition; \n" + "attribute vec2 aTextureCoord; \n" + "varying vec2 vTextureCoord; \n" + "void main(void ) { \n" + "gl_Position = vec4(aVertexPosition, 1.0, 1.0); \n" + "vTextureCoord = aTextureCoord; \n" + "}";
+                    this.fragmentShaderSrc = "precision mediump float; \n" + "uniform sampler2D uColorMap; \n" + "uniform sampler2D uCoverageMap; \n" + "varying vec2 vTextureCoord; \n" + "void main() { \n" + "vec4 cov = texture2D(uCoverageMap, vTextureCoord); \n" + "vec4 color = texture2D(uColorMap, vTextureCoord); \n" + "gl_FragColor = cov + (color * (1.0 - cov.a)); \n" + "}";
+                    this.vertexBuffer = this.gl.createBuffer();
+                    if (!this.vertexBuffer) {
+                        return false;
+                    }
+                    this.indexBuffer = this.gl.createBuffer();
+                    if (!this.indexBuffer) {
+                        return false;
+                    }
+                    this.vertexShader = this.gl.createShader(GL.VERTEX_SHADER, this.vertexShaderSrc);
+                    this.fragmentShader = this.gl.createShader(GL.FRAGMENT_SHADER, this.fragmentShaderSrc);
+                    this.program = this.gl.createProgram();
+                    this.gl.attachShader(this.program, this.vertexShader);
+                    this.gl.attachShader(this.program, this.fragmentShader);
+                    this.gl.bindBuffer(GL.ARRAY_BUFFER, this.vertexBuffer);
+                    this.gl.bindBuffer(GL.ELEMENT_ARRAY_BUFFER, this.indexBuffer);
+                    this.gl.kc(0);
+                    this.gl.kc(1);
+                    this.gl.bindAttribLocation(this.program, 0, "aVertexPosition");
+                    this.gl.bindAttribLocation(this.program, 1, "aTextureCoord");
+                    this._id = this.gl.linkProgram(this.program);
+                    if (this._id < 0) {
+                        this.gl.deleteProgram(this.program);
+                        return false;
+                    }
+                    this.uniformLocColorMap = this.gl.getUniformLocation(this.program, "uColorMap");
+                    this.uniformLocCoverageMap = this.gl.getUniformLocation(this.program, "uCoverageMap");
+                    this.vertexBufferValues = new Float32Array([-1, -1, 1, -1, 1, 1, -1, 1, 0, 0, 1, 0, 1, 1, 0, 1]);
+                    this.indexBufferValues = new Uint16Array([0, 1, 2, 0, 2, 3]);
+                    this.gl.bufferData(GL.ARRAY_BUFFER, this.vertexBufferValues, GL.STATIC_DRAW);
+                    this.gl.bufferData(GL.ELEMENT_ARRAY_BUFFER, this.indexBufferValues, GL.STATIC_DRAW);
+                    return true;
                 };
                 ShaderImageSpaceCoverage.prototype.destroy = function () {
+                    this.gl.deleteBuffer(this.vertexBuffer);
+                    this.gl.deleteBuffer(this.indexBuffer);
+                    this.gl.deleteShader(this.vertexShader);
+                    this.gl.deleteShader(this.fragmentShader);
+                    this.gl.deleteProgram(this.program);
                 };
                 return ShaderImageSpaceCoverage;
             })();
@@ -1737,8 +2045,8 @@ var flwebgl;
                     this.rl = this.gl.getRenderTarget();
                     this.ld();
                     this.Qg(a);
-                    this.nf(RendererImageSpace.oc);
-                    this.Ia(RendererImageSpace.oc, this.cg);
+                    this.nf(0 /* oc */);
+                    this.Ia(0 /* oc */, this.cg);
                     for (a = 0; a < this.Ab.length; ++a) {
                         var c = this.Ab[a].type;
                         var d = this.Ab[a].sf;
@@ -1751,8 +2059,8 @@ var flwebgl;
                     c = this.gl.activateRenderTargetTexture(this.Zc);
                     this.shaderCoverage.Xb();
                     this.shaderCoverage.e(void 0, {
-                        am: a,
-                        bm: c
+                        colorMapTexture: a,
+                        coverageMapTexture: c
                     });
                 };
                 RendererImageSpace.prototype.ld = function () {
@@ -1780,11 +2088,11 @@ var flwebgl;
                 };
                 RendererImageSpace.prototype.nf = function (a) {
                     switch (a) {
-                        case RendererImageSpace.oc:
+                        case 0 /* oc */:
                             this.gl.activateRenderTarget(this.Yc);
                             break;
-                        case RendererImageSpace.Tb:
-                        case RendererImageSpace.Mc:
+                        case 1 /* Tb */:
+                        case 3 /* Mc */:
                             this.gl.activateRenderTarget(this.Zc);
                             break;
                     }
@@ -1799,7 +2107,6 @@ var flwebgl;
                     }
                 };
                 RendererImageSpace.prototype.Qg = function (renderables) {
-                    console.log("DANGER! DANGER!");
                     this.fe = 0;
                     var z;
                     var x;
@@ -1855,7 +2162,7 @@ var flwebgl;
                                         t.Dc(y[i]);
                                     }
                                     this.Ab.push({
-                                        type: RendererImageSpace.Tb,
+                                        type: 1 /* Tb */,
                                         sf: t
                                     });
                                     l = [];
@@ -1918,7 +2225,7 @@ var flwebgl;
                                     q.Dc(w[e]);
                                 }
                                 this.Ab.push({
-                                    type: RendererImageSpace.Mc,
+                                    type: 3 /* Mc */,
                                     sf: q
                                 });
                             }
@@ -1928,7 +2235,7 @@ var flwebgl;
                                 t.Dc(y[e]);
                             }
                             this.Ab.push({
-                                type: RendererImageSpace.Tb,
+                                type: 1 /* Tb */,
                                 sf: t
                             });
                         }
@@ -1936,18 +2243,18 @@ var flwebgl;
                     }
                     if (l.length > 0) {
                         this.Ab.push({
-                            type: RendererImageSpace.Tb,
+                            type: 1 /* Tb */,
                             sf: t
                         });
                     }
                 };
                 RendererImageSpace.prototype.Qi = function (a) {
                     switch (a) {
-                        case RendererImageSpace.oc:
+                        case 0 /* oc */:
                             this.gl.depthMask(true);
                             break;
-                        case RendererImageSpace.Tb:
-                        case RendererImageSpace.Mc:
+                        case 1 /* Tb */:
+                        case 3 /* Mc */:
                             this.gl.depthMask(false);
                             break;
                     }
@@ -1986,9 +2293,6 @@ var flwebgl;
                         this.gl.deleteRenderTargetTexture(this.We[a]);
                     }
                 };
-                RendererImageSpace.oc = 0;
-                RendererImageSpace.Tb = 1;
-                RendererImageSpace.Mc = 2;
                 return RendererImageSpace;
             })();
             renderers.RendererImageSpace = RendererImageSpace;
@@ -2006,6 +2310,7 @@ var flwebgl;
                 }
                 RendererMSAA.prototype.setGL = function (value) {
                     this.gl = value;
+                    return true;
                 };
                 RendererMSAA.prototype.destroy = function () {
                 };
@@ -3288,7 +3593,7 @@ var flwebgl;
                             if (attr.name === "POSITION0") {
                                 var vertices = vertexData.vertices;
                                 var stride = vertexData.vertexAttributes.totalSize / Float32Array.BYTES_PER_ELEMENT;
-                                for (var q = attr.byteOffset / Float32Array.BYTES_PER_ELEMENT; q < vertices.length; q += stride) {
+                                for (var q = attr.location / Float32Array.BYTES_PER_ELEMENT; q < vertices.length; q += stride) {
                                     p.x = vertices[q];
                                     p.y = vertices[q + 1];
                                     p = transform.transformPoint(p);

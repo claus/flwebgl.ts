@@ -13,12 +13,12 @@ module flwebgl.e.renderers
     constructor() {
     }
 
-    setGL(value: GL) {
+    setGL(value: GL): boolean {
       this.gl = value;
+      return true;
     }
 
     destroy() {
-
     }
   }
 }

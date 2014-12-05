@@ -55,7 +55,7 @@ module flwebgl.e
             if (attr.name === "POSITION0") {
               var vertices = vertexData.vertices;
               var stride = vertexData.vertexAttributes.totalSize / Float32Array.BYTES_PER_ELEMENT;
-              for (var l = attr.byteOffset / Float32Array.BYTES_PER_ELEMENT; l < vertices.length; l += stride) {
+              for (var l = attr.location / Float32Array.BYTES_PER_ELEMENT; l < vertices.length; l += stride) {
                 this.bounds.expand(vertices[l], vertices[l + 1]);
               }
               break;

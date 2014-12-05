@@ -22,7 +22,6 @@ module flwebgl.e
     dirty: boolean;
 
     constructor(shape: Shape) {
-      console.log(shape);
       this.shape = shape;
       this.dirty = true;
       this.Gb = {};

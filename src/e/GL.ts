@@ -30,7 +30,6 @@ module flwebgl.e
     private ei: any;
     private logErrors: boolean;
     private viewport: Rect;
-    private viewMatrix: Matrix;
     private renderTarget: RenderTarget;
     private textureAtlases: TextureAtlas[];
     private vao: any;
@@ -44,6 +43,8 @@ module flwebgl.e
     private programIDCounter: number;
     private backgroundColor: Color;
     private depthTestEnabled: boolean;
+
+    viewMatrix: Matrix;
 
     constructor(canvas: HTMLCanvasElement, options: PlayerOptions) {
       this.ei = {};
@@ -415,8 +416,8 @@ module flwebgl.e
       this.ctx.drawArrays(mode, first, count);
     }
 
-    bufferData(target: number, size: number, usage: number) {
-      this.ctx.bufferData(target, size, usage);
+    bufferData(target: number, sizeOrBuffer: any, usage: number) {
+      this.ctx.bufferData(target, sizeOrBuffer, usage);
     }
 
     bufferSubData(target: number, offset: number, data: ArrayBuffer) {
@@ -505,6 +506,7 @@ module flwebgl.e
         if (this.ctx.getShaderParameter(shader, this.ctx.COMPILE_STATUS)) {
           return shader;
         } else {
+          console.log(this.ctx.getShaderInfoLog(shader));
           //c.l.w.info(this.ctx.getShaderInfoLog(shader));
           return null;
         }
@@ -634,6 +636,7 @@ module flwebgl.e
       var names = this.ctx.getSupportedExtensions();
       for (var i = 0; i < names.length; i++) {
         if (names[i].toLowerCase() === name) {
+          this.ctx.getExtension(name);
           return true;
         }
       }
