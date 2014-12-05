@@ -5,12 +5,12 @@ module flwebgl.e.shaders
 {
   import GL = flwebgl.e.GL;
 
-  export class ShaderImageSpaceStdDev implements IShader
+  export class ShaderImageSpaceCoverage implements IShader
   {
     private gl: GL;
 
     constructor() {
-      console.log("ShaderImageSpaceStdDev");
+      console.log("ShaderImageSpaceCoverage");
     }
 
     setGL(gl:GL) {

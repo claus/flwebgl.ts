@@ -1,8 +1,20 @@
 /// <reference path="../util/Utils.ts" />
+/// <reference path="commands/IFrameCommand.ts" />
 
 module flwebgl.B
 {
   import Utils = flwebgl.util.Utils;
+  import IFrameCommand = flwebgl.B.commands.IFrameCommand;
+
+  export interface FrameLabel {
+    frameNum: number;
+    name: string;
+  }
+
+  export interface FrameScript {
+    frameNum: number;
+    name: string;
+  }
 
   export interface FrameScriptMap { [id: string]: string[]; }
 
@@ -14,8 +26,8 @@ module flwebgl.B
     private _isScene: boolean;
     private _labels: FrameLabel[];
 
-    private commands: FrameCommand[][];
-    private scripts: FrameScriptMap;
+    commands: IFrameCommand[][];
+    scripts: FrameScriptMap;
 
     constructor(id: string, name: string, linkageName: string, isScene: boolean, labels: FrameLabel[], scripts: FrameScript[]) {
       this._id = id;
@@ -29,9 +41,9 @@ module flwebgl.B
         var script = scripts[i];
         var frameIdx = script.frameNum - 1;
         if (Utils.isUndefined(this.scripts[frameIdx])) {
-          this.scripts[frameIdx] = [script.functionName];
+          this.scripts[frameIdx] = [script.name];
         } else {
-          this.scripts[frameIdx].push(script.functionName);
+          this.scripts[frameIdx].push(script.name);
         }
       }
     }
@@ -46,11 +58,11 @@ module flwebgl.B
       return this.scripts[frameIdx] ? this.scripts[frameIdx] : [];
     }
 
-    getFrameCommands(frameIdx: number): FrameCommand[] {
+    getFrameCommands(frameIdx: number): IFrameCommand[] {
       return (frameIdx < this.commands.length) ? this.commands[frameIdx] : [];
     }
 
-    addFrameCommands(commands: FrameCommand[]) {
+    addFrameCommands(commands: IFrameCommand[]) {
       this.commands.push(commands);
     }
   }

@@ -17,6 +17,14 @@ module flwebgl.e.shaders
       this.gl = gl;
     }
 
+    Xb() {
+
+    }
+
+    e(a, b) {
+
+    }
+
     destroy() {
 
     }

@@ -3,8 +3,12 @@
 
 module flwebgl.e
 {
+  export interface VertexDataMap {
+    [atlasID: string]: VertexData[];
+  }
+
   export class VertexAttributesArray {
-    public ta: VertexAttributes[] = [];
+    public attrs: VertexAttributes[] = [];
     constructor() {}
   }
 
@@ -14,15 +18,15 @@ module flwebgl.e
     isOpaque: boolean;
     fillMode: number;
     indices: Uint16Array;
-    vertexDataMap: any;
-    he: VertexAttributesArray;
+    vertexDataMap: VertexDataMap;
+    vertexAttributesArray: VertexAttributesArray;
 
     constructor(name: string, isOpaque: boolean) {
       this.name = name;
       this.isOpaque = isOpaque;
       this.fillMode = 0;
-      this.vertexDataMap = {};
-      this.he = new VertexAttributesArray();
+      this.vertexDataMap = {}; // Rg
+      this.vertexAttributesArray = new VertexAttributesArray();
     }
 
     get id(): number {
@@ -38,7 +42,7 @@ module flwebgl.e
     setVertexData(atlasID: string, vertexData: VertexData[]) {
       this.vertexDataMap[atlasID] = vertexData;
       for (var i = 0; i < vertexData.length; i++) {
-        this.he.ta.push(vertexData[i].vertexAttributes);
+        this.vertexAttributesArray.attrs.push(vertexData[i].vertexAttributes);
       }
     }
 
@@ -51,6 +55,7 @@ module flwebgl.e
       return this.indices.length;
     }
 
+    // qj
     getAtlasIDs(): string[] {
       var atlasIDs = [];
       for (var atlasID in this.vertexDataMap) {

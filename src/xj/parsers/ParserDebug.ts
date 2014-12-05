@@ -9,8 +9,10 @@ module flwebgl.xj.parsers
 
   export class ParserDebug implements IParser
   {
-    constructor(content: any, parser: Parser, assetPool: AssetPool) {
+    nextHighestID: number;
 
+    constructor(content: any, parser: Parser, assetPool: AssetPool) {
+      this.nextHighestID = -1;
     }
 
     parseSounds(): boolean {

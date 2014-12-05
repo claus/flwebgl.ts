@@ -46,7 +46,7 @@ module flwebgl.xj
       public color: Color,
       public frameRate: number,
       public loop: boolean,
-      public timelines: any
+      public sceneTimelines: number[]
     ) {}
   }
 
@@ -59,9 +59,11 @@ module flwebgl.xj
 
   export class Parser
   {
+    enableCacheAsBitmap: boolean;
+    emulateStandardDerivatives: boolean;
+    nextHighestID: number;
+
     private assetPool: AssetPool;
-    private enableCacheAsBitmap: boolean;
-    private emulateStandardDerivatives: boolean;
     private vertexAttributes: VertexAttributes;
     private S: number;
 
@@ -97,15 +99,15 @@ module flwebgl.xj
         header[Parser.kSceneTimelines]
       );
 
-      var p: IParser = (header[Parser.kReadable] == true)
-                     ? new ParserDebug(content, this, this.assetPool)
-                     : new ParserRelease(content, this, this.assetPool);
+      var parser: IParser = (header[Parser.kReadable] == true)
+                             ? new ParserDebug(content, this, this.assetPool)
+                             : new ParserRelease(content, this, this.assetPool);
 
       this.enableCacheAsBitmap = options.cacheAsBitmap;
       this.emulateStandardDerivatives = options.emulateStandardDerivatives;
       this.S = this.emulateStandardDerivatives ? 11 : 7;
 
-      if (!p.parseSounds() || !p.parseFills()) {
+      if (!parser.parseSounds() || !parser.parseFills()) {
         return stageInfo;
       }
 
@@ -124,12 +126,11 @@ module flwebgl.xj
       this.vertexAttributes.totalSize = this.S * Float32Array.BYTES_PER_ELEMENT;
 
       // TODO
-      if (!p.parseShapes() || !p.parseTimelines()) {
+      if (!parser.parseShapes() || !parser.parseTimelines()) {
         return stageInfo;
       }
 
-      // TODO
-      //this.ac = p.ac;
+      this.nextHighestID = parser.nextHighestID;
 
       return stageInfo;
     }

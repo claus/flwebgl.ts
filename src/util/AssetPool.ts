@@ -1,23 +1,26 @@
 /// <reference path="../e/Mesh.ts" />
 /// <reference path="../e/TextureAtlas.ts" />
 /// <reference path="../B/Timeline.ts" />
+/// <reference path="../media/Sound.ts" />
 
 module flwebgl.util
 {
   import Mesh = flwebgl.e.Mesh;
   import TextureAtlas = flwebgl.e.TextureAtlas;
   import Timeline = flwebgl.B.Timeline;
+  import Sound = flwebgl.media.Sound;
 
   interface MeshMap { [id: string]: Mesh; }
   interface TimelineMap { [id: string]: Timeline; }
   interface TextureAtlasMap { [id: string]: TextureAtlas; }
+  interface SoundMap { [id: string]: Sound; }
 
   export class AssetPool
   {
     private meshMap: MeshMap;
     private timelineMap: TimelineMap;
-    private textureAtlasMap: any;
-    private soundMap: any;
+    private textureAtlasMap: TextureAtlasMap;
+    private soundMap: SoundMap;
     private nextAvailableAssetID: number;
 
     constructor() {
@@ -85,6 +88,44 @@ module flwebgl.util
         textureAtlases[i++] = this.textureAtlasMap[id];
       }
       return textureAtlases;
+    }
+
+    // TODO
+    setSound(sound: Sound) {
+      this.soundMap[sound.id] = sound;
+    }
+    getSounds(): Sound[] {
+      var sounds: Sound[] = [];
+      var i = 0;
+      for (var id in this.soundMap) {
+        sounds[i++] = this.soundMap[id];
+      }
+      return sounds;
+    }
+
+    getNextAvailableAssetID() {
+      if (this.nextAvailableAssetID === -1) {
+        var i;
+        var meshes = this.getMeshes();
+        var meshCount = meshes.length;
+        for (i = 0; i < meshCount; i++) {
+          var mesh = meshes[i];
+          var meshID = +mesh.id;
+          if (this.nextAvailableAssetID < meshID) {
+            this.nextAvailableAssetID = meshID;
+          }
+        }
+        var timelines = this.getTimelines();
+        var timelineCount = timelines.length;
+        for (i = 0; i < timelineCount; i++) {
+          var timeline = timelines[i];
+          var timelineID = +timeline.id;
+          if (this.nextAvailableAssetID < timelineID) {
+            this.nextAvailableAssetID = timelineID;
+          }
+        }
+      }
+      return ++this.nextAvailableAssetID;
     }
 
     destroy() {

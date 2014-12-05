@@ -25,9 +25,9 @@ module flwebgl.e
       this.Oa = a;
       this.Uc = b;
       this.gc = 0;
-      var c = a.ta[0].totalSize;
+      var c = a.attrs[0].totalSize;
       if (!this.rd[c]) {
-        var size = GL.MAX_VERTICES * this.Oa.ta[0].totalSize * Float32Array.BYTES_PER_ELEMENT;
+        var size = GL.MAX_VERTICES * this.Oa.attrs[0].totalSize * Float32Array.BYTES_PER_ELEMENT;
         var buffer = this.gl.createBuffer();
         this.gl.bindBuffer(GL.ARRAY_BUFFER, buffer);
         this.gl.bufferData(GL.ARRAY_BUFFER, size, GL.DYNAMIC_DRAW);
@@ -45,7 +45,7 @@ module flwebgl.e
       }
       var a = [];
       var b = 0;
-      var p = this.Oa.ta[0].totalSize;
+      var p = this.Oa.attrs[0].totalSize;
       for (var e = 0; e < this.kb.length; e++) {
         /*
         var k = new c.e.mk;
@@ -76,8 +76,9 @@ module flwebgl.e
     }
 
     oe() {
-      var a = this.Oa.ta;
+      var a = this.Oa.attrs;
       for (var b = 0; b < a.length; ++b) {
+        /*
         var c = a[b];
         var e = c.attrs;
         c = c.totalSize;
@@ -86,6 +87,7 @@ module flwebgl.e
           this.gl.kc(l.location);
           this.gl.vertexAttribPointer(l.location, l.size, l.type, l.Hf, c, e[d].byteOffset);
         }
+        */
       }
     }
   }

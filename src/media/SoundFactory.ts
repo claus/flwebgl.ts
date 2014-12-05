@@ -5,5 +5,9 @@ module flwebgl.media
     constructor() {
 
     }
+
+    loadSounds(sounds, callback) {
+
+    }
   }
 }

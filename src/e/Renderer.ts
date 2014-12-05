@@ -21,20 +21,20 @@ module flwebgl.e
   export class Renderer
   {
     private gl: GL;
-    private rg: IRenderer;
+    private renderer: IRenderer;
     private ie;
-    private oa;
+    private oa: any[];
     private Kg;
     private H;
 
     constructor(canvas: HTMLCanvasElement, options: PlayerOptions) {
       this.gl = new GL(canvas, options);
-      this.rg = (options.antialias === AAType.MSAA) ? new RendererMSAA() : new RendererImageSpace();
+      this.renderer = (options.antialias === AAType.MSAA) ? new RendererMSAA() : new RendererImageSpace();
       this.oa = [];
     }
 
     setGL() {
-      this.rg.setGL(this.gl);
+      this.renderer.setGL(this.gl);
     }
 
     getViewport(): Rect {
@@ -92,7 +92,7 @@ module flwebgl.e
     ij(a: number = Renderer.Hj) {
       switch (a) {
         case Renderer.Hj:
-          this.Kg = this.rg;
+          this.Kg = this.renderer;
           break;
         case Renderer.Gj:
           if (this.ie === void 0) {
@@ -109,12 +109,12 @@ module flwebgl.e
       this.init();
       this.Kg.e(this.oa);
       for (var i = 0; i < this.oa.length; i++) {
-        this.oa[i].setDirty(false);
+        this.oa[i].dirty = false;
       }
       this.oa.length = 0;
     }
 
-    e(a) {
+    e(a, b?) {
       this.oa.push(a);
     }
 
@@ -153,7 +153,7 @@ module flwebgl.e
     }
 
     destroy() {
-      this.rg.destroy();
+      this.renderer.destroy();
       this.ie.destroy();
       this.gl.destroy();
       this.Kg = null;

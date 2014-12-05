@@ -8,11 +8,24 @@ declare module flwebgl.geom {
         equals(color: Color): boolean;
     }
 }
+interface Window {
+    webkitRequestAnimationFrame(callback: any, element?: any): number;
+    mozRequestAnimationFrame(callback: any, element?: any): number;
+    oRequestAnimationFrame(callback: any, element?: any): number;
+    webkitCancelAnimationFrame(id: number): void;
+    mozCancelAnimationFrame(id: number): void;
+    oCancelAnimationFrame(id: number): void;
+    msCancelAnimationFrame(id: number): void;
+}
 declare module flwebgl.util {
     import Color = flwebgl.geom.Color;
     class Utils {
+        static requestAnimFrame(fn: any, frameRate: number, window: Window): number;
+        static cancelAnimFrame(id: number, window: Window): void;
         static isUndefined(object: any): boolean;
         static getColor: (color: string) => Color;
+        static cm(meshID: string, i: number, edgeType: string): string;
+        static em(a: any, b: any): string;
     }
 }
 declare module flwebgl {
@@ -342,102 +355,37 @@ declare module flwebgl.e.renderers {
         destroy(): any;
     }
 }
-declare module flwebgl.e.shaders {
-    import GL = flwebgl.e.GL;
-    interface IShader {
-        setGL(gl: GL): any;
-        destroy(): any;
-    }
-}
-declare module flwebgl.e.shaders {
-    import GL = flwebgl.e.GL;
-    class ShaderImageSpace implements IShader {
-        private gl;
-        constructor();
-        setGL(gl: GL): void;
-        destroy(): void;
-    }
-}
-declare module flwebgl.e.shaders {
-    import GL = flwebgl.e.GL;
-    class ShaderImageSpaceStdDev implements IShader {
-        private gl;
-        constructor();
-        setGL(gl: GL): void;
-        destroy(): void;
-    }
-}
-declare module flwebgl.e.renderers {
-    import GL = flwebgl.e.GL;
-    class RendererImageSpace implements IRenderer {
-        private gl;
-        private shader;
-        private Ve;
-        private cg;
-        private Ab;
-        private vg;
-        private Ue;
-        private We;
-        private fe;
-        constructor();
-        setGL(gl: GL): any;
-        destroy(): void;
-    }
-}
-declare module flwebgl.e.renderers {
-    import GL = flwebgl.e.GL;
-    class RendererMSAA implements IRenderer {
-        private gl;
-        constructor();
-        setGL(value: GL): void;
-        destroy(): void;
-    }
-}
 declare module flwebgl.e {
-    import PlayerOptions = flwebgl.PlayerOptions;
-    import Color = flwebgl.geom.Color;
-    import Rect = flwebgl.geom.Rect;
-    class Renderer {
-        private gl;
-        private rg;
-        private ie;
-        private oa;
-        private Kg;
-        private H;
-        constructor(canvas: HTMLCanvasElement, options: PlayerOptions);
-        setGL(): void;
-        getViewport(): Rect;
-        setViewport(rect: Rect, flipY?: boolean): void;
-        getBackgroundColor(): Color;
-        setBackgroundColor(color: Color): void;
-        depthMask(flag: boolean): void;
-        depthFunc(func: number): void;
-        clearDepth(depth: number): void;
-        setDepthTest(value: boolean): void;
-        blendFunc(sfactor: number, dfactor: number): void;
-        clear(colorBuffer: boolean, depthBuffer?: boolean, stencilBuffer?: boolean): void;
-        enable(capability: number): void;
-        disable(capability: number): void;
-        scissor(rect: Rect): void;
-        ij(a?: number): void;
-        lj(): void;
-        e(a: any): void;
-        createRenderTarget(width: number, height: number): RenderTarget;
-        activateRenderTarget(renderTarget: RenderTarget): RenderTarget;
-        getRenderTarget(): RenderTarget;
-        deleteRenderTargetTexture(renderTarget: RenderTarget): void;
-        loadTextures(textureAtlases: TextureAtlas[], callback: any): void;
-        hasExtension(name: string): boolean;
-        flush(): void;
-        init(): void;
-        destroy(): void;
-        static Hj: number;
-        static Gj: number;
+    class Pe {
+        private F;
+        constructor();
+        Dc(a: any): void;
+        mc(i: number): any;
+        sort(a: any): void;
+        clear(): void;
     }
 }
-declare module flwebgl.media {
-    class SoundFactory {
-        constructor();
+declare module flwebgl.geom {
+    class ColorTransform {
+        alphaOffset: number;
+        redOffset: number;
+        greenOffset: number;
+        blueOffset: number;
+        private _alphaMult;
+        private _redMult;
+        private _greenMult;
+        private _blueMult;
+        constructor(alphaOffs?: number, alphaMult?: number, redOffs?: number, redMult?: number, greenOffs?: number, greenMult?: number, blueOffs?: number, blueMult?: number);
+        alphaMultiplier: number;
+        redMultiplier: number;
+        greenMultiplier: number;
+        blueMultiplier: number;
+        identity(): ColorTransform;
+        isIdentity(): boolean;
+        equals(cxform: ColorTransform): boolean;
+        concat(cxform: ColorTransform): ColorTransform;
+        clone(): ColorTransform;
+        copy(cxform: ColorTransform): ColorTransform;
     }
 }
 declare module flwebgl.e {
@@ -464,8 +412,11 @@ declare module flwebgl.e {
     }
 }
 declare module flwebgl.e {
+    interface VertexDataMap {
+        [atlasID: string]: VertexData[];
+    }
     class VertexAttributesArray {
-        ta: VertexAttributes[];
+        attrs: VertexAttributes[];
         constructor();
     }
     class ca {
@@ -473,8 +424,8 @@ declare module flwebgl.e {
         isOpaque: boolean;
         fillMode: number;
         indices: Uint16Array;
-        vertexDataMap: any;
-        he: VertexAttributesArray;
+        vertexDataMap: VertexDataMap;
+        vertexAttributesArray: VertexAttributesArray;
         constructor(name: string, isOpaque: boolean);
         id: number;
         getVertexData(atlasID: string): VertexData[];
@@ -493,22 +444,275 @@ declare module flwebgl.e {
     }
 }
 declare module flwebgl.e {
+    import Rect = flwebgl.geom.Rect;
     class Mesh {
         private _id;
         private fd;
-        private bounds;
+        bounds: Rect;
         constructor(id: string);
         id: string;
         Nb(edgeType: string, h: ca): void;
         yf(edgeType: string, i: number): ca;
-        ra(edgeType: string): any;
+        ra(edgeType: string): number;
         calculateBounds(): void;
         static INTERNAL: string;
         static EXTERNAL: string;
         static bb: string;
     }
 }
+declare module flwebgl.e {
+    import Matrix = flwebgl.geom.Matrix;
+    import ColorTransform = flwebgl.geom.ColorTransform;
+    import Shape = flwebgl.g.Shape;
+    class MeshInstanced {
+        private shape;
+        private Gb;
+        dirty: boolean;
+        constructor(shape: Shape);
+        depth: number;
+        ra(edgeType: string): number;
+        ab(edgeType: string, i: number, gl: GL): lk;
+        getTransform(): Matrix;
+        getColorTransform(): ColorTransform;
+        destroy(): void;
+    }
+}
+declare module flwebgl.e {
+    class lk {
+        private _id;
+        private ka;
+        private lb;
+        private parent;
+        private se;
+        constructor(id: string, h: any, b: any, parent: MeshInstanced);
+        id: string;
+        nc(): any;
+        sa(): any;
+        getUniforms(a: any): any;
+        setUniforms(a: any, h: any): void;
+        getTransform(): geom.Matrix;
+        getColorTransform(): geom.ColorTransform;
+        depth: number;
+        dirty: boolean;
+        isOpaque: boolean;
+        destroy(): void;
+    }
+}
+declare module flwebgl.e.shaders {
+    import GL = flwebgl.e.GL;
+    interface IShader {
+        setGL(gl: GL): any;
+        Xb(): any;
+        e(a: any, b: any): any;
+        destroy(): any;
+    }
+}
+declare module flwebgl.e.shaders {
+    import GL = flwebgl.e.GL;
+    class ShaderImageSpace implements IShader {
+        private gl;
+        constructor();
+        setGL(gl: GL): void;
+        Xb(): void;
+        e(a: any, b: any): void;
+        destroy(): void;
+    }
+}
+declare module flwebgl.e.shaders {
+    import GL = flwebgl.e.GL;
+    class ShaderImageSpaceStdDev implements IShader {
+        private gl;
+        constructor();
+        setGL(gl: GL): void;
+        Xb(): void;
+        e(a: any, b: any): void;
+        destroy(): void;
+    }
+}
+declare module flwebgl.e.shaders {
+    import GL = flwebgl.e.GL;
+    class ShaderImageSpaceCoverage implements IShader {
+        private gl;
+        constructor();
+        setGL(gl: GL): void;
+        Xb(): void;
+        e(a: any, b: any): void;
+        destroy(): void;
+    }
+}
+declare module flwebgl.e.renderers {
+    import GL = flwebgl.e.GL;
+    import MeshInstanced = flwebgl.e.MeshInstanced;
+    class RendererImageSpace implements IRenderer {
+        private gl;
+        private shader;
+        private shaderCoverage;
+        private cg;
+        private Ab;
+        private vg;
+        private Ue;
+        private We;
+        private fe;
+        private rl;
+        private Yc;
+        private Zc;
+        constructor();
+        setGL(gl: GL): any;
+        e(a: any): void;
+        ld(): void;
+        nf(a: any): void;
+        Ia(a: any, b: any): void;
+        Qg(renderables: MeshInstanced[]): void;
+        Qi(a: any): void;
+        ne(): void;
+        yi(): any;
+        Yk(): number;
+        destroy(): void;
+        static oc: number;
+        static Tb: number;
+        static Mc: number;
+    }
+}
+declare module flwebgl.e.renderers {
+    import GL = flwebgl.e.GL;
+    class RendererMSAA implements IRenderer {
+        private gl;
+        constructor();
+        setGL(value: GL): void;
+        destroy(): void;
+    }
+}
+declare module flwebgl.e {
+    import PlayerOptions = flwebgl.PlayerOptions;
+    import Color = flwebgl.geom.Color;
+    import Rect = flwebgl.geom.Rect;
+    class Renderer {
+        private gl;
+        private renderer;
+        private ie;
+        private oa;
+        private Kg;
+        private H;
+        constructor(canvas: HTMLCanvasElement, options: PlayerOptions);
+        setGL(): void;
+        getViewport(): Rect;
+        setViewport(rect: Rect, flipY?: boolean): void;
+        getBackgroundColor(): Color;
+        setBackgroundColor(color: Color): void;
+        depthMask(flag: boolean): void;
+        depthFunc(func: number): void;
+        clearDepth(depth: number): void;
+        setDepthTest(value: boolean): void;
+        blendFunc(sfactor: number, dfactor: number): void;
+        clear(colorBuffer: boolean, depthBuffer?: boolean, stencilBuffer?: boolean): void;
+        enable(capability: number): void;
+        disable(capability: number): void;
+        scissor(rect: Rect): void;
+        ij(a?: number): void;
+        lj(): void;
+        e(a: any, b?: any): void;
+        createRenderTarget(width: number, height: number): RenderTarget;
+        activateRenderTarget(renderTarget: RenderTarget): RenderTarget;
+        getRenderTarget(): RenderTarget;
+        deleteRenderTargetTexture(renderTarget: RenderTarget): void;
+        loadTextures(textureAtlases: TextureAtlas[], callback: any): void;
+        hasExtension(name: string): boolean;
+        flush(): void;
+        init(): void;
+        destroy(): void;
+        static Hj: number;
+        static Gj: number;
+    }
+}
+declare module flwebgl.events {
+    class Event {
+        private _type;
+        private _bubbles;
+        private _currentTarget;
+        private _target;
+        _stopped: boolean;
+        _stoppedImmediate: boolean;
+        constructor(type: string, bubbles?: boolean);
+        type: string;
+        bubbles: boolean;
+        target: EventDispatcher;
+        currentTarget: EventDispatcher;
+        stopPropagation(): void;
+        stopImmediatePropagation(): void;
+        static ADDED: string;
+        static REMOVED: string;
+        static UPDATED: string;
+        static ENTER_FRAME: string;
+        static EXIT_FRAME: string;
+        static FRAME_CONSTRUCTED: string;
+    }
+}
+declare module flwebgl.events {
+    class EventDispatcher {
+        private listenerMap;
+        constructor();
+        addEventListener(type: string, listener: any): void;
+        hasEventListener(type: string, listener?: any): boolean;
+        removeEventListener(type: string, listener: any): void;
+        dispatchEvent(event: Event): void;
+        dispatch(event: Event): void;
+        removeAllListeners(): void;
+    }
+}
+declare module flwebgl.g {
+    import EventDispatcher = flwebgl.events.EventDispatcher;
+    import ColorTransform = flwebgl.geom.ColorTransform;
+    import Matrix = flwebgl.geom.Matrix;
+    import Rect = flwebgl.geom.Rect;
+    class DisplayObject extends EventDispatcher {
+        _id: string;
+        _name: string;
+        _parent: DisplayObject;
+        _dirty: boolean;
+        _visible: boolean;
+        _localTransform: Matrix;
+        _globalTransform: Matrix;
+        _localColorTransform: ColorTransform;
+        _globalColorTransform: ColorTransform;
+        W: number;
+        constructor();
+        id: string;
+        name: string;
+        parent: DisplayObject;
+        depth: number;
+        dirty: boolean;
+        isVisible(): boolean;
+        setVisible(value: boolean, dirty?: boolean): void;
+        getLocalTransform(): Matrix;
+        setLocalTransform(transform: Matrix, dirty?: boolean): void;
+        getGlobalTransform(): Matrix;
+        getLocalColorTransform(): ColorTransform;
+        setLocalColorTransform(colorTransform?: ColorTransform, dirty?: boolean): void;
+        getGlobalColorTransform(): ColorTransform;
+        setTransforms(transform: Matrix, colorTransform: ColorTransform): void;
+        Qb(a: any): void;
+        getBounds(target?: DisplayObject, fast?: boolean, edgeType?: string, k?: boolean): Rect;
+        destroy(): void;
+    }
+}
+declare module flwebgl.B.commands {
+    import DisplayObject = flwebgl.g.DisplayObject;
+    import Context = flwebgl.Context;
+    interface IFrameCommand {
+        id: string;
+        execute(dobj: DisplayObject, context: Context, x: boolean): any;
+    }
+}
 declare module flwebgl.B {
+    import IFrameCommand = flwebgl.B.commands.IFrameCommand;
+    interface FrameLabel {
+        frameNum: number;
+        name: string;
+    }
+    interface FrameScript {
+        frameNum: number;
+        name: string;
+    }
     interface FrameScriptMap {
         [id: string]: string[];
     }
@@ -518,8 +722,8 @@ declare module flwebgl.B {
         private _linkageName;
         private _isScene;
         private _labels;
-        private commands;
-        private scripts;
+        commands: IFrameCommand[][];
+        scripts: FrameScriptMap;
         constructor(id: string, name: string, linkageName: string, isScene: boolean, labels: FrameLabel[], scripts: FrameScript[]);
         id: string;
         name: string;
@@ -527,14 +731,25 @@ declare module flwebgl.B {
         isScene: boolean;
         labels: FrameLabel[];
         getFrameScriptNames(frameIdx: number): string[];
-        getFrameCommands(frameIdx: number): FrameCommand[];
-        addFrameCommands(commands: FrameCommand[]): void;
+        getFrameCommands(frameIdx: number): IFrameCommand[];
+        addFrameCommands(commands: IFrameCommand[]): void;
+    }
+}
+declare module flwebgl.media {
+    class Sound {
+        id: string;
+        name: string;
+        src: string;
+        cf: boolean;
+        constructor(id: string, name: string, src: string);
+        Bn(): void;
     }
 }
 declare module flwebgl.util {
     import Mesh = flwebgl.e.Mesh;
     import TextureAtlas = flwebgl.e.TextureAtlas;
     import Timeline = flwebgl.B.Timeline;
+    import Sound = flwebgl.media.Sound;
     class AssetPool {
         private meshMap;
         private timelineMap;
@@ -554,7 +769,145 @@ declare module flwebgl.util {
         setTextureAtlas(textureAtlas: TextureAtlas): void;
         getTextureAtlas(id: string): TextureAtlas;
         getTextureAtlases(): TextureAtlas[];
+        setSound(sound: Sound): void;
+        getSounds(): Sound[];
+        getNextAvailableAssetID(): number;
         destroy(): void;
+    }
+}
+declare module flwebgl.media {
+    class SoundFactory {
+        constructor();
+        loadSounds(sounds: any, callback: any): void;
+    }
+}
+declare module flwebgl.B.commands {
+    import Context = flwebgl.Context;
+    import Matrix = flwebgl.geom.Matrix;
+    import AssetPool = flwebgl.util.AssetPool;
+    import SceneGraphFactory = flwebgl.sg.SceneGraphFactory;
+    import MovieClip = flwebgl.g.MovieClip;
+    class PlaceObjectCommand implements IFrameCommand {
+        Ag: any;
+        hf: any;
+        id: string;
+        hc: Matrix;
+        instanceName: string;
+        constructor(a: any[]);
+        execute(mc: MovieClip, context: Context, x: boolean): boolean;
+        Ek(mc: MovieClip, assetPool: AssetPool, sceneGraphFactory: SceneGraphFactory): number;
+    }
+}
+declare module flwebgl.g {
+    import ColorTransform = flwebgl.geom.ColorTransform;
+    import Rect = flwebgl.geom.Rect;
+    import Matrix = flwebgl.geom.Matrix;
+    import Event = flwebgl.events.Event;
+    import Timeline = flwebgl.B.Timeline;
+    import FrameLabel = flwebgl.B.FrameLabel;
+    class MovieClip extends DisplayObject {
+        timeline: Timeline;
+        context: any;
+        totalFrames: number;
+        loop: boolean;
+        yc: any;
+        pa: any;
+        Ui: any;
+        df: boolean;
+        Td: boolean;
+        private children;
+        private childrenDeferred;
+        private currentFrameIndex;
+        private _isPlaying;
+        constructor();
+        addChild(dobj: DisplayObject, e?: boolean): boolean;
+        addChildAt(dobj: DisplayObject, index: number, e?: boolean, defer?: boolean): boolean;
+        removeChild(dobj: DisplayObject): DisplayObject;
+        removeChildAt(index: number): DisplayObject;
+        getNumChildren(): number;
+        getChildren(): DisplayObject[];
+        getChildAt(index: number, includeDeferred?: boolean): DisplayObject;
+        getChildIndex(dobj: DisplayObject): number;
+        setChildIndex(dobj: DisplayObject, index: number): void;
+        getChildByName(name: string): DisplayObject;
+        currentFrame: number;
+        play(): void;
+        stop(): void;
+        isPlaying: boolean;
+        gotoAndPlay(frame: number): any;
+        gotoAndPlay(frame: string): any;
+        gotoAndStop(frame: number): any;
+        gotoAndStop(frame: string): any;
+        gotoFrame(frame: number, stop: boolean): any;
+        gotoFrame(frame: string, stop: boolean): any;
+        swap(a: number, b: number): void;
+        dispatch(event: Event): void;
+        advanceFrame(a?: boolean, b?: boolean): void;
+        dispatchFrameConstructed(): void;
+        dispatchEnterFrame(): void;
+        dispatchExitFrame(): void;
+        constructFrame(silent?: boolean): void;
+        executeFrameScripts(): void;
+        getFrameLabels(): FrameLabel[];
+        getCurrentFrameLabel(): string;
+        getCurrentLabel(): string;
+        getChildIndexByID(id: string): number;
+        Of(timeline: Timeline): void;
+        $j(a: any): void;
+        setTransforms(transform: Matrix, colorTransform: ColorTransform): void;
+        destroy(): void;
+        resetPlayHead(a?: boolean): void;
+        oi(): void;
+        Qb(a: any): void;
+        getBounds(target?: DisplayObject, fast?: boolean, edgeType?: string, k?: boolean): Rect;
+        executeFrameScript(name: any): void;
+    }
+}
+declare module flwebgl.g {
+    import Event = flwebgl.events.Event;
+    import Rect = flwebgl.geom.Rect;
+    import Mesh = flwebgl.e.Mesh;
+    import MeshInstanced = flwebgl.e.MeshInstanced;
+    class Shape extends DisplayObject {
+        yc: Mesh;
+        mf: MeshInstanced;
+        constructor();
+        Ic(): Mesh;
+        Of(mesh: Mesh): void;
+        Qb(a: any): void;
+        getBounds(target?: DisplayObject, fast?: boolean, edgeType?: string, k?: boolean): Rect;
+        calculateBoundsAABB(a: any, transform: any): Rect;
+        dispatch(event: Event): void;
+        destroy(): void;
+    }
+}
+declare module flwebgl.sg {
+    import MovieClip = flwebgl.g.MovieClip;
+    import Shape = flwebgl.g.Shape;
+    import Context = flwebgl.Context;
+    class SceneGraphFactory {
+        context: Context;
+        nextAvailableID: number;
+        constructor(context: Context, nextAvailableID: number);
+        createMovieClipInstance(linkageName: string): MovieClip;
+        createMovieClip(timelineID: string, mcID: string): MovieClip;
+        createShape(meshID: string, shapeID: string): Shape;
+        getNextAvailableID(): number;
+    }
+}
+declare module flwebgl {
+    import Renderer = flwebgl.e.Renderer;
+    import AssetPool = flwebgl.util.AssetPool;
+    import SoundFactory = flwebgl.media.SoundFactory;
+    import SceneGraphFactory = flwebgl.sg.SceneGraphFactory;
+    class Context {
+        renderer: Renderer;
+        assetPool: AssetPool;
+        soundFactory: SoundFactory;
+        sceneGraphFactory: SceneGraphFactory;
+        stage: any;
+        nd: any;
+        constructor(renderer: Renderer, assetPool: AssetPool, soundFactory: SoundFactory);
     }
 }
 declare module flwebgl.geom {
@@ -579,10 +932,43 @@ declare module flwebgl {
 }
 declare module flwebgl.xj.parsers {
     interface IParser {
+        nextHighestID: number;
         parseSounds(): boolean;
         parseFills(): boolean;
         parseShapes(): boolean;
         parseTimelines(): boolean;
+    }
+}
+declare module flwebgl.B.commands {
+    import Context = flwebgl.Context;
+    import Matrix = flwebgl.geom.Matrix;
+    import MovieClip = flwebgl.g.MovieClip;
+    class SetTransformCommand implements IFrameCommand {
+        id: string;
+        hf: any;
+        hc: Matrix;
+        constructor(a: any[]);
+        execute(mc: MovieClip, context: Context, x: boolean): boolean;
+    }
+}
+declare module flwebgl.B.commands {
+    import Context = flwebgl.Context;
+    import ColorTransform = flwebgl.geom.ColorTransform;
+    import MovieClip = flwebgl.g.MovieClip;
+    class SetColorTransformCommand implements IFrameCommand {
+        id: string;
+        colorTransform: ColorTransform;
+        constructor(a: any[]);
+        execute(mc: MovieClip, context: Context, x: boolean): boolean;
+    }
+}
+declare module flwebgl.B.commands {
+    import Context = flwebgl.Context;
+    import MovieClip = flwebgl.g.MovieClip;
+    class RemoveObjectCommand implements IFrameCommand {
+        id: string;
+        constructor(a: any[]);
+        execute(mc: MovieClip, context: Context, x: boolean): boolean;
     }
 }
 declare module flwebgl.xj.parsers {
@@ -592,10 +978,10 @@ declare module flwebgl.xj.parsers {
         private content;
         private parser;
         private assetPool;
-        private ac;
         private fillIDNameMap;
         private fillNameIsOpaqueMap;
         private fillNameStyleMap;
+        nextHighestID: number;
         constructor(content: any, parser: Parser, assetPool: AssetPool);
         parseSounds(): boolean;
         parseFills(): boolean;
@@ -615,6 +1001,7 @@ declare module flwebgl.xj.parsers {
     import AssetPool = flwebgl.util.AssetPool;
     import Parser = flwebgl.xj.Parser;
     class ParserDebug implements IParser {
+        nextHighestID: number;
         constructor(content: any, parser: Parser, assetPool: AssetPool);
         parseSounds(): boolean;
         parseFills(): boolean;
@@ -666,8 +1053,8 @@ declare module flwebgl.xj {
         color: Color;
         frameRate: number;
         loop: boolean;
-        timelines: any;
-        constructor(width: number, height: number, color: Color, frameRate: number, loop: boolean, timelines: any);
+        sceneTimelines: number[];
+        constructor(width: number, height: number, color: Color, frameRate: number, loop: boolean, sceneTimelines: number[]);
     }
     class BufferData {
         vertices: number[];
@@ -675,9 +1062,10 @@ declare module flwebgl.xj {
         constructor(vertices?: number[], indices?: number[]);
     }
     class Parser {
+        enableCacheAsBitmap: boolean;
+        emulateStandardDerivatives: boolean;
+        nextHighestID: number;
         private assetPool;
-        private enableCacheAsBitmap;
-        private emulateStandardDerivatives;
         private vertexAttributes;
         private S;
         constructor(assetPool: AssetPool);
@@ -722,37 +1110,67 @@ declare module flwebgl.xj {
 }
 declare module flwebgl {
     import AssetPool = flwebgl.util.AssetPool;
+    import Rect = flwebgl.geom.Rect;
     class Player {
         assetPool: AssetPool;
         private canvas;
         private options;
         private renderer;
         private soundFactory;
+        private sceneGraphFactory;
         private parser;
+        private context;
+        private stage;
+        private sceneTimelines;
         private completeCBK;
+        private nd;
+        private texturesLoaded;
+        private soundsLoaded;
+        private backgroundColor;
+        private stageWidth;
+        private stageHeight;
+        private frameRate;
+        private frameDuration;
+        private loop;
+        private playMode;
+        private numFrames;
+        private rafID;
+        private timeoutID;
+        private startTime;
+        private Xe;
+        private Hi;
+        private rc;
+        private jd;
+        private oa;
+        private mainLoop;
+        private frameRenderListener;
         constructor();
         init(canvas: HTMLCanvasElement, content: any, textures: TextureAtlas[], callback: any, options?: any): number;
+        _texturesLoadedCBK(): void;
+        _soundsLoadedCBK(): void;
+        _checkComplete(): void;
+        getStageWidth(): number;
+        getStageHeight(): number;
+        setViewport(rect: Rect): void;
+        play(scene?: string): boolean;
+        stop(): void;
+        _loop(): void;
+        Sl(): void;
+        Pk(): void;
+        me(): void;
+        Gk(): void;
+        Ri(a: number, b?: boolean): void;
+        Al(b?: boolean): void;
+        webglContextLostHandler(event: any): void;
+        webglContextRestoredHandler(): void;
         static S_OK: number;
         static E_ERR: number;
         static E_INVALID_PARAM: number;
         static E_CONTEXT_CREATION_FAILED: number;
         static E_REQUIRED_EXTENSION_NOT_PRESENT: number;
         static E_RESOURCE_LOADING_FAILED: number;
-    }
-}
-declare module flwebgl.B {
-    interface FrameCommand {
-    }
-}
-declare module flwebgl.B {
-    interface FrameLabel {
-        frameNum: number;
-        labelName: string;
-    }
-}
-declare module flwebgl.B {
-    interface FrameScript {
-        frameNum: number;
-        functionName: string;
+        static kIsPlaying: number;
+        static kIsStopped: number;
+        static FRAME_RENDER: number;
     }
 }

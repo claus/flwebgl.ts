@@ -5,12 +5,14 @@ module flwebgl.e
 {
   import Rect = flwebgl.geom.Rect;
 
+  interface CAMap { [edgeType: string]: ca[]; }
+
   export class Mesh
   {
     private _id: string;
+    private fd: CAMap;
 
-    private fd: any;
-    private bounds: Rect;
+    bounds: Rect;
 
     constructor(id: string) {
       this._id = id;
@@ -34,7 +36,7 @@ module flwebgl.e
       }
     }
 
-    ra(edgeType: string) {
+    ra(edgeType: string): number {
       return this.fd[edgeType].length;
     }
 
@@ -63,8 +65,8 @@ module flwebgl.e
       }
     }
 
-    static INTERNAL = "1";
-    static EXTERNAL = "2";
-    static bb = "3";
+    static INTERNAL = "1"; // Z
+    static EXTERNAL = "2"; // P
+    static bb = "3"; // bb
   }
 }
