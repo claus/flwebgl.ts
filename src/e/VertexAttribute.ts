@@ -3,11 +3,10 @@ module flwebgl.e
   export class VertexAttribute
   {
     constructor(
-      public location: number,
+      public byteOffset: number,
       public name: string,
       public type: number,
-      public size: number,
-      public hf: boolean = false
+      public size: number
     ) {}
   }
 

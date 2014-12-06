@@ -1,93 +1,92 @@
+/// <reference path="VertexAttribute.ts" />
+/// <reference path="Attribute.ts" />
 /// <reference path="GL.ts" />
+/// <reference path="lk.ts" />
+/// <reference path="mk.ts" />
 
 module flwebgl.e
 {
-  // TODO
+  interface WebGLBufferMap { [ size: string ]: WebGLBuffer }
+
   export class Ck
   {
     private gl: GL;
-    private rd;
-    private Oa;
-    private Uc;
-    private gc;
-    private Cg;
-    private kb;
+    private bufferCache: WebGLBufferMap;
+    private buffer: WebGLBuffer;
+    private Oa: VertexAttributesArray;
+    private Uc: Attributes;
+    private gc: number;
+    private kb: lk[];
 
     constructor() {
-      this.rd = {};
+      this.bufferCache = {};
     }
 
     setGL(value: GL) {
       this.gl = value;
     }
 
-    Vg(a, b) {
-      this.Oa = a;
-      this.Uc = b;
+    Vg(attribDefs: VertexAttributesArray, attribs: Attributes) {
+      this.Oa = attribDefs;
+      this.Uc = attribs;
       this.gc = 0;
-      var c = a.attrs[0].totalSize;
-      if (!this.rd[c]) {
-        var size = GL.MAX_VERTICES * this.Oa.attrs[0].totalSize * Float32Array.BYTES_PER_ELEMENT;
+      var totalSize = attribDefs.attrs[0].totalSize;
+      if (!this.bufferCache[totalSize]) {
         var buffer = this.gl.createBuffer();
+        var bufferSize = GL.MAX_VERTICES * totalSize * Float32Array.BYTES_PER_ELEMENT;
         this.gl.bindBuffer(GL.ARRAY_BUFFER, buffer);
-        this.gl.bufferData(GL.ARRAY_BUFFER, size, GL.DYNAMIC_DRAW);
+        this.gl.bufferData(GL.ARRAY_BUFFER, bufferSize, GL.DYNAMIC_DRAW);
         this.oe();
-        this.rd[c] = buffer;
+        this.bufferCache[totalSize] = buffer;
       }
-      this.Cg = this.rd[c];
+      this.buffer = this.bufferCache[totalSize];
       this.kb = [];
     }
 
-    Zg() {
-      if (this.Cg !== this.gl.getBoundBuffer(GL.ARRAY_BUFFER)) {
-        this.gl.bindBuffer(GL.ARRAY_BUFFER, this.Cg);
+    Zg(x: boolean = false) {
+      if (this.buffer !== this.gl.getBoundBuffer(GL.ARRAY_BUFFER)) {
+        this.gl.bindBuffer(GL.ARRAY_BUFFER, this.buffer);
         this.oe();
       }
       var a = [];
       var b = 0;
       var p = this.Oa.attrs[0].totalSize;
-      for (var e = 0; e < this.kb.length; e++) {
-        /*
-        var k = new c.e.mk;
-        this.gl.bufferSubData(GL.ARRAY_BUFFER, b * p, this.kb[e].nc()[0].ba);
-        k.fh = -1;
-        k.Ld = b;
-        a.push(k);
-        b += this.kb[e].sa();
-        */
+      for (var i = 0; i < this.kb.length; i++) {
+        a.push(new mk(b, -1));
+        this.gl.bufferSubData(GL.ARRAY_BUFFER, b * p, this.kb[i].getVertexData()[0].vertices);
+        b += this.kb[i].getNumIndices();
       }
       return a;
     }
 
-    upload(a) {
-      if (this.gc + a.sa() > GL.MAX_VERTICES) {
+    upload(a: lk) {
+      if (this.gc + a.getNumIndices() > GL.MAX_VERTICES) {
         return false;
       }
       this.kb.push(a);
-      this.gc += a.sa();
+      this.gc += a.getNumIndices();
       return true;
     }
 
     destroy() {
-      for (var a in this.rd) {
-        this.gl.deleteBuffer(this.rd[a]);
+      for (var a in this.bufferCache) {
+        this.gl.deleteBuffer(this.bufferCache[a]);
       }
-      this.Cg = this.kb = this.rd = void 0;
+      this.buffer = void 0;
+      this.kb = void 0;
+      this.bufferCache = void 0;
     }
 
     oe() {
       var a = this.Oa.attrs;
-      for (var b = 0; b < a.length; ++b) {
-        /*
-        var c = a[b];
+      for (var i = 0; i < a.length; i++) {
+        var c = a[i];
         var e = c.attrs;
-        c = c.totalSize;
-        for (var d = 0; d < e.length; ++d) {
-          var l = this.Uc.getAttribs(e[d].pc);
-          this.gl.kc(l.location);
-          this.gl.vertexAttribPointer(l.location, l.size, l.type, l.Hf, c, e[d].location);
+        for (var j = 0; j < e.length; j++) {
+          var l = this.Uc.getAttribs(e[j].name);
+          this.gl.enableVertexAttribArray(l.location);
+          this.gl.vertexAttribPointer(l.location, l.size, l.type, l.Hf, c.totalSize, e[j].byteOffset);
         }
-        */
       }
     }
   }

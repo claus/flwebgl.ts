@@ -51,7 +51,7 @@ module flwebgl.e
       this.indices = new Uint16Array(indices);
     }
 
-    sa(): number {
+    getNumIndices(): number {
       return this.indices.length;
     }
 

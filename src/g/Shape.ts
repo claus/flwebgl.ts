@@ -46,7 +46,7 @@ module flwebgl.g
       var targetConcat: Matrix;
       var thisConcat: Matrix;
       if (k === true) {
-        targetConcat = target.getGlobalTransform();
+        targetConcat = target.getGlobalTransform(); // TODO: not used?
         thisConcat = this.getGlobalTransform();
       } else {
         targetConcat = new Matrix();
@@ -85,7 +85,7 @@ module flwebgl.g
             if (attr.name === "POSITION0") {
               var vertices = vertexData.vertices;
               var stride = vertexData.vertexAttributes.totalSize / Float32Array.BYTES_PER_ELEMENT;
-              for (var q = attr.location / Float32Array.BYTES_PER_ELEMENT; q < vertices.length; q += stride) {
+              for (var q = attr.byteOffset / Float32Array.BYTES_PER_ELEMENT; q < vertices.length; q += stride) {
                 p.x = vertices[q];
                 p.y = vertices[q + 1];
                 p = transform.transformPoint(p);

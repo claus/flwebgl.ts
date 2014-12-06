@@ -2,9 +2,12 @@
 /// <reference path="../geom/Color.ts" />
 /// <reference path="../geom/Rect.ts" />
 /// <reference path="../geom/Matrix.ts" />
+/// <reference path="../util/Logger.ts" />
+/// <reference path="shaders/IShader.ts" />
 /// <reference path="RenderTarget.ts" />
 /// <reference path="TextureAtlas.ts" />
 /// <reference path="Ck.ts" />
+/// <reference path="lk.ts" />
 
 module flwebgl.e
 {
@@ -12,6 +15,8 @@ module flwebgl.e
   import Color = flwebgl.geom.Color;
   import Rect = flwebgl.geom.Rect;
   import Matrix = flwebgl.geom.Matrix;
+  import IShader = flwebgl.e.shaders.IShader;
+  import Logger = flwebgl.util.Logger;
 
   interface BufferItem {
     frameBuffer: WebGLFramebuffer;
@@ -67,7 +72,7 @@ module flwebgl.e
         }
       }
       if (!this.ctx) {
-        //c.l.w.error("Your browser doesn't support WebGL.");
+        Logger.error("Your browser doesn't support WebGL.");
         throw Error();
       }
       this.initStatics();
@@ -75,7 +80,7 @@ module flwebgl.e
       this.textureAtlases = [];
       this.vao = this.getExtension("OES_vertex_array_object");
       if (!this.hasExtension("OES_standard_derivatives")) {
-        //c.l.w.error("Standard derivatives extension not enabled.");
+        Logger.error("Standard derivatives extension not enabled.");
       }
       this.renderTarget = new RenderTarget();
       this.bufferCache = {};
@@ -263,48 +268,57 @@ module flwebgl.e
       this.setDepthTest(true);
     }
 
-    setUniforms(shader, c) {
-      var d = c.getUniforms(shader.id);
-      var e = this.uniformsCache[shader.id];
-      if (!e) {
-        e = this.uniformsCache[shader.id] = {};
+    Fl(a: lk) {
+      var atlasID = a.atlasID;
+      if (this.activeTextureMap[atlasID] !== atlasID) {
+        var texture = this.getTexture(atlasID);
+        if (texture) {
+          this.activateTexture(atlasID);
+          this.bindTexture(GL.TEXTURE_2D, texture);
+        }
       }
-      for (var k = 0; k < d.length; ++k) {
-        var n = e[k]; // cached value
-        var f = d[k].value; // new value
-        var type = d[k].jc.type;
-        var location = d[k].jc.location;
+    }
+
+    setUniforms(shader: IShader, c: lk) {
+      var uniforms = c.getUniforms(shader.id);
+      var uniformsCached = this.uniformsCache[shader.id];
+      if (!uniformsCached) { uniformsCached = this.uniformsCache[shader.id] = []; }
+      for (var i = 0; i < uniforms.length; i++) {
+        var value = uniforms[i].value;
+        var cached = uniformsCached[i] ? uniformsCached[i].value : null;
+        var type = uniforms[i].uniform.type;
+        var location = uniforms[i].uniform.location;
         switch (type) {
           case GL.FLOAT_VEC2:
-            if (n === void 0 || n.value[0] !== f[0] || n.value[1] !== f[1]) {
-              this.uniform2fv(location, f);
+            if (!cached || cached[0] !== value[0] || cached[1] !== value[1]) {
+              this.uniform2fv(location, value);
             }
             break;
           case GL.FLOAT_VEC4:
-            if (n === void 0 || n.value[0] !== f[0] || n.value[1] !== f[1] || n.value[2] !== f[2] || n.value[3] !== f[3]) {
-              this.uniform4fv(location, f);
+            if (!cached || cached[0] !== value[0] || cached[1] !== value[1] || cached[2] !== value[2] || cached[3] !== value[3]) {
+              this.uniform4fv(location, value);
             }
             break;
           case GL.FLOAT_MAT4:
-            if (n === void 0 || n.value[0] !== f[0] || n.value[1] !== f[1] || n.value[4] !== f[4] || n.value[5] !== f[5] || n.value[10] !== f[10] || n.value[12] !== f[12] || n.value[13] !== f[13]) {
-              this.uniformMatrix4fv(location, false, f);
+            if (!cached || cached[0] !== value[0] || cached[1] !== value[1] || cached[4] !== value[4] || cached[5] !== value[5] || cached[10] !== value[10] || cached[12] !== value[12] || cached[13] !== value[13]) {
+              this.uniformMatrix4fv(location, false, value);
             }
             break;
           case GL.INT:
           case GL.SAMPLER_2D:
-            if (n === void 0 || n.value[0] !== f[0] || n.value[1] !== f[1]) {
-              this.uniform1iv(location, f);
+            if (!cached || cached[0] !== value[0] || cached[1] !== value[1]) {
+              this.uniform1iv(location, value);
             }
             break;
           case GL.INT_VEC2:
-            if (n === void 0 || n.value[0] !== f[0] || n.value[1] !== f[1]) {
-              this.uniform2iv(location, f);
+            if (!cached || cached[0] !== value[0] || cached[1] !== value[1]) {
+              this.uniform2iv(location, value);
             }
             break;
         }
-        this.uniformsCache[shader.id][k] = {
+        this.uniformsCache[shader.id][i] = {
           type: type,
-          value: f
+          value: value
         };
       }
     }
@@ -345,15 +359,13 @@ module flwebgl.e
       }
     }
 
-    // draw() ?
-    e(shader, h, c) {
-      // TODO
-      /*
+    // e
+    draw(shader, attribDefs, c: lk[]) {
       var l = 0;
       var d = 0;
       var e = c.length;
       while (d < e) {
-        this.fb.Vg(h, shader.getAttribs());
+        this.fb.Vg(attribDefs, shader.attribs);
         l = d;
         while (d < e) {
           if (!this.fb.upload(c[d++])) {
@@ -365,11 +377,10 @@ module flwebgl.e
           var n = c[l];
           this.Fl(n);
           this.setUniforms(shader, n);
-          this.drawArrays(b.TRIANGLES, f[m].Ld, n.sa())
+          this.drawArrays(GL.TRIANGLES, f[m].Ld, n.getNumIndices());
         }
-        this.bindVertexArrayOES(null)
+        this.bindVertexArrayOES(null);
       }
-      */
     }
 
     createFramebuffer(): WebGLFramebuffer {
@@ -420,7 +431,7 @@ module flwebgl.e
       this.ctx.bufferData(target, sizeOrBuffer, usage);
     }
 
-    bufferSubData(target: number, offset: number, data: ArrayBuffer) {
+    bufferSubData(target: number, offset: number, data: any) {
       this.ctx.bufferSubData(target, offset, data);
     }
 
@@ -506,8 +517,7 @@ module flwebgl.e
         if (this.ctx.getShaderParameter(shader, this.ctx.COMPILE_STATUS)) {
           return shader;
         } else {
-          console.log(this.ctx.getShaderInfoLog(shader));
-          //c.l.w.info(this.ctx.getShaderInfoLog(shader));
+          Logger.error(this.ctx.getShaderInfoLog(shader));
           return null;
         }
       }
@@ -534,7 +544,7 @@ module flwebgl.e
       var hasError = this.hasError();
       var linkStatus = this.ctx.getProgramParameter(program, this.ctx.LINK_STATUS);
       if (!linkStatus || hasError) {
-        //c.l.w.error("Could not initialize shaders properly: " + this.ctx.getProgramInfoLog(program));
+        Logger.error("Could not initialize shaders properly: " + this.ctx.getProgramInfoLog(program));
       }
       return (!hasError && linkStatus) ? this.programIDCounter++ : -1;
     }
@@ -551,7 +561,7 @@ module flwebgl.e
       return this.ctx.getAttribLocation(program, name);
     }
 
-    kc(index: number) {
+    enableVertexAttribArray(index: number) {
       this.ctx.enableVertexAttribArray(index);
     }
 
@@ -649,7 +659,7 @@ module flwebgl.e
       }
       var error = this.ctx.getError();
       if (error != this.ctx.NO_ERROR) {
-        //c.l.w.error("WebGL Error: " + error)
+        Logger.error("WebGL Error: " + error)
       }
       return error;
     }
@@ -667,8 +677,7 @@ module flwebgl.e
           this.deleteFramebuffer(bufferItems[i].frameBuffer);
         }
       }
-      // TODO:
-      //this.fb.destroy();
+      this.fb.destroy();
     }
 
     initStatics() {

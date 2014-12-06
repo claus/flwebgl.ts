@@ -72,8 +72,8 @@ module flwebgl.e.renderers
       this.gl.activateRenderTarget(this.rl);
       a = this.gl.activateRenderTargetTexture(this.Yc);
       c = this.gl.activateRenderTargetTexture(this.Zc);
-      this.shaderCoverage.Xb();
-      this.shaderCoverage.e(void 0, {
+      this.shaderCoverage.activate();
+      this.shaderCoverage.draw(void 0, {
         colorMapTexture: a,
         coverageMapTexture: c
       });
@@ -81,7 +81,7 @@ module flwebgl.e.renderers
 
     ld() {
       this.ne();
-      this.shader.Xb();
+      this.shader.activate();
       var a = this.gl.getViewport();
       var b = this.Yk();
       this.Yc = this.Ue[b];
@@ -117,7 +117,7 @@ module flwebgl.e.renderers
 
     Ia(a, b) {
       if (typeof b === "undefined") { b = void 0; }
-      this.shader.e(b, a);
+      this.shader.draw(b, a);
       if (b !== void 0) {
         b.clear();
       }

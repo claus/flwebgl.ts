@@ -1,64 +1,75 @@
-/// <reference path="MeshInstanced.ts" />
+/// <reference path="../geom/Matrix.ts" />
+/// <reference path="../geom/ColorTransform.ts" />
 
 module flwebgl.e
 {
+  import Matrix = flwebgl.geom.Matrix;
+  import ColorTransform = flwebgl.geom.ColorTransform;
+
+  interface UniformValuesMap { [shaderID: string]: UniformValue[] }
+
   export class lk
   {
     private _id: string;
-    private ka: any;
-    private lb: any;
+    private _atlasID: string;
     private parent: MeshInstanced;
-    private se: any;
+    private se: UniformValuesMap;
 
-    constructor(id: string, h, b, parent: MeshInstanced) {
+    ka: ca;
+
+    constructor(id: string, h: ca, atlasID: string, parent: MeshInstanced) {
       this._id = id;
+      this._atlasID = atlasID;
       this.ka = h;
-      this.lb = b;
       this.parent = parent;
-      this.se = {}
+      this.se = {};
     }
 
     get id(): string {
       return this._id;
     }
 
-    nc() {
-      return this.ka.nc(this.lb);
+    get atlasID(): string {
+      return this._atlasID;
     }
-    
-    sa() {
-      return this.ka.sa();
-    }
-    
-    getUniforms(a) {
-      return this.se[a];
-    }
-    
-    setUniforms(a, h) {
-      this.se[a] = h;
-    }
-    
-    getTransform() {
-      return this.parent.getTransform();
-    }
-    
-    getColorTransform() {
-      return this.parent.getColorTransform();
-    }
-    
+
     get depth(): number {
       return this.parent.depth;
     }
-    
+
     get dirty(): boolean {
       return this.parent.dirty;
     }
-    
+
     get isOpaque(): boolean {
       var cxform = this.parent.getColorTransform();
       return (this.ka.isOpaque && cxform.alphaMultiplier == 1 && cxform.alphaOffset == 0);
     }
+
+    getVertexData(): VertexData[] {
+      return this.ka.getVertexData(this._atlasID);
+    }
     
+    getNumIndices(): number {
+      return this.ka.getNumIndices();
+    }
+    
+    getUniforms(shaderID: number): UniformValue[] {
+      return this.se["" + shaderID];
+    }
+    
+    setUniforms(shaderID: number, uniforms: UniformValue[]) {
+      this.se["" + shaderID] = uniforms;
+    }
+    
+    getTransform(): Matrix {
+      return this.parent.getTransform();
+    }
+    
+    getColorTransform(): ColorTransform {
+      return this.parent.getColorTransform();
+    }
+
     destroy() {
       this.parent = void 0;
     }

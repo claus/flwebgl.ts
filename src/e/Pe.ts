@@ -2,17 +2,17 @@ module flwebgl.e
 {
   export class Pe
   {
-    private F;
+    F: lk[];
 
     constructor() {
       this.F = [];
     }
 
-    Dc(a) {
+    Dc(a: lk) {
       this.F.push(a);
     }
 
-    mc(i: number) {
+    mc(i: number): lk {
       return (i >= 0) ? this.F[i] : null;
     }
 

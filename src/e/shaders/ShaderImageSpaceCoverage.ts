@@ -34,7 +34,7 @@ module flwebgl.e.shaders
       return this.setup();
     }
 
-    Xb() {
+    activate() {
       this.gl.useProgram(this.program);
       this.gl.bindBuffer(GL.ARRAY_BUFFER, this.vertexBuffer);
       this.gl.bindBuffer(GL.ELEMENT_ARRAY_BUFFER, this.indexBuffer);
@@ -45,14 +45,14 @@ module flwebgl.e.shaders
       this.Eg();
     }
 
-    e(a, b?) {
-      this.setUniformValues(b.colorMapTexture, b.coverageMapTexture);
-      this.gl.drawElements(this.indexBufferValues.length);
-    }
-
     Eg() {
       this.gl.vertexAttribPointer(0, 2, GL.FLOAT, false, 0, 0);
       this.gl.vertexAttribPointer(1, 2, GL.FLOAT, false, 0, 32);
+    }
+
+    draw(a, b?) {
+      this.setUniformValues(b.colorMapTexture, b.coverageMapTexture);
+      this.gl.drawElements(this.indexBufferValues.length);
     }
 
     setUniformValues(colorMapTexture, coverageMapTexture) {
@@ -96,8 +96,8 @@ module flwebgl.e.shaders
       this.gl.attachShader(this.program, this.fragmentShader);
       this.gl.bindBuffer(GL.ARRAY_BUFFER, this.vertexBuffer);
       this.gl.bindBuffer(GL.ELEMENT_ARRAY_BUFFER, this.indexBuffer);
-      this.gl.kc(0);
-      this.gl.kc(1);
+      this.gl.enableVertexAttribArray(0);
+      this.gl.enableVertexAttribArray(1);
       this.gl.bindAttribLocation(this.program, 0, "aVertexPosition");
       this.gl.bindAttribLocation(this.program, 1, "aTextureCoord");
       this._id = this.gl.linkProgram(this.program);
@@ -108,8 +108,8 @@ module flwebgl.e.shaders
       }
       this.uniformLocColorMap = this.gl.getUniformLocation(this.program, "uColorMap");
       this.uniformLocCoverageMap = this.gl.getUniformLocation(this.program, "uCoverageMap");
-      this.vertexBufferValues = new Float32Array([-1, -1, 1, -1, 1, 1, -1, 1, 0, 0, 1, 0, 1, 1, 0, 1]);
-      this.indexBufferValues = new Uint16Array([0, 1, 2, 0, 2, 3]);
+      this.vertexBufferValues = new Float32Array([ -1, -1, 1, -1, 1, 1, -1, 1, 0, 0, 1, 0, 1, 1, 0, 1 ]);
+      this.indexBufferValues = new Uint16Array([ 0, 1, 2, 0, 2, 3 ]);
       this.gl.bufferData(GL.ARRAY_BUFFER, this.vertexBufferValues, GL.STATIC_DRAW);
       this.gl.bufferData(GL.ELEMENT_ARRAY_BUFFER, this.indexBufferValues, GL.STATIC_DRAW);
       return true;

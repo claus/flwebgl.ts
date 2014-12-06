@@ -95,6 +95,29 @@ declare module flwebgl.geom {
         getValue(column: number, row: number): number;
     }
 }
+declare module flwebgl.util {
+    class Logger {
+        static setLevel(level: any): void;
+        static info(a: any): void;
+        static warn(a: any): void;
+        static error(a: any): void;
+        static kLevel_OFF: number;
+        static kLevel_Error: number;
+        static kLevel_Warn: number;
+        static kLevel_Info: number;
+        static level: number;
+    }
+}
+declare module flwebgl.e.shaders {
+    import GL = flwebgl.e.GL;
+    interface IShader {
+        id: number;
+        setGL(gl: GL): any;
+        activate(): any;
+        draw(a: any, b: any): any;
+        destroy(): any;
+    }
+}
 declare module flwebgl.e {
     class RenderTarget {
         private _id;
@@ -126,19 +149,102 @@ declare module flwebgl.e {
     }
 }
 declare module flwebgl.e {
+    class VertexAttribute {
+        byteOffset: number;
+        name: string;
+        type: number;
+        size: number;
+        constructor(byteOffset: number, name: string, type: number, size: number);
+    }
+    class VertexAttributes {
+        attrs: VertexAttribute[];
+        totalSize: number;
+        constructor(attrs?: VertexAttribute[], totalSize?: number);
+    }
+}
+declare module flwebgl.e {
+    class Attribute {
+        location: number;
+        name: string;
+        type: number;
+        size: number;
+        Hf: boolean;
+        constructor(location: number, name: string, type: number, size: number, Hf?: boolean);
+    }
+    class Attributes {
+        fi: any;
+        constructor(attributes: Attribute[]);
+        getAttribs(name: string): Attribute;
+    }
+}
+declare module flwebgl.geom {
+    class ColorTransform {
+        alphaOffset: number;
+        redOffset: number;
+        greenOffset: number;
+        blueOffset: number;
+        private _alphaMult;
+        private _redMult;
+        private _greenMult;
+        private _blueMult;
+        constructor(alphaOffs?: number, alphaMult?: number, redOffs?: number, redMult?: number, greenOffs?: number, greenMult?: number, blueOffs?: number, blueMult?: number);
+        alphaMultiplier: number;
+        redMultiplier: number;
+        greenMultiplier: number;
+        blueMultiplier: number;
+        identity(): ColorTransform;
+        isIdentity(): boolean;
+        equals(cxform: ColorTransform): boolean;
+        concat(cxform: ColorTransform): ColorTransform;
+        clone(): ColorTransform;
+        copy(cxform: ColorTransform): ColorTransform;
+    }
+}
+declare module flwebgl.e {
+    import Matrix = flwebgl.geom.Matrix;
+    import ColorTransform = flwebgl.geom.ColorTransform;
+    class lk {
+        private _id;
+        private _atlasID;
+        private parent;
+        private se;
+        ka: ca;
+        constructor(id: string, h: ca, atlasID: string, parent: MeshInstanced);
+        id: string;
+        atlasID: string;
+        depth: number;
+        dirty: boolean;
+        isOpaque: boolean;
+        getVertexData(): VertexData[];
+        getNumIndices(): number;
+        getUniforms(shaderID: number): UniformValue[];
+        setUniforms(shaderID: number, uniforms: UniformValue[]): void;
+        getTransform(): Matrix;
+        getColorTransform(): ColorTransform;
+        destroy(): void;
+    }
+}
+declare module flwebgl.e {
+    class mk {
+        Ld: number;
+        fh: number;
+        constructor(Ld?: number, fh?: number);
+    }
+}
+declare module flwebgl.e {
     class Ck {
         private gl;
-        private rd;
+        private bufferCache;
+        private buffer;
         private Oa;
         private Uc;
         private gc;
-        private Cg;
         private kb;
         constructor();
         setGL(value: GL): void;
-        Vg(a: any, b: any): void;
-        Zg(): any[];
-        upload(a: any): boolean;
+        Vg(attribDefs: VertexAttributesArray, attribs: Attributes): void;
+        Zg(x?: boolean): any[];
+        upload(a: lk): boolean;
         destroy(): void;
         oe(): void;
     }
@@ -148,6 +254,7 @@ declare module flwebgl.e {
     import Color = flwebgl.geom.Color;
     import Rect = flwebgl.geom.Rect;
     import Matrix = flwebgl.geom.Matrix;
+    import IShader = flwebgl.e.shaders.IShader;
     class GL {
         private ctx;
         private ei;
@@ -187,12 +294,13 @@ declare module flwebgl.e {
         private _loadTextures(textureAtlases, callback);
         createRenderTarget(width: number, height: number, format?: any, internalFormat?: any): RenderTarget;
         init(): void;
-        setUniforms(shader: any, c: any): void;
+        Fl(a: lk): void;
+        setUniforms(shader: IShader, c: lk): void;
         getRenderTarget(): RenderTarget;
         activateRenderTarget(renderTarget: RenderTarget): RenderTarget;
         activateRenderTargetTexture(renderTarget: RenderTarget): string;
         deleteRenderTargetTexture(renderTarget: RenderTarget): void;
-        e(shader: any, h: any, c: any): void;
+        draw(shader: any, attribDefs: any, c: lk[]): void;
         createFramebuffer(): WebGLFramebuffer;
         bindFramebuffer(target: number, frameBuffer: WebGLFramebuffer): void;
         deleteFramebuffer(frameBuffer: WebGLFramebuffer): void;
@@ -205,7 +313,7 @@ declare module flwebgl.e {
         drawElements(count: number): void;
         drawArrays(mode: number, first: number, count: number): void;
         bufferData(target: number, sizeOrBuffer: any, usage: number): void;
-        bufferSubData(target: number, offset: number, data: ArrayBuffer): void;
+        bufferSubData(target: number, offset: number, data: any): void;
         setBackgroundColor(color: Color): void;
         getBackgroundColor(): Color;
         clearColor(red: number, green: number, blue: number, alpha: number): void;
@@ -228,7 +336,7 @@ declare module flwebgl.e {
         useProgram(program: WebGLProgram): void;
         bindAttribLocation(program: WebGLProgram, index: number, name: string): void;
         getAttribLocation(program: WebGLProgram, name: string): number;
-        kc(index: number): void;
+        enableVertexAttribArray(index: number): void;
         vertexAttribPointer(index: number, size: number, type: number, normalized: boolean, stride: number, offset: number): void;
         getUniformLocation(program: WebGLProgram, name: string): WebGLUniformLocation;
         uniformMatrix4fv(location: WebGLUniformLocation, transpose: boolean, value: number[]): void;
@@ -358,50 +466,12 @@ declare module flwebgl.e.renderers {
 }
 declare module flwebgl.e {
     class Pe {
-        private F;
+        F: lk[];
         constructor();
-        Dc(a: any): void;
-        mc(i: number): any;
+        Dc(a: lk): void;
+        mc(i: number): lk;
         sort(a: any): void;
         clear(): void;
-    }
-}
-declare module flwebgl.geom {
-    class ColorTransform {
-        alphaOffset: number;
-        redOffset: number;
-        greenOffset: number;
-        blueOffset: number;
-        private _alphaMult;
-        private _redMult;
-        private _greenMult;
-        private _blueMult;
-        constructor(alphaOffs?: number, alphaMult?: number, redOffs?: number, redMult?: number, greenOffs?: number, greenMult?: number, blueOffs?: number, blueMult?: number);
-        alphaMultiplier: number;
-        redMultiplier: number;
-        greenMultiplier: number;
-        blueMultiplier: number;
-        identity(): ColorTransform;
-        isIdentity(): boolean;
-        equals(cxform: ColorTransform): boolean;
-        concat(cxform: ColorTransform): ColorTransform;
-        clone(): ColorTransform;
-        copy(cxform: ColorTransform): ColorTransform;
-    }
-}
-declare module flwebgl.e {
-    class VertexAttribute {
-        location: number;
-        name: string;
-        type: number;
-        size: number;
-        hf: boolean;
-        constructor(location: number, name: string, type: number, size: number, hf?: boolean);
-    }
-    class VertexAttributes {
-        attrs: VertexAttribute[];
-        totalSize: number;
-        constructor(attrs?: VertexAttribute[], totalSize?: number);
     }
 }
 declare module flwebgl.e {
@@ -431,7 +501,7 @@ declare module flwebgl.e {
         getVertexData(atlasID: string): VertexData[];
         setVertexData(atlasID: string, vertexData: VertexData[]): void;
         setIndices(indices: number[]): void;
-        sa(): number;
+        getNumIndices(): number;
         getAtlasIDs(): string[];
         static kFill_Extend: string;
         static kFill_Repeat: string;
@@ -478,47 +548,6 @@ declare module flwebgl.e {
     }
 }
 declare module flwebgl.e {
-    class lk {
-        private _id;
-        private ka;
-        private lb;
-        private parent;
-        private se;
-        constructor(id: string, h: any, b: any, parent: MeshInstanced);
-        id: string;
-        nc(): any;
-        sa(): any;
-        getUniforms(a: any): any;
-        setUniforms(a: any, h: any): void;
-        getTransform(): geom.Matrix;
-        getColorTransform(): geom.ColorTransform;
-        depth: number;
-        dirty: boolean;
-        isOpaque: boolean;
-        destroy(): void;
-    }
-}
-declare module flwebgl.e.shaders {
-    import GL = flwebgl.e.GL;
-    interface IShader {
-        setGL(gl: GL): any;
-        Xb(): any;
-        e(a: any, b: any): any;
-        destroy(): any;
-    }
-}
-declare module flwebgl.e.shaders {
-    import GL = flwebgl.e.GL;
-    class ShaderImageSpace implements IShader {
-        private gl;
-        constructor();
-        setGL(gl: GL): void;
-        Xb(): void;
-        e(a: any, b: any): void;
-        destroy(): void;
-    }
-}
-declare module flwebgl.e {
     class Uniform {
         location: any;
         type: any;
@@ -549,7 +578,40 @@ declare module flwebgl.e.renderers {
 }
 declare module flwebgl.e.shaders {
     import GL = flwebgl.e.GL;
+    class ShaderImageSpace implements IShader {
+        private gl;
+        private _id;
+        private _attribs;
+        private _uniforms;
+        private uniformMap;
+        private program;
+        private vertexShader;
+        private vertexShaderSrc;
+        private fragmentShader;
+        private fragmentShaderSrc;
+        private modelViewMatrix;
+        private modelInverseMatrix;
+        private ao;
+        constructor();
+        id: number;
+        setGL(gl: GL): boolean;
+        activate(): void;
+        draw(a: any, b: any): void;
+        xg(a: any): void;
+        zg(a: any): void;
+        yg(a: any): void;
+        Fg(): void;
+        Hg(): void;
+        Gg(): void;
+        Ia(a: Pe, passIndex: number): void;
+        setup(): boolean;
+        destroy(): void;
+    }
+}
+declare module flwebgl.e.shaders {
+    import GL = flwebgl.e.GL;
     import Uniforms = flwebgl.e.Uniforms;
+    import Attributes = flwebgl.e.Attributes;
     class ShaderImageSpaceStdDev implements IShader {
         private gl;
         private _id;
@@ -566,17 +628,17 @@ declare module flwebgl.e.shaders {
         constructor();
         id: number;
         uniforms: Uniforms;
-        attribs: VertexAttributes;
+        attribs: Attributes;
         setGL(gl: GL): boolean;
-        Xb(): void;
-        e(a: any, b: any): void;
+        activate(): void;
+        draw(a: any, b: any): void;
         xg(a: any): void;
         zg(a: any): void;
         yg(a: any): void;
         Fg(): void;
         Hg(): void;
         Gg(): void;
-        Ia(a: any, passIndex: number): void;
+        Ia(a: Pe, passIndex: number): void;
         setup(): boolean;
         destroy(): void;
     }
@@ -600,9 +662,9 @@ declare module flwebgl.e.shaders {
         constructor();
         id: number;
         setGL(gl: GL): boolean;
-        Xb(): void;
-        e(a: any, b?: any): void;
+        activate(): void;
         Eg(): void;
+        draw(a: any, b?: any): void;
         setUniformValues(colorMapTexture: any, coverageMapTexture: any): void;
         setup(): boolean;
         destroy(): void;
