@@ -83,7 +83,7 @@ module flwebgl.e
         var c = a[i];
         var e = c.attrs;
         for (var j = 0; j < e.length; j++) {
-          var l = this.Uc.getAttribs(e[j].name);
+          var l = this.Uc.getAttributeByName(e[j].name);
           this.gl.enableVertexAttribArray(l.location);
           this.gl.vertexAttribPointer(l.location, l.size, l.type, l.Hf, c.totalSize, e[j].byteOffset);
         }

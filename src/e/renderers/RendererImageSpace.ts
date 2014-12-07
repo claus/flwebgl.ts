@@ -5,8 +5,8 @@
 /// <reference path="../MeshInstanced.ts" />
 /// <reference path="../RenderTarget.ts" />
 /// <reference path="../shaders/IShader.ts" />
-/// <reference path="../shaders/ShaderImageSpace.ts" />
 /// <reference path="../shaders/ShaderImageSpaceStdDev.ts" />
+/// <reference path="../shaders/ShaderImageSpaceStdDevEmulated.ts" />
 /// <reference path="../shaders/ShaderImageSpaceCoverage.ts" />
 /// <reference path="IRenderer.ts" />
 /// <reference path="RenderPassIndex.ts" />
@@ -20,24 +20,27 @@ module flwebgl.e.renderers
   import MeshInstanced = flwebgl.e.MeshInstanced;
   import RenderTarget = flwebgl.e.RenderTarget;
   import IShader = flwebgl.e.shaders.IShader;
-  import ShaderImageSpace = flwebgl.e.shaders.ShaderImageSpace;
   import ShaderImageSpaceStdDev = flwebgl.e.shaders.ShaderImageSpaceStdDev;
+  import ShaderImageSpaceStdDevEmulated = flwebgl.e.shaders.ShaderImageSpaceStdDevEmulated;
   import ShaderImageSpaceCoverage = flwebgl.e.shaders.ShaderImageSpaceCoverage;
 
+  interface RenderTargetMap { [hash: string]: RenderTarget }
+
+  // ma
   export class RendererImageSpace implements IRenderer
   {
     private gl: GL;
     private shader: IShader;
     private shaderCoverage: IShader;
-    private cg: Pe;
-    private Ab: any[];
-    private vg: any[];
-    private Ue: any;
-    private We: any;
     private fe: number;
+    private cg: Pe;
+    private vg: Pe[];
+    private Ab: any[];
     private rl: RenderTarget;
     private Yc: RenderTarget;
     private Zc: RenderTarget;
+    private Ue: RenderTargetMap;
+    private We: RenderTargetMap;
 
     constructor() {
       this.fe = 0;
@@ -45,11 +48,11 @@ module flwebgl.e.renderers
 
     setGL(gl: GL): boolean {
       this.gl = gl;
-      this.shader = gl.hasExtension("OES_standard_derivatives") ? new ShaderImageSpaceStdDev() : new ShaderImageSpace();
+      this.shader = gl.hasExtension("OES_standard_derivatives") ? new ShaderImageSpaceStdDev() : new ShaderImageSpaceStdDevEmulated();
       this.shaderCoverage = new ShaderImageSpaceCoverage();
       this.cg = new Pe();
-      this.Ab = [];
       this.vg = [];
+      this.Ab = [];
       this.fe = 0;
       this.Ue = {};
       this.We = {};
@@ -62,40 +65,40 @@ module flwebgl.e.renderers
       this.Qg(a);
       this.nf(RenderPassIndex.oc);
       this.Ia(RenderPassIndex.oc, this.cg);
-      for (a = 0; a < this.Ab.length; ++a) {
-        var c = this.Ab[a].type;
-        var d = this.Ab[a].sf;
-        this.nf(c);
-        this.Ia(c, d);
+      for (var i = 0; i < this.Ab.length; i++) {
+        var passIndex = this.Ab[i].type;
+        var d = this.Ab[i].sf;
+        this.nf(passIndex);
+        this.Ia(passIndex, d);
       }
       this.Ab.splice(0, this.Ab.length);
       this.gl.activateRenderTarget(this.rl);
-      a = this.gl.activateRenderTargetTexture(this.Yc);
-      c = this.gl.activateRenderTargetTexture(this.Zc);
+      var colorMapTexture = this.gl.activateRenderTargetTexture(this.Yc);
+      var coverageMapTexture = this.gl.activateRenderTargetTexture(this.Zc);
       this.shaderCoverage.activate();
       this.shaderCoverage.draw(void 0, {
-        colorMapTexture: a,
-        coverageMapTexture: c
+        colorMapTexture: colorMapTexture,
+        coverageMapTexture: coverageMapTexture
       });
     }
 
     ld() {
       this.ne();
       this.shader.activate();
-      var a = this.gl.getViewport();
-      var b = this.Yk();
-      this.Yc = this.Ue[b];
+      var viewport = this.gl.getViewport();
+      var viewportHash = this.Yk();
+      this.Yc = this.Ue[viewportHash];
       if (this.Yc === void 0) {
-        this.Yc = this.gl.createRenderTarget(a.width, a.height);
-        this.Ue[b] = this.Yc;
+        this.Yc = this.gl.createRenderTarget(viewport.width, viewport.height);
+        this.Ue[viewportHash] = this.Yc;
       }
-      this.Zc = this.We[b];
+      this.Zc = this.We[viewportHash];
       if (this.Zc === void 0) {
-        this.Zc = this.gl.createRenderTarget(a.width, a.height);
-        this.We[b] = this.Zc;
+        this.Zc = this.gl.createRenderTarget(viewport.width, viewport.height);
+        this.We[viewportHash] = this.Zc;
       }
-      this.gl.activateRenderTarget(this.Yc);
       var color = this.gl.getBackgroundColor();
+      this.gl.activateRenderTarget(this.Yc);
       this.gl.clearColor(color.red / 255, color.green / 255, color.blue / 255, color.alpha / 255);
       this.gl.clear(true, true, false);
       this.gl.activateRenderTarget(this.Zc);
@@ -103,8 +106,8 @@ module flwebgl.e.renderers
       this.gl.clear(true, true, false);
     }
 
-    nf(a) {
-      switch (a) {
+    nf(passIndex: RenderPassIndex) {
+      switch (passIndex) {
         case RenderPassIndex.oc:
           this.gl.activateRenderTarget(this.Yc);
           break;
@@ -115,10 +118,9 @@ module flwebgl.e.renderers
       }
     }
 
-    Ia(a, b) {
-      if (typeof b === "undefined") { b = void 0; }
-      this.shader.draw(b, a);
-      if (b !== void 0) {
+    Ia(passIndex: RenderPassIndex, b: Pe) {
+      this.shader.draw(b, passIndex);
+      if (b) {
         b.clear();
       }
     }
@@ -264,8 +266,8 @@ module flwebgl.e.renderers
       }
     }
 
-    Qi(a) {
-      switch (a) {
+    Qi(passIndex: RenderPassIndex) {
+      switch (passIndex) {
         case RenderPassIndex.oc:
           this.gl.depthMask(true);
           break;
@@ -297,9 +299,9 @@ module flwebgl.e.renderers
       return a;
     }
 
-    Yk() {
+    Yk(): string {
       var viewport = this.gl.getViewport();
-      return GL.MAX_TEXTURE_SIZE * viewport.height + viewport.width;
+      return "" + (GL.MAX_TEXTURE_SIZE * viewport.height + viewport.width);
     }
 
     destroy() {

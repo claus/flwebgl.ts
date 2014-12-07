@@ -7,9 +7,9 @@ module flwebgl.e.shaders
   export interface IShader
   {
     id: number;
-    setGL(gl: GL);
+    setGL(gl: GL): boolean;
     activate();
-    draw(a, b);
+    draw(a, b?);
     destroy();
   }
 }

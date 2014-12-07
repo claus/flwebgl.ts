@@ -1,5 +1,7 @@
 module flwebgl.e
 {
+  export interface AttributeMap { [name: string]: Attribute }
+
   export class Attribute
   {
     constructor(
@@ -13,17 +15,17 @@ module flwebgl.e
 
   export class Attributes
   {
-    fi: any;
+    attributeMap: AttributeMap;
 
     constructor(attributes: Attribute[]) {
-      this.fi = {};
+      this.attributeMap = {};
       for (var i = 0; i < attributes.length; i++) {
-        this.fi[attributes[i].name] = attributes[i];
+        this.attributeMap[attributes[i].name] = attributes[i];
       }
     }
 
-    getAttribs(name: string): Attribute {
-      return this.fi[name];
+    getAttributeByName(name: string): Attribute {
+      return this.attributeMap[name];
     }
   }
 }

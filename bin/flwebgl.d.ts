@@ -112,9 +112,9 @@ declare module flwebgl.e.shaders {
     import GL = flwebgl.e.GL;
     interface IShader {
         id: number;
-        setGL(gl: GL): any;
+        setGL(gl: GL): boolean;
         activate(): any;
-        draw(a: any, b: any): any;
+        draw(a: any, b?: any): any;
         destroy(): any;
     }
 }
@@ -163,6 +163,9 @@ declare module flwebgl.e {
     }
 }
 declare module flwebgl.e {
+    interface AttributeMap {
+        [name: string]: Attribute;
+    }
     class Attribute {
         location: number;
         name: string;
@@ -172,9 +175,9 @@ declare module flwebgl.e {
         constructor(location: number, name: string, type: number, size: number, Hf?: boolean);
     }
     class Attributes {
-        fi: any;
+        attributeMap: AttributeMap;
         constructor(attributes: Attribute[]);
-        getAttribs(name: string): Attribute;
+        getAttributeByName(name: string): Attribute;
     }
 }
 declare module flwebgl.geom {
@@ -579,37 +582,6 @@ declare module flwebgl.e.renderers {
 }
 declare module flwebgl.e.shaders {
     import GL = flwebgl.e.GL;
-    class ShaderImageSpace implements IShader {
-        private gl;
-        private _id;
-        private _attribs;
-        private _uniforms;
-        private uniformMap;
-        private program;
-        private vertexShader;
-        private vertexShaderSrc;
-        private fragmentShader;
-        private fragmentShaderSrc;
-        private modelViewMatrix;
-        private modelInverseMatrix;
-        constructor();
-        id: number;
-        setGL(gl: GL): boolean;
-        activate(): void;
-        draw(a: any, b: any): void;
-        xg(a: any): void;
-        zg(a: any): void;
-        yg(a: any): void;
-        Fg(): void;
-        Hg(): void;
-        Gg(): void;
-        Ia(a: Pe, passIndex: number): void;
-        setup(): boolean;
-        destroy(): void;
-    }
-}
-declare module flwebgl.e.shaders {
-    import GL = flwebgl.e.GL;
     import Uniforms = flwebgl.e.Uniforms;
     import Attributes = flwebgl.e.Attributes;
     class ShaderImageSpaceStdDev implements IShader {
@@ -629,6 +601,37 @@ declare module flwebgl.e.shaders {
         id: number;
         uniforms: Uniforms;
         attribs: Attributes;
+        setGL(gl: GL): boolean;
+        activate(): void;
+        draw(a: any, b: any): void;
+        xg(a: any): void;
+        zg(a: any): void;
+        yg(a: any): void;
+        Fg(): void;
+        Hg(): void;
+        Gg(): void;
+        Ia(a: Pe, passIndex: number): void;
+        setup(): boolean;
+        destroy(): void;
+    }
+}
+declare module flwebgl.e.shaders {
+    import GL = flwebgl.e.GL;
+    class ShaderImageSpaceStdDevEmulated implements IShader {
+        private gl;
+        private _id;
+        private _attribs;
+        private _uniforms;
+        private uniformMap;
+        private program;
+        private vertexShader;
+        private vertexShaderSrc;
+        private fragmentShader;
+        private fragmentShaderSrc;
+        private modelViewMatrix;
+        private modelInverseMatrix;
+        constructor();
+        id: number;
         setGL(gl: GL): boolean;
         activate(): void;
         draw(a: any, b: any): void;
@@ -672,41 +675,105 @@ declare module flwebgl.e.shaders {
 }
 declare module flwebgl.e.renderers {
     import GL = flwebgl.e.GL;
+    import Pe = flwebgl.e.Pe;
     import MeshInstanced = flwebgl.e.MeshInstanced;
     class RendererImageSpace implements IRenderer {
         private gl;
         private shader;
         private shaderCoverage;
-        private cg;
-        private Ab;
-        private vg;
-        private Ue;
-        private We;
         private fe;
+        private cg;
+        private vg;
+        private Ab;
         private rl;
         private Yc;
         private Zc;
+        private Ue;
+        private We;
         constructor();
         setGL(gl: GL): boolean;
         e(a: any): void;
         ld(): void;
-        nf(a: any): void;
-        Ia(a: any, b: any): void;
+        nf(passIndex: RenderPassIndex): void;
+        Ia(passIndex: RenderPassIndex, b: Pe): void;
         Qg(renderables: MeshInstanced[]): void;
-        Qi(a: any): void;
+        Qi(passIndex: RenderPassIndex): void;
         ne(): void;
         yi(): any;
-        Yk(): number;
+        Yk(): string;
+        destroy(): void;
+    }
+}
+declare module flwebgl.e.shaders {
+    import GL = flwebgl.e.GL;
+    import Uniforms = flwebgl.e.Uniforms;
+    import Attributes = flwebgl.e.Attributes;
+    class ShaderMSAAStdDev implements IShader {
+        private gl;
+        private _id;
+        private _attribs;
+        private _uniforms;
+        private uniformMap;
+        private program;
+        private vertexShader;
+        private vertexShaderSrc;
+        private fragmentShader;
+        private fragmentShaderSrc;
+        private modelViewMatrix;
+        constructor();
+        id: number;
+        uniforms: Uniforms;
+        attribs: Attributes;
+        setGL(gl: GL): boolean;
+        activate(): void;
+        draw(a: Pe, b?: any): void;
+        setup(): boolean;
+        destroy(): void;
+    }
+}
+declare module flwebgl.e.shaders {
+    import GL = flwebgl.e.GL;
+    class ShaderMSAAStdDevEmulated implements IShader {
+        private gl;
+        private _id;
+        private _attribs;
+        private _uniforms;
+        private uniformMap;
+        private program;
+        private vertexShader;
+        private vertexShaderSrc;
+        private fragmentShader;
+        private fragmentShaderSrc;
+        private modelViewMatrix;
+        private modelInverseMatrix;
+        constructor();
+        id: number;
+        setGL(gl: GL): boolean;
+        activate(): void;
+        draw(a: Pe, b?: any): void;
+        setup(): boolean;
         destroy(): void;
     }
 }
 declare module flwebgl.e.renderers {
     import GL = flwebgl.e.GL;
+    import MeshInstanced = flwebgl.e.MeshInstanced;
     class RendererMSAA implements IRenderer {
         private gl;
+        private shader;
+        private qc;
+        private fg;
         constructor();
-        setGL(value: GL): boolean;
+        setGL(gl: GL): boolean;
+        Yl(a: any, b: any): number;
+        km(a: any, b: any): number;
         e(a: any, b?: any): void;
+        ld(): void;
+        ne(): void;
+        Qg(a: MeshInstanced[]): void;
+        nf(passIndex: RenderPassIndex): void;
+        Ia(passIndex: RenderPassIndex): void;
+        Qi(passIndex: RenderPassIndex): void;
         destroy(): void;
     }
 }

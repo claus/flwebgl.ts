@@ -20,7 +20,8 @@ module flwebgl.e.shaders
   import Matrix = flwebgl.geom.Matrix;
   import Logger = flwebgl.util.Logger;
 
-  export class ShaderImageSpace implements IShader
+  // Bk
+  export class ShaderMSAAStdDevEmulated implements IShader
   {
     private gl: GL;
     private _id: number;
@@ -36,14 +37,14 @@ module flwebgl.e.shaders
     private modelInverseMatrix: Matrix;
 
     constructor() {
-      console.log("ShaderImageSpace");
+      console.log("ShaderMSAAStdDevEmulated");
     }
 
     get id(): number {
       return this._id;
     }
 
-    setGL(gl:GL) {
+    setGL(gl: GL): boolean {
       this.gl = gl;
       if (!this.setup()) {
         return false;
@@ -57,56 +58,7 @@ module flwebgl.e.shaders
       this.gl.useProgram(this.program);
     }
 
-    draw(a, b) {
-      switch (b) {
-        case RenderPassIndex.oc:
-          this.xg(a);
-          break;
-        case RenderPassIndex.Tb:
-          this.zg(a);
-          break;
-        case RenderPassIndex.Mc:
-          this.yg(a);
-          break;
-      }
-    }
-
-    xg(a: any) {
-      this.Fg();
-      this.Ia(a, RenderPassIndex.oc);
-    }
-
-    zg(a: any) {
-      this.Hg();
-      this.Ia(a, RenderPassIndex.Tb);
-    }
-
-    yg(a: any) {
-      this.Gg();
-      this.Ia(a, RenderPassIndex.Mc);
-    }
-
-    Fg() {
-      this.gl.disable(GL.BLEND);
-      this.gl.depthMask(true);
-      this.gl.enable(GL.DEPTH_TEST);
-    }
-
-    Hg() {
-      this.gl.depthMask(false);
-      this.gl.enable(GL.DEPTH_TEST);
-      this.gl.enable(GL.BLEND);
-      this.gl.blendFunc(GL.ONE_MINUS_DST_ALPHA, GL.ONE);
-    }
-
-    Gg() {
-      this.gl.depthMask(false);
-      this.gl.enable(GL.DEPTH_TEST);
-      this.gl.enable(GL.BLEND);
-      this.gl.blendFunc(GL.ONE_MINUS_DST_ALPHA, GL.ONE);
-    }
-
-    Ia(a: Pe, passIndex: number) {
+    draw(a: Pe, b?) {
       var c = a.F.length;
       var viewMatrix = this.gl.viewMatrix;
       for (var f = 0; f < c; ++f) {
@@ -133,7 +85,7 @@ module flwebgl.e.shaders
               new UniformValue(this.uniformMap.uSampler, [samplerIndex]),
               new UniformValue(this.uniformMap.uColorXformMultiplier, [cxform.redMultiplier, cxform.greenMultiplier, cxform.blueMultiplier, cxform.alphaMultiplier]),
               new UniformValue(this.uniformMap.uColorXformOffset, [cxform.redOffset / 255, cxform.greenOffset / 255, cxform.blueOffset / 255, cxform.alphaOffset / 255]),
-              new UniformValue(this.uniformMap.uOverflowTypeAndPassIndex, [overflowType, passIndex]),
+              new UniformValue(this.uniformMap.uOverflowType, [overflowType]),
               new UniformValue(this.uniformMap.uFrame, [frame.left / width, frame.top / height, frame.width / width, frame.height / height])
             ];
           } else {
@@ -142,7 +94,7 @@ module flwebgl.e.shaders
             uniformValues[2].value = [samplerIndex];
             uniformValues[3].value = [cxform.redMultiplier, cxform.greenMultiplier, cxform.blueMultiplier, cxform.alphaMultiplier];
             uniformValues[4].value = [cxform.redOffset / 255, cxform.greenOffset / 255, cxform.blueOffset / 255, cxform.alphaOffset / 255];
-            uniformValues[5].value = [overflowType, passIndex];
+            uniformValues[5].value = [overflowType];
             uniformValues[6].value = [frame.left / width, frame.top / height, frame.width / width, frame.height / height];
           }
           l.setUniforms(this._id, uniformValues);
@@ -167,9 +119,9 @@ module flwebgl.e.shaders
         "varying float vIsConvex; \n" +
         "varying vec4 vDfDxDy; \n" +
         "void main(void) { \n" +
-          "gl_Position = uMVMatrix * vec4(aVertexPosition, 1.0, 1.0); \n" +
-          "vDfDxDy.xy = vec2(uMVMatrixInv.x * adfdx.x + uMVMatrixInv.y * adfdy.x, uMVMatrixInv.x * adfdx.y + uMVMatrixInv.y * adfdy.y); \n" +
-          "vDfDxDy.zw = vec2(uMVMatrixInv.z * adfdx.x + uMVMatrixInv.w * adfdy.x, uMVMatrixInv.z * adfdx.y + uMVMatrixInv.w * adfdy.y); \n" +
+        "gl_Position = uMVMatrix * vec4(aVertexPosition, 1.0, 1.0); \n" +
+          "vDfDxDy.xy = vec2(uMVMatrixInv[0] * adfdx.x + uMVMatrixInv[1] * adfdy.x, uMVMatrixInv[0] * adfdx.y + uMVMatrixInv[1] * adfdy.y); \n" +
+          "vDfDxDy.zw = vec2(uMVMatrixInv[2] * adfdx.x + uMVMatrixInv[3] * adfdy.x, uMVMatrixInv[2] * adfdx.y + uMVMatrixInv[3] * adfdy.y); \n" +
           "vTexCoord = vec4(aLoopBlinnTextureCoord, aTextureCoord); \n" +
           "vIsConvex = aIsConvex; \n" +
         "}";
@@ -181,25 +133,25 @@ module flwebgl.e.shaders
         "uniform vec4 uColorXformMultiplier; \n" +
         "uniform vec4 uColorXformOffset; \n" +
         "uniform sampler2D uSampler; \n" +
-        "uniform ivec2 uOverflowTypeAndPassIndex; \n" +
+        "uniform int uOverflowType; \n" +
         "uniform vec4 uFrame; \n" +
         "void main(void) { \n" +
+          "vec2 p = vTexCoord.xy; \n" +
           "vec2 px = vDfDxDy.xy; \n" +
           "vec2 py = vDfDxDy.zw; \n" +
           "vec2 f = (2.0 * vTexCoord.x) * vec2(px.x, py.x) - vec2(px.y, py.y); \n" +
           "float sd = vIsConvex * (vTexCoord.x * vTexCoord.x - vTexCoord.y) / length(f); \n" +
           "float alpha = min(0.5 - sd, 1.0); \n" +
-          "float t = max(1.0 - float(uOverflowTypeAndPassIndex.y), 0.0); \n" +
-          "if (alpha < t || alpha == 0.0 || (uOverflowTypeAndPassIndex.y == 1 && alpha == 1.0)) \n" +
+          "if (alpha < 0.0) \n" +
             "discard; \n" +
           "vec2 uv; \n" +
-          "if (uOverflowTypeAndPassIndex.x == 0) { /* solid fill */ \n" +
+          "if (uOverflowType == 0) { /* solid fill */ \n" +
             "uv = vTexCoord.zw; \n" +
-          "} else if (uOverflowTypeAndPassIndex.x == 1) { /* gradient and bitmap fill with overflow type extend */ \n" +
+          "} else if (uOverflowType == 1) { /*gradient and bitmap fill with overflow type extend */ \n" +
             "uv = clamp(vTexCoord.zw, vec2(0.0, 0.0), vec2(1.0, 1.0)) * uFrame.zw + uFrame.xy; \n" +
-          "} else if (uOverflowTypeAndPassIndex.x == 2) { /* gradient and bitmap fill with overflow type repeat */ \n" +
+          "} else if (uOverflowType == 2) { /* gradient and bitmap fill with overflow type repeat */ \n" +
             "uv = fract(vTexCoord.zw) * uFrame.zw + uFrame.xy; \n" +
-          "} else if (uOverflowTypeAndPassIndex.x == 3) { /* gradient fill with overflow type reflect */ \n" +
+          "} else if (uOverflowType == 3) { /* gradient fill with overflow type reflect */ \n" +
             "uv = vTexCoord.zw; \n" +
             "if (uv.s > 1.0) { \n" +
               "float integerPart = floor(uv.s); \n" +
@@ -224,12 +176,9 @@ module flwebgl.e.shaders
             "} \n" +
             "uv = (uFrame.xy + (uv * uFrame.zw)); \n" +
           "} \n" +
-          "vec4 c = texture2D(uSampler, uv) * uColorXformMultiplier + uColorXformOffset; \n" +
-          "c.a = c.a * alpha; \n" +
-          "if (uOverflowTypeAndPassIndex.y != 0) { \n" +
-            "c.rgb = c.rgb * c.a; \n" +
-          "} \n" +
-          "gl_FragColor = c; \n" +
+          "vec4 textureColor = texture2D(uSampler, uv); \n" +
+          "textureColor.a = textureColor.a * alpha; \n" +
+          "gl_FragColor = textureColor * uColorXformMultiplier + uColorXformOffset; \n" +
         "}";
       this.vertexShader = this.gl.createShader(GL.VERTEX_SHADER, this.vertexShaderSrc);
       this.fragmentShader = this.gl.createShader(GL.FRAGMENT_SHADER, this.fragmentShaderSrc);
@@ -247,14 +196,14 @@ module flwebgl.e.shaders
       var ul2 = this.gl.getUniformLocation(this.program, "uSampler");
       var ul3 = this.gl.getUniformLocation(this.program, "uColorXformMultiplier");
       var ul4 = this.gl.getUniformLocation(this.program, "uColorXformOffset");
-      var ul5 = this.gl.getUniformLocation(this.program, "uOverflowTypeAndPassIndex");
+      var ul5 = this.gl.getUniformLocation(this.program, "uOverflowType");
       var ul6 = this.gl.getUniformLocation(this.program, "uFrame");
       var u0 = new Uniform(ul0, GL.FLOAT_MAT4, 1, Uniform.Jd);
       var u1 = new Uniform(ul1, GL.FLOAT_VEC4, 1, Uniform.Jd);
       var u2 = new Uniform(ul2, GL.SAMPLER_2D, 1, Uniform.Q);
       var u3 = new Uniform(ul3, GL.FLOAT_VEC4, 1, Uniform.Q);
       var u4 = new Uniform(ul4, GL.FLOAT_VEC4, 1, Uniform.Q);
-      var u5 = new Uniform(ul5, GL.INT_VEC2, 1, Uniform.Q);
+      var u5 = new Uniform(ul5, GL.INT, 1, Uniform.Q);
       var u6 = new Uniform(ul6, GL.FLOAT_VEC4, 1, Uniform.Q);
       this._uniforms = new Uniforms([ u0, u1, u2, u3, u4, u5, u6 ]);
       this.uniformMap = {
@@ -263,7 +212,7 @@ module flwebgl.e.shaders
         uSampler: u2,
         uColorXformMultiplier: u3,
         uColorXformOffset: u4,
-        uOverflowTypeAndPassIndex: u5,
+        uOverflowType: u5,
         uFrame: u6
       };
       var al0 = this.gl.getAttribLocation(this.program, "aVertexPosition");
@@ -282,10 +231,11 @@ module flwebgl.e.shaders
       return true;
     }
 
+
     destroy() {
       this.gl.deleteShader(this.vertexShader);
       this.gl.deleteShader(this.fragmentShader);
-      this.gl.deleteProgram(this.program);
+      this.gl.deleteProgram(this.program)
     }
   }
 }
