@@ -7,7 +7,8 @@ module flwebgl.e.shaders
   import GL = flwebgl.e.GL;
   import Logger = flwebgl.util.Logger;
 
-  export class ShaderImageSpaceCoverage implements IShader
+  // pk
+  export class ShaderBitmapCache
   {
     private gl: GL;
     private _id: number;
@@ -19,19 +20,18 @@ module flwebgl.e.shaders
     private vertexBuffer: WebGLBuffer;
     private indexBuffer: WebGLBuffer;
     private uniformLocColorMap: WebGLUniformLocation;
-    private uniformLocCoverageMap: WebGLUniformLocation;
     private vertexBufferValues: Float32Array;
     private indexBufferValues: Float32Array;
 
     constructor() {
-      console.log("ShaderImageSpaceCoverage");
+      console.log("ShaderBitmapCache");
     }
 
     get id(): number {
       return this._id;
     }
 
-    setGL(gl:GL): boolean {
+    setGL(gl: GL): boolean {
       this.gl = gl;
       return this.setup();
     }
@@ -49,19 +49,21 @@ module flwebgl.e.shaders
 
     Eg() {
       this.gl.vertexAttribPointer(0, 2, GL.FLOAT, false, 0, 0);
-      this.gl.vertexAttribPointer(1, 2, GL.FLOAT, false, 0, 32);
+      this.gl.vertexAttribPointer(1, 2, GL.FLOAT, false, 0, 32)
     }
 
     draw(a, b?) {
-      this.setUniformValues(b.colorMapTexture, b.coverageMapTexture);
+      this.setUniformValues(b);
       this.gl.drawElements(this.indexBufferValues.length);
     }
 
-    setUniformValues(colorMapTexture, coverageMapTexture) {
-      this.gl.uniform1i(this.uniformLocColorMap, colorMapTexture);
-      this.gl.uniform1i(this.uniformLocCoverageMap, coverageMapTexture);
+    ld() {
     }
-    
+
+    setUniformValues(colorMapTexture) {
+      this.gl.uniform1i(this.uniformLocColorMap, colorMapTexture);
+    }
+
     setup(): boolean {
       this.vertexShaderSrc =
         "attribute vec2 aVertexPosition; \n" +
@@ -74,12 +76,13 @@ module flwebgl.e.shaders
       this.fragmentShaderSrc =
         "precision mediump float; \n" +
         "uniform sampler2D uColorMap; \n" +
-        "uniform sampler2D uCoverageMap; \n" +
         "varying vec2 vTextureCoord; \n" +
         "void main() { \n" +
-          "vec4 cov = texture2D(uCoverageMap, vTextureCoord); \n" +
           "vec4 color = texture2D(uColorMap, vTextureCoord); \n" +
-          "gl_FragColor = cov + (color * (1.0 - cov.a)); \n" +
+          "if (color.a == 0.0) \n" +
+            "discard; \n" +
+          "color.rgb = color.rgb / color.a; \n" +
+          "gl_FragColor = color; \n" +
         "}";
       this.vertexBuffer = this.gl.createBuffer();
       if (!this.vertexBuffer) {
@@ -109,7 +112,6 @@ module flwebgl.e.shaders
         return false;
       }
       this.uniformLocColorMap = this.gl.getUniformLocation(this.program, "uColorMap");
-      this.uniformLocCoverageMap = this.gl.getUniformLocation(this.program, "uCoverageMap");
       this.vertexBufferValues = new Float32Array([ -1, -1, 1, -1, 1, 1, -1, 1, 0, 0, 1, 0, 1, 1, 0, 1 ]);
       this.indexBufferValues = new Uint16Array([ 0, 1, 2, 0, 2, 3 ]);
       this.gl.bufferData(GL.ARRAY_BUFFER, this.vertexBufferValues, GL.STATIC_DRAW);
@@ -117,12 +119,12 @@ module flwebgl.e.shaders
       return true;
     }
 
-    destroy() {
+    destroy = function () {
       this.gl.deleteBuffer(this.vertexBuffer);
       this.gl.deleteBuffer(this.indexBuffer);
       this.gl.deleteShader(this.vertexShader);
       this.gl.deleteShader(this.fragmentShader);
-      this.gl.deleteProgram(this.program);
+      this.gl.deleteProgram(this.program)
     }
   }
 }

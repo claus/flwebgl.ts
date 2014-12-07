@@ -7,6 +7,7 @@
 /// <reference path="renderers/IRenderer.ts" />
 /// <reference path="renderers/RendererImageSpace.ts" />
 /// <reference path="renderers/RendererMSAA.ts" />
+/// <reference path="renderers/RendererBitmapCache.ts" />
 
 module flwebgl.e
 {
@@ -16,15 +17,16 @@ module flwebgl.e
   import IRenderer = flwebgl.e.renderers.IRenderer;
   import RendererMSAA = flwebgl.e.renderers.RendererMSAA;
   import RendererImageSpace = flwebgl.e.renderers.RendererImageSpace;
+  import RendererBitmapCache = flwebgl.e.renderers.RendererBitmapCache;
 
   // Hh
   export class Renderer
   {
     private gl: GL;
     private renderer: IRenderer;
-    private ie;
+    private activeRenderer: IRenderer;
+    private bitmapCacheRenderer: RendererBitmapCache;
     private oa: any[];
-    private Kg;
     private H;
 
     constructor(canvas: HTMLCanvasElement, options: PlayerOptions) {
@@ -92,22 +94,21 @@ module flwebgl.e
     ij(a: number = Renderer.Hj) {
       switch (a) {
         case Renderer.Hj:
-          this.Kg = this.renderer;
+          this.activeRenderer = this.renderer;
           break;
         case Renderer.Gj:
-          if (this.ie === void 0) {
-            // TODO
-            //this.ie = new d.rk;
-            this.ie.setGL(this.gl);
+          if (!this.bitmapCacheRenderer) {
+            this.bitmapCacheRenderer = new RendererBitmapCache();
+            this.bitmapCacheRenderer.setGL(this.gl);
           }
-          this.Kg = this.ie;
+          this.activeRenderer = this.bitmapCacheRenderer;
           break;
       }
     }
 
     lj() {
       this.init();
-      this.Kg.e(this.oa);
+      this.activeRenderer.e(this.oa);
       for (var i = 0; i < this.oa.length; i++) {
         this.oa[i].dirty = false;
       }
@@ -154,9 +155,9 @@ module flwebgl.e
 
     destroy() {
       this.renderer.destroy();
-      this.ie.destroy();
+      this.bitmapCacheRenderer.destroy();
       this.gl.destroy();
-      this.Kg = null;
+      this.activeRenderer = null;
       this.H = null;
     }
 

@@ -7,6 +7,7 @@ module flwebgl.e.renderers
   export interface IRenderer
   {
     setGL(gl: GL): boolean;
+    e(a, b?);
     destroy();
   }
 }

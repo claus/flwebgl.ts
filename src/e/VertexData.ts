@@ -1,4 +1,4 @@
-/// <reference path="VertexAttribute.ts" />
+/// <reference path="AttributeDef.ts" />
 
 module flwebgl.e
 {
@@ -6,7 +6,7 @@ module flwebgl.e
   {
     constructor(
       public vertices: Float32Array, // ba
-      public vertexAttributes: VertexAttributes // jc
+      public attributeDefs: AttributesDefs // jc
     ) {}
   }
 }

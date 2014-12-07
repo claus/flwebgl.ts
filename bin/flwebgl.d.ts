@@ -149,17 +149,17 @@ declare module flwebgl.e {
     }
 }
 declare module flwebgl.e {
-    class VertexAttribute {
+    class AttributeDef {
         byteOffset: number;
         name: string;
         type: number;
         size: number;
         constructor(byteOffset: number, name: string, type: number, size: number);
     }
-    class VertexAttributes {
-        attrs: VertexAttribute[];
+    class AttributesDefs {
+        attrs: AttributeDef[];
         totalSize: number;
-        constructor(attrs?: VertexAttribute[], totalSize?: number);
+        constructor(attrs?: AttributeDef[], totalSize?: number);
     }
 }
 declare module flwebgl.e {
@@ -242,7 +242,7 @@ declare module flwebgl.e {
         private kb;
         constructor();
         setGL(value: GL): void;
-        Vg(attribDefs: VertexAttributesArray, attribs: Attributes): void;
+        Vg(attribDefs: AttributeDefsArray, attribs: Attributes): void;
         Zg(x?: boolean): any[];
         upload(a: lk): boolean;
         destroy(): void;
@@ -461,6 +461,7 @@ declare module flwebgl.e.renderers {
     import GL = flwebgl.e.GL;
     interface IRenderer {
         setGL(gl: GL): boolean;
+        e(a: any, b?: any): any;
         destroy(): any;
     }
 }
@@ -477,16 +478,16 @@ declare module flwebgl.e {
 declare module flwebgl.e {
     class VertexData {
         vertices: Float32Array;
-        vertexAttributes: VertexAttributes;
-        constructor(vertices: Float32Array, vertexAttributes: VertexAttributes);
+        attributeDefs: AttributesDefs;
+        constructor(vertices: Float32Array, attributeDefs: AttributesDefs);
     }
 }
 declare module flwebgl.e {
     interface VertexDataMap {
         [atlasID: string]: VertexData[];
     }
-    class VertexAttributesArray {
-        attrs: VertexAttributes[];
+    class AttributeDefsArray {
+        attrs: AttributesDefs[];
         constructor();
     }
     class ca {
@@ -495,7 +496,7 @@ declare module flwebgl.e {
         fillMode: number;
         indices: Uint16Array;
         vertexDataMap: VertexDataMap;
-        vertexAttributesArray: VertexAttributesArray;
+        attributeDefsArray: AttributeDefsArray;
         constructor(name: string, isOpaque: boolean);
         id: number;
         getVertexData(atlasID: string): VertexData[];
@@ -705,6 +706,49 @@ declare module flwebgl.e.renderers {
         private gl;
         constructor();
         setGL(value: GL): boolean;
+        e(a: any, b?: any): void;
+        destroy(): void;
+    }
+}
+declare module flwebgl.e.shaders {
+    import GL = flwebgl.e.GL;
+    class ShaderBitmapCache {
+        private gl;
+        private _id;
+        private program;
+        private vertexShader;
+        private vertexShaderSrc;
+        private fragmentShader;
+        private fragmentShaderSrc;
+        private vertexBuffer;
+        private indexBuffer;
+        private uniformLocColorMap;
+        private vertexBufferValues;
+        private indexBufferValues;
+        constructor();
+        id: number;
+        setGL(gl: GL): boolean;
+        activate(): void;
+        Eg(): void;
+        draw(a: any, b?: any): void;
+        ld(): void;
+        setUniformValues(colorMapTexture: any): void;
+        setup(): boolean;
+        destroy: () => void;
+    }
+}
+declare module flwebgl.e.renderers {
+    import GL = flwebgl.e.GL;
+    class RendererBitmapCache implements IRenderer {
+        private gl;
+        private renderer;
+        private renderTarget;
+        private shader;
+        constructor();
+        setGL(gl: GL): boolean;
+        e(a: any): void;
+        ld(): void;
+        ne(): void;
         destroy(): void;
     }
 }
@@ -715,9 +759,9 @@ declare module flwebgl.e {
     class Renderer {
         private gl;
         private renderer;
-        private ie;
+        private activeRenderer;
+        private bitmapCacheRenderer;
         private oa;
-        private Kg;
         private H;
         constructor(canvas: HTMLCanvasElement, options: PlayerOptions);
         setGL(): void;
@@ -1192,7 +1236,7 @@ declare module flwebgl.xj {
         emulateStandardDerivatives: boolean;
         nextHighestID: number;
         private assetPool;
-        private vertexAttributes;
+        private attributeDefs;
         private S;
         constructor(assetPool: AssetPool);
         init(content: any, textures: flwebgl.TextureAtlas[], options: PlayerOptions): StageInfo;

@@ -1,6 +1,6 @@
 module flwebgl.e
 {
-  export class VertexAttribute
+  export class AttributeDef
   {
     constructor(
       public byteOffset: number,
@@ -10,10 +10,10 @@ module flwebgl.e
     ) {}
   }
 
-  export class VertexAttributes
+  export class AttributesDefs
   {
     constructor(
-      public attrs: VertexAttribute[] = [],
+      public attrs: AttributeDef[] = [],
       public totalSize: number = 0
     ) {}
   }

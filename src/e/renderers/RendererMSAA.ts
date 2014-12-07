@@ -18,6 +18,9 @@ module flwebgl.e.renderers
       return true;
     }
 
+    e(a, b?) {
+    }
+
     destroy() {
     }
   }

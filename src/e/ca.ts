@@ -1,5 +1,5 @@
 /// <reference path="VertexData.ts" />
-/// <reference path="VertexAttribute.ts" />
+/// <reference path="AttributeDef.ts" />
 
 module flwebgl.e
 {
@@ -7,8 +7,8 @@ module flwebgl.e
     [atlasID: string]: VertexData[];
   }
 
-  export class VertexAttributesArray {
-    public attrs: VertexAttributes[] = [];
+  export class AttributeDefsArray {
+    public attrs: AttributesDefs[] = [];
     constructor() {}
   }
 
@@ -19,14 +19,14 @@ module flwebgl.e
     fillMode: number;
     indices: Uint16Array;
     vertexDataMap: VertexDataMap;
-    vertexAttributesArray: VertexAttributesArray;
+    attributeDefsArray: AttributeDefsArray;
 
     constructor(name: string, isOpaque: boolean) {
       this.name = name;
       this.isOpaque = isOpaque;
       this.fillMode = 0;
       this.vertexDataMap = {}; // Rg
-      this.vertexAttributesArray = new VertexAttributesArray();
+      this.attributeDefsArray = new AttributeDefsArray();
     }
 
     get id(): number {
@@ -42,7 +42,7 @@ module flwebgl.e
     setVertexData(atlasID: string, vertexData: VertexData[]) {
       this.vertexDataMap[atlasID] = vertexData;
       for (var i = 0; i < vertexData.length; i++) {
-        this.vertexAttributesArray.attrs.push(vertexData[i].vertexAttributes);
+        this.attributeDefsArray.attrs.push(vertexData[i].attributeDefs);
       }
     }
 

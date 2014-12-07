@@ -10,7 +10,7 @@
 /// <reference path="../e/Mesh.ts" />
 /// <reference path="../e/TextureAtlas.ts" />
 /// <reference path="../e/VertexData.ts" />
-/// <reference path="../e/VertexAttribute.ts" />
+/// <reference path="../e/AttributeDef.ts" />
 /// <reference path="../PlayerOptions.ts" />
 /// <reference path="../TextureAtlas.ts" />
 /// <reference path="parsers/IParser.ts" />
@@ -31,8 +31,8 @@ module flwebgl.xj
   import Mesh = flwebgl.e.Mesh;
   import TextureAtlas = flwebgl.e.TextureAtlas;
   import VertexData = flwebgl.e.VertexData;
-  import VertexAttribute = flwebgl.e.VertexAttribute;
-  import VertexAttributes = flwebgl.e.VertexAttributes;
+  import AttributeDef = flwebgl.e.AttributeDef;
+  import AttributeDefs = flwebgl.e.AttributesDefs;
   import PlayerOptions = flwebgl.PlayerOptions;
   import IParser = flwebgl.xj.parsers.IParser;
   import ParserRelease = flwebgl.xj.parsers.ParserRelease;
@@ -63,7 +63,7 @@ module flwebgl.xj
     nextHighestID: number;
 
     private assetPool: AssetPool;
-    private vertexAttributes: VertexAttributes;
+    private attributeDefs: AttributeDefs;
     private S: number;
 
     constructor(assetPool: AssetPool) {
@@ -110,21 +110,20 @@ module flwebgl.xj
         return stageInfo;
       }
 
-      this.vertexAttributes = new VertexAttributes();
-      var y = new VertexAttribute(0, "POSITION0", GL.FLOAT, 2);
-      var w = new VertexAttribute(2 * Float32Array.BYTES_PER_ELEMENT, "TEXCOORD0", GL.FLOAT, 2);
-      var t = new VertexAttribute(4 * Float32Array.BYTES_PER_ELEMENT, "TEXCOORD1", GL.FLOAT, 1);
-      var q = new VertexAttribute(5 * Float32Array.BYTES_PER_ELEMENT, "TEXCOORD2", GL.FLOAT, 2);
+      this.attributeDefs = new AttributeDefs();
+      var y = new AttributeDef(0, "POSITION0", GL.FLOAT, 2);
+      var w = new AttributeDef(2 * Float32Array.BYTES_PER_ELEMENT, "TEXCOORD0", GL.FLOAT, 2);
+      var t = new AttributeDef(4 * Float32Array.BYTES_PER_ELEMENT, "TEXCOORD1", GL.FLOAT, 1);
+      var q = new AttributeDef(5 * Float32Array.BYTES_PER_ELEMENT, "TEXCOORD2", GL.FLOAT, 2);
       if (this.emulateStandardDerivatives) {
-        var r = new VertexAttribute(7 * Float32Array.BYTES_PER_ELEMENT, "TEXCOORD3", GL.FLOAT, 2);
-        var u = new VertexAttribute(9 * Float32Array.BYTES_PER_ELEMENT, "TEXCOORD4", GL.FLOAT, 2);
-        this.vertexAttributes.attrs = [y, w, t, q, r, u];
+        var r = new AttributeDef(7 * Float32Array.BYTES_PER_ELEMENT, "TEXCOORD3", GL.FLOAT, 2);
+        var u = new AttributeDef(9 * Float32Array.BYTES_PER_ELEMENT, "TEXCOORD4", GL.FLOAT, 2);
+        this.attributeDefs.attrs = [y, w, t, q, r, u];
       } else {
-        this.vertexAttributes.attrs = [y, w, t, q];
+        this.attributeDefs.attrs = [y, w, t, q];
       }
-      this.vertexAttributes.totalSize = this.S * Float32Array.BYTES_PER_ELEMENT;
+      this.attributeDefs.totalSize = this.S * Float32Array.BYTES_PER_ELEMENT;
 
-      // TODO
       if (!parser.parseShapes() || !parser.parseTimelines()) {
         return stageInfo;
       }
@@ -177,7 +176,7 @@ module flwebgl.xj
           if (this.emulateStandardDerivatives) {
             this.injectStandardDerivativeTexCoords(edgeType, fillVertices, bufferData.indices.length);
           }
-          u.setVertexData(atlasID, [new VertexData(new Float32Array(fillVertices), this.vertexAttributes)]);
+          u.setVertexData(atlasID, [new VertexData(new Float32Array(fillVertices), this.attributeDefs)]);
           u.setIndices(bufferData.indices);
         }
         u.fillMode = this.getFillMode(fillStyle, fillOverflow, fillIsBitmapClipped);
@@ -308,7 +307,7 @@ module flwebgl.xj
           if (this.emulateStandardDerivatives) {
             this.injectStandardDerivativeTexCoords(edgeType, fillVertices, bufferData.indices.length);
           }
-          u.setVertexData(atlasID, [new VertexData(new Float32Array(fillVertices), this.vertexAttributes)]);
+          u.setVertexData(atlasID, [new VertexData(new Float32Array(fillVertices), this.attributeDefs)]);
           u.setIndices(bufferData.indices);
         }
         u.fillMode = this.getFillMode(fillStyle, fillOverflow, fillIsBitmapClipped);

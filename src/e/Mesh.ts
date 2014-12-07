@@ -49,12 +49,12 @@ module flwebgl.e
         var vertexDataArr = yf.getVertexData(atlasIDs[0]);
         for (var j = 0; j < vertexDataArr.length; j++) {
           var vertexData = vertexDataArr[j];
-          var attrs = vertexData.vertexAttributes.attrs;
+          var attrs = vertexData.attributeDefs.attrs;
           for (var k = 0; k < attrs.length; ++k) {
             var attr = attrs[k];
             if (attr.name === "POSITION0") {
               var vertices = vertexData.vertices;
-              var stride = vertexData.vertexAttributes.totalSize / Float32Array.BYTES_PER_ELEMENT;
+              var stride = vertexData.attributeDefs.totalSize / Float32Array.BYTES_PER_ELEMENT;
               for (var l = attr.byteOffset / Float32Array.BYTES_PER_ELEMENT; l < vertices.length; l += stride) {
                 this.bounds.expand(vertices[l], vertices[l + 1]);
               }

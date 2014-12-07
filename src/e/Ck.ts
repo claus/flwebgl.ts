@@ -1,4 +1,4 @@
-/// <reference path="VertexAttribute.ts" />
+/// <reference path="AttributeDef.ts" />
 /// <reference path="Attribute.ts" />
 /// <reference path="GL.ts" />
 /// <reference path="lk.ts" />
@@ -13,7 +13,7 @@ module flwebgl.e
     private gl: GL;
     private bufferCache: WebGLBufferMap;
     private buffer: WebGLBuffer;
-    private Oa: VertexAttributesArray;
+    private Oa: AttributeDefsArray;
     private Uc: Attributes;
     private gc: number;
     private kb: lk[];
@@ -26,7 +26,7 @@ module flwebgl.e
       this.gl = value;
     }
 
-    Vg(attribDefs: VertexAttributesArray, attribs: Attributes) {
+    Vg(attribDefs: AttributeDefsArray, attribs: Attributes) {
       this.Oa = attribDefs;
       this.Uc = attribs;
       this.gc = 0;

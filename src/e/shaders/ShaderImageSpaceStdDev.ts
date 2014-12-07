@@ -158,7 +158,7 @@ module flwebgl.e.shaders
         }
       }
       if (a.F.length > 0) {
-        this.gl.draw(this, a.mc(0).ka.vertexAttributesArray, a.F);
+        this.gl.draw(this, a.mc(0).ka.attributeDefsArray, a.F);
       }
     }
 
