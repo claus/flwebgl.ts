@@ -591,7 +591,6 @@ declare module flwebgl.e.shaders {
         private fragmentShaderSrc;
         private modelViewMatrix;
         private modelInverseMatrix;
-        private ao;
         constructor();
         id: number;
         setGL(gl: GL): boolean;
@@ -826,8 +825,8 @@ declare module flwebgl.B.commands {
     import DisplayObject = flwebgl.g.DisplayObject;
     import Context = flwebgl.Context;
     interface IFrameCommand {
-        id: string;
-        execute(dobj: DisplayObject, context: Context, x: boolean): any;
+        targetID: string;
+        execute(dobj: DisplayObject, context: Context, x: boolean): boolean;
     }
 }
 declare module flwebgl.B {
@@ -915,10 +914,10 @@ declare module flwebgl.B.commands {
     import SceneGraphFactory = flwebgl.sg.SceneGraphFactory;
     import MovieClip = flwebgl.g.MovieClip;
     class PlaceObjectCommand implements IFrameCommand {
-        Ag: any;
+        timelineID: any;
         hf: any;
-        id: string;
-        hc: Matrix;
+        targetID: string;
+        transform: Matrix;
         instanceName: string;
         constructor(a: any[]);
         execute(mc: MovieClip, context: Context, x: boolean): boolean;
@@ -1071,9 +1070,9 @@ declare module flwebgl.B.commands {
     import Matrix = flwebgl.geom.Matrix;
     import MovieClip = flwebgl.g.MovieClip;
     class SetTransformCommand implements IFrameCommand {
-        id: string;
+        targetID: string;
         hf: any;
-        hc: Matrix;
+        transform: Matrix;
         constructor(a: any[]);
         execute(mc: MovieClip, context: Context, x: boolean): boolean;
     }
@@ -1083,7 +1082,7 @@ declare module flwebgl.B.commands {
     import ColorTransform = flwebgl.geom.ColorTransform;
     import MovieClip = flwebgl.g.MovieClip;
     class SetColorTransformCommand implements IFrameCommand {
-        id: string;
+        targetID: string;
         colorTransform: ColorTransform;
         constructor(a: any[]);
         execute(mc: MovieClip, context: Context, x: boolean): boolean;
@@ -1093,7 +1092,7 @@ declare module flwebgl.B.commands {
     import Context = flwebgl.Context;
     import MovieClip = flwebgl.g.MovieClip;
     class RemoveObjectCommand implements IFrameCommand {
-        id: string;
+        targetID: string;
         constructor(a: any[]);
         execute(mc: MovieClip, context: Context, x: boolean): boolean;
     }

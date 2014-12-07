@@ -174,7 +174,7 @@ module flwebgl.xj.parsers
             switch (frame[k][0]) {
               case 1:
                 cmd = new PlaceObjectCommand(frame[k].slice(1));
-                this.nextHighestID = Math.max(this.nextHighestID, +cmd.id);
+                this.nextHighestID = Math.max(this.nextHighestID, +cmd.targetID);
                 break;
               case 2:
                 cmd = new SetTransformCommand(frame[k].slice(1));

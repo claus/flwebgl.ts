@@ -8,7 +8,7 @@ module flwebgl.B.commands
 
   export interface IFrameCommand
   {
-    id: string;
-    execute(dobj: DisplayObject, context: Context, x: boolean);
+    targetID: string;
+    execute(dobj: DisplayObject, context: Context, x: boolean): boolean;
   }
 }

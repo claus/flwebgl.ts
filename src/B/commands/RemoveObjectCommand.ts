@@ -13,14 +13,14 @@ module flwebgl.B.commands
 
   export class RemoveObjectCommand implements IFrameCommand
   {
-    id: string;
+    targetID: string;
 
     constructor(a: any[]) {
-      this.id = "" + a[0];
+      this.targetID = "" + a[0];
     }
 
-    execute(mc: MovieClip, context: Context, x: boolean) {
-      var b = mc.getChildIndexByID(this.id);
+    execute(mc: MovieClip, context: Context, x: boolean): boolean {
+      var b = mc.getChildIndexByID(this.targetID);
       if (b < 0) {
         return false;
       }

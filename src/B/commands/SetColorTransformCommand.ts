@@ -15,11 +15,11 @@ module flwebgl.B.commands
 
   export class SetColorTransformCommand implements IFrameCommand
   {
-    id: string;
+    targetID: string;
     colorTransform: ColorTransform;
 
     constructor(a: any[]) {
-      this.id = "" + a[0];
+      this.targetID = "" + a[0];
       a = a.slice(1);
       if (a && a.length == 8) {
         this.colorTransform = new ColorTransform(
@@ -33,8 +33,8 @@ module flwebgl.B.commands
       }
     }
 
-    execute(mc: MovieClip, context: Context, x: boolean) {
-      var b = mc.getChildIndexByID(this.id);
+    execute(mc: MovieClip, context: Context, x: boolean): boolean {
+      var b = mc.getChildIndexByID(this.targetID);
       if (b < 0) {
         return false;
       }

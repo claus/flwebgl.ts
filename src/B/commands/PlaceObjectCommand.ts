@@ -17,65 +17,64 @@ module flwebgl.B.commands
 
   export class PlaceObjectCommand implements IFrameCommand
   {
-    Ag: any;
+    timelineID: any;
     hf: any;
-    id: string;
-    hc: Matrix;
+    targetID: string;
+    transform: Matrix;
     instanceName: string;
 
     constructor(a: any[]) {
-      this.Ag = "" + a[0];
+      this.timelineID = "" + a[0];
       this.hf = "" + a[1];
-      this.id = "" + a[2];
-      if (a.length > 4) {
-        var b = a.slice(3);
-        this.hc = new Matrix(b);
-      } else {
-        this.hc = new Matrix();
-      }
-      if (a.length == 10 || a.length == 4) {
-        this.instanceName = a[a.length - 1];
+      this.targetID = "" + a[2];
+      var len = a.length;
+      this.transform = (len > 4) ? new Matrix(a.slice(3)) : new Matrix();
+      if (len == 10 || len == 4) {
+        this.instanceName = a[len - 1];
       }
     }
 
-    execute(mc: MovieClip, context: Context, x: boolean) {
-      var assetPool = context.assetPool;
-      var sceneGraphFactory = context.sceneGraphFactory;
-      var k = mc.getChildIndexByID(this.id);
-      if (k >= 0) {
-        var c = mc.getChildAt(k);
-        if ((c.W & 1) === 0) {
-          c.setLocalTransform(this.hc, false);
+    execute(mc: MovieClip, context: Context, x: boolean): boolean {
+      var childIndex = mc.getChildIndexByID(this.targetID);
+      if (childIndex < 0) {
+        return (this.Ek(mc, context.assetPool, context.sceneGraphFactory) >= 0);
+      } else {
+        var child = mc.getChildAt(childIndex);
+        if ((child.W & 1) === 0) {
+          child.setLocalTransform(this.transform, false);
         }
-        if ((c.W & 2) === 0) {
-          var cxform = c.getLocalColorTransform().clone();
+        if ((child.W & 2) === 0) {
+          var cxform = child.getLocalColorTransform().clone();
           cxform.identity();
-          c.setLocalColorTransform(cxform, false);
+          child.setLocalColorTransform(cxform, false);
         }
-        var e;
-        for (e = mc.getChildIndexByID(this.hf) + 1; mc.getChildAt(e) && +mc.getChildAt(e).id < 0; e++) {}
-        if (e > k) {
+        var e = mc.getChildIndexByID(this.hf) + 1;
+        while (mc.getChildAt(e) && +mc.getChildAt(e).id < 0) {
+          e++;
+        }
+        if (e > childIndex) {
           e--;
         }
-        mc.swap(k, e);
-        if ((c.W & 4) === 0) {
-          c.setVisible(true, false);
+        mc.swap(childIndex, e);
+        if ((child.W & 4) === 0) {
+          child.setVisible(true, false);
         }
         return true;
       }
-      return (this.Ek(mc, assetPool, sceneGraphFactory) >= 0);
     }
 
     Ek(mc: MovieClip, assetPool: AssetPool, sceneGraphFactory: SceneGraphFactory) {
-      var dobj: DisplayObject = (assetPool.getMesh(this.Ag) === void 0)
-                                  ? sceneGraphFactory.createMovieClip(this.Ag, this.id)
-                                  : sceneGraphFactory.createShape(this.Ag, this.id);
-      dobj.setLocalTransform(this.hc, false);
+      var dobj: DisplayObject = (assetPool.getMesh(this.timelineID) === void 0)
+                                  ? sceneGraphFactory.createMovieClip(this.timelineID, this.targetID)
+                                  : sceneGraphFactory.createShape(this.timelineID, this.targetID);
+      dobj.setLocalTransform(this.transform, false);
       if (this.instanceName !== void 0) {
         dobj.name = this.instanceName;
       }
-      var index: number;
-      for (index = mc.getChildIndexByID(this.hf) + 1; mc.getChildAt(index) && +mc.getChildAt(index).id < 0; index++) {}
+      var index = mc.getChildIndexByID(this.hf) + 1;
+      while (mc.getChildAt(index) && +mc.getChildAt(index).id < 0) {
+        index++;
+      }
       return mc.addChildAt(dobj, index, false, true) ? index : -1;
     }
   }

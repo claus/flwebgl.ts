@@ -461,7 +461,7 @@ module flwebgl.g
       for (k = 0; k < cmds.length; ++k) {
         cmd = cmds[k];
         if (cmd instanceof PlaceObjectCommand) {
-          placeObjectCmds.push(cmd.id);
+          placeObjectCmds.push(cmd.targetID);
         }
       }
       for (k = 0; k < this.getNumChildren(); ++k) {

@@ -13,36 +13,34 @@ module flwebgl.B.commands
 
   export class SetTransformCommand implements IFrameCommand
   {
-    id: string;
+    targetID: string;
     hf: any;
-    hc: Matrix;
+    transform: Matrix;
 
     constructor(a: any[]) {
-      this.id = "" + a[0];
-      this.hf = a[1];
-      if (a.length > 2) {
-        a = a.slice(2);
-        this.hc = new Matrix(a);
-      } else {
-        this.hc = new Matrix();
-      }
+      this.targetID = "" + a[0];
+      this.hf = "" + a[1];
+      this.transform = (a.length > 2) ? new Matrix(a.slice(2)) : new Matrix();
     }
 
-    execute(mc: MovieClip, context: Context, x: boolean) {
-      var k = mc.getChildIndexByID(this.id);
+    execute(mc: MovieClip, context: Context, x: boolean): boolean {
+      var k = mc.getChildIndexByID(this.targetID);
       if (k < 0) {
         return false;
       }
-      var c = mc.getChildAt(k);
-      for (var e = mc.getChildIndexByID(this.hf) + 1; mc.getChildAt(e) && +mc.getChildAt(e).id < 0; e++) {}
+      var child = mc.getChildAt(k);
+      var e = mc.getChildIndexByID(this.hf) + 1;
+      while (mc.getChildAt(e) && +mc.getChildAt(e).id < 0) {
+        e++
+      }
       if (e > k) {
         e--;
       }
       if (e !== k) {
         mc.swap(k, e);
       }
-      if ((c.W & 1) === 0) {
-        c.setLocalTransform(this.hc, false);
+      if ((child.W & 1) === 0) {
+        child.setLocalTransform(this.transform, false);
       }
       return true;
     }

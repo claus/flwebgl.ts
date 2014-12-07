@@ -3264,56 +3264,53 @@ var flwebgl;
             var Matrix = flwebgl.geom.Matrix;
             var PlaceObjectCommand = (function () {
                 function PlaceObjectCommand(a) {
-                    this.Ag = "" + a[0];
+                    this.timelineID = "" + a[0];
                     this.hf = "" + a[1];
-                    this.id = "" + a[2];
-                    if (a.length > 4) {
-                        var b = a.slice(3);
-                        this.hc = new Matrix(b);
-                    }
-                    else {
-                        this.hc = new Matrix();
-                    }
-                    if (a.length == 10 || a.length == 4) {
-                        this.instanceName = a[a.length - 1];
+                    this.targetID = "" + a[2];
+                    var len = a.length;
+                    this.transform = (len > 4) ? new Matrix(a.slice(3)) : new Matrix();
+                    if (len == 10 || len == 4) {
+                        this.instanceName = a[len - 1];
                     }
                 }
                 PlaceObjectCommand.prototype.execute = function (mc, context, x) {
-                    var assetPool = context.assetPool;
-                    var sceneGraphFactory = context.sceneGraphFactory;
-                    var k = mc.getChildIndexByID(this.id);
-                    if (k >= 0) {
-                        var c = mc.getChildAt(k);
-                        if ((c.W & 1) === 0) {
-                            c.setLocalTransform(this.hc, false);
+                    var childIndex = mc.getChildIndexByID(this.targetID);
+                    if (childIndex < 0) {
+                        return (this.Ek(mc, context.assetPool, context.sceneGraphFactory) >= 0);
+                    }
+                    else {
+                        var child = mc.getChildAt(childIndex);
+                        if ((child.W & 1) === 0) {
+                            child.setLocalTransform(this.transform, false);
                         }
-                        if ((c.W & 2) === 0) {
-                            var cxform = c.getLocalColorTransform().clone();
+                        if ((child.W & 2) === 0) {
+                            var cxform = child.getLocalColorTransform().clone();
                             cxform.identity();
-                            c.setLocalColorTransform(cxform, false);
+                            child.setLocalColorTransform(cxform, false);
                         }
-                        var e;
-                        for (e = mc.getChildIndexByID(this.hf) + 1; mc.getChildAt(e) && +mc.getChildAt(e).id < 0; e++) {
+                        var e = mc.getChildIndexByID(this.hf) + 1;
+                        while (mc.getChildAt(e) && +mc.getChildAt(e).id < 0) {
+                            e++;
                         }
-                        if (e > k) {
+                        if (e > childIndex) {
                             e--;
                         }
-                        mc.swap(k, e);
-                        if ((c.W & 4) === 0) {
-                            c.setVisible(true, false);
+                        mc.swap(childIndex, e);
+                        if ((child.W & 4) === 0) {
+                            child.setVisible(true, false);
                         }
                         return true;
                     }
-                    return (this.Ek(mc, assetPool, sceneGraphFactory) >= 0);
                 };
                 PlaceObjectCommand.prototype.Ek = function (mc, assetPool, sceneGraphFactory) {
-                    var dobj = (assetPool.getMesh(this.Ag) === void 0) ? sceneGraphFactory.createMovieClip(this.Ag, this.id) : sceneGraphFactory.createShape(this.Ag, this.id);
-                    dobj.setLocalTransform(this.hc, false);
+                    var dobj = (assetPool.getMesh(this.timelineID) === void 0) ? sceneGraphFactory.createMovieClip(this.timelineID, this.targetID) : sceneGraphFactory.createShape(this.timelineID, this.targetID);
+                    dobj.setLocalTransform(this.transform, false);
                     if (this.instanceName !== void 0) {
                         dobj.name = this.instanceName;
                     }
-                    var index;
-                    for (index = mc.getChildIndexByID(this.hf) + 1; mc.getChildAt(index) && +mc.getChildAt(index).id < 0; index++) {
+                    var index = mc.getChildIndexByID(this.hf) + 1;
+                    while (mc.getChildAt(index) && +mc.getChildAt(index).id < 0) {
+                        index++;
                     }
                     return mc.addChildAt(dobj, index, false, true) ? index : -1;
                 };
@@ -3740,7 +3737,7 @@ var flwebgl;
                 for (k = 0; k < cmds.length; ++k) {
                     cmd = cmds[k];
                     if (cmd instanceof PlaceObjectCommand) {
-                        placeObjectCmds.push(cmd.id);
+                        placeObjectCmds.push(cmd.targetID);
                     }
                 }
                 for (k = 0; k < this.getNumChildren(); ++k) {
@@ -4095,23 +4092,19 @@ var flwebgl;
             var Matrix = flwebgl.geom.Matrix;
             var SetTransformCommand = (function () {
                 function SetTransformCommand(a) {
-                    this.id = "" + a[0];
-                    this.hf = a[1];
-                    if (a.length > 2) {
-                        a = a.slice(2);
-                        this.hc = new Matrix(a);
-                    }
-                    else {
-                        this.hc = new Matrix();
-                    }
+                    this.targetID = "" + a[0];
+                    this.hf = "" + a[1];
+                    this.transform = (a.length > 2) ? new Matrix(a.slice(2)) : new Matrix();
                 }
                 SetTransformCommand.prototype.execute = function (mc, context, x) {
-                    var k = mc.getChildIndexByID(this.id);
+                    var k = mc.getChildIndexByID(this.targetID);
                     if (k < 0) {
                         return false;
                     }
-                    var c = mc.getChildAt(k);
-                    for (var e = mc.getChildIndexByID(this.hf) + 1; mc.getChildAt(e) && +mc.getChildAt(e).id < 0; e++) {
+                    var child = mc.getChildAt(k);
+                    var e = mc.getChildIndexByID(this.hf) + 1;
+                    while (mc.getChildAt(e) && +mc.getChildAt(e).id < 0) {
+                        e++;
                     }
                     if (e > k) {
                         e--;
@@ -4119,8 +4112,8 @@ var flwebgl;
                     if (e !== k) {
                         mc.swap(k, e);
                     }
-                    if ((c.W & 1) === 0) {
-                        c.setLocalTransform(this.hc, false);
+                    if ((child.W & 1) === 0) {
+                        child.setLocalTransform(this.transform, false);
                     }
                     return true;
                 };
@@ -4139,7 +4132,7 @@ var flwebgl;
             var ColorTransform = flwebgl.geom.ColorTransform;
             var SetColorTransformCommand = (function () {
                 function SetColorTransformCommand(a) {
-                    this.id = "" + a[0];
+                    this.targetID = "" + a[0];
                     a = a.slice(1);
                     if (a && a.length == 8) {
                         this.colorTransform = new ColorTransform(a[0], a[1] / 100, a[2], a[3] / 100, a[4], a[5] / 100, a[6], a[7] / 100);
@@ -4149,7 +4142,7 @@ var flwebgl;
                     }
                 }
                 SetColorTransformCommand.prototype.execute = function (mc, context, x) {
-                    var b = mc.getChildIndexByID(this.id);
+                    var b = mc.getChildIndexByID(this.targetID);
                     if (b < 0) {
                         return false;
                     }
@@ -4173,10 +4166,10 @@ var flwebgl;
         (function (commands) {
             var RemoveObjectCommand = (function () {
                 function RemoveObjectCommand(a) {
-                    this.id = "" + a[0];
+                    this.targetID = "" + a[0];
                 }
                 RemoveObjectCommand.prototype.execute = function (mc, context, x) {
-                    var b = mc.getChildIndexByID(this.id);
+                    var b = mc.getChildIndexByID(this.targetID);
                     if (b < 0) {
                         return false;
                     }
@@ -4335,7 +4328,7 @@ var flwebgl;
                                 switch (frame[k][0]) {
                                     case 1:
                                         cmd = new PlaceObjectCommand(frame[k].slice(1));
-                                        this.nextHighestID = Math.max(this.nextHighestID, +cmd.id);
+                                        this.nextHighestID = Math.max(this.nextHighestID, +cmd.targetID);
                                         break;
                                     case 2:
                                         cmd = new SetTransformCommand(frame[k].slice(1));

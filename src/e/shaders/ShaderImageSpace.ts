@@ -34,7 +34,6 @@ module flwebgl.e.shaders
     private fragmentShaderSrc: string;
     private modelViewMatrix: Matrix;
     private modelInverseMatrix: Matrix;
-    private ao: any; // TODO: what's this? size of uSamplers?
 
     constructor() {
       console.log("ShaderImageSpace");
