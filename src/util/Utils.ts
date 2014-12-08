@@ -1,4 +1,6 @@
 /// <reference path="../geom/Color.ts" />
+/// <reference path="../geom/Matrix.ts" />
+/// <reference path="../g/DisplayObject.ts" />
 
 interface Window {
   webkitRequestAnimationFrame(callback: any, element?: any): number;
@@ -13,6 +15,8 @@ interface Window {
 module flwebgl.util
 {
   import Color = flwebgl.geom.Color;
+  import Matrix = flwebgl.geom.Matrix;
+  import DisplayObject = flwebgl.g.DisplayObject;
 
   export class Utils
   {
@@ -52,6 +56,18 @@ module flwebgl.util
 
     static em(a, b) {
       return "__Snapshot__" + a + "_" + b;
+    }
+
+    static sm(dobj: DisplayObject): Matrix {
+      var global = dobj.getGlobalTransform().clone();
+      var local = dobj.getLocalTransform().clone();
+      local.invert();
+      global.multiply(local);
+      return global;
+    }
+
+    static nextPowerOfTwo(value: number): number {
+      return Math.pow(2, Math.ceil(Math.log(value) / Math.LN2));
     }
   }
 }

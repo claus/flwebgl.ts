@@ -8,6 +8,242 @@ declare module flwebgl.geom {
         equals(color: Color): boolean;
     }
 }
+declare module flwebgl.geom {
+    class Point {
+        x: number;
+        y: number;
+        constructor(x: number, y: number);
+        add(point: Point): Point;
+        sub(point: Point): Point;
+    }
+}
+declare module flwebgl.geom {
+    class Rect {
+        left: number;
+        top: number;
+        width: number;
+        height: number;
+        isEmpty: boolean;
+        constructor(left?: number, top?: number, width?: number, height?: number);
+        intersects(rect: Rect): boolean;
+        copy(rect: Rect): void;
+        union(rect: Rect): void;
+        expand(x: number, y: number): void;
+    }
+}
+declare module flwebgl.geom {
+    class Matrix {
+        values: number[];
+        private _isIdentity;
+        constructor(values?: number[]);
+        isInvertible(): boolean;
+        isIdentity: boolean;
+        private setIsIdentity();
+        identity(): Matrix;
+        equals(matrix: Matrix): boolean;
+        equalsScaleRotation(matrix: Matrix): boolean;
+        getValues(): number[];
+        setValues: (values: number[]) => void;
+        clone(): Matrix;
+        copy(matrix: Matrix): Matrix;
+        concat(matrix: Matrix): Matrix;
+        multiply(matrix: Matrix): void;
+        transformPoint(point: Point): Point;
+        transformBoundsAABB(rect: Rect): Rect;
+        invert(): Matrix;
+        translate(tx: number, ty: number): Matrix;
+        setValue(column: number, row: number, value: number): void;
+        getValue(column: number, row: number): number;
+    }
+}
+declare module flwebgl.events {
+    class Event {
+        private _type;
+        private _bubbles;
+        private _currentTarget;
+        private _target;
+        _stopped: boolean;
+        _stoppedImmediate: boolean;
+        constructor(type: string, bubbles?: boolean);
+        type: string;
+        bubbles: boolean;
+        target: EventDispatcher;
+        currentTarget: EventDispatcher;
+        stopPropagation(): void;
+        stopImmediatePropagation(): void;
+        static ADDED: string;
+        static REMOVED: string;
+        static UPDATED: string;
+        static ENTER_FRAME: string;
+        static EXIT_FRAME: string;
+        static FRAME_CONSTRUCTED: string;
+    }
+}
+declare module flwebgl.events {
+    class EventDispatcher {
+        private listenerMap;
+        constructor();
+        addEventListener(type: string, listener: any): void;
+        hasEventListener(type: string, listener?: any): boolean;
+        removeEventListener(type: string, listener: any): void;
+        dispatchEvent(event: Event): void;
+        dispatch(event: Event): void;
+        removeAllListeners(): void;
+    }
+}
+declare module flwebgl.geom {
+    class ColorTransform {
+        alphaOffset: number;
+        redOffset: number;
+        greenOffset: number;
+        blueOffset: number;
+        private _alphaMult;
+        private _redMult;
+        private _greenMult;
+        private _blueMult;
+        constructor(alphaOffs?: number, alphaMult?: number, redOffs?: number, redMult?: number, greenOffs?: number, greenMult?: number, blueOffs?: number, blueMult?: number);
+        alphaMultiplier: number;
+        redMultiplier: number;
+        greenMultiplier: number;
+        blueMultiplier: number;
+        identity(): ColorTransform;
+        isIdentity(): boolean;
+        equals(cxform: ColorTransform): boolean;
+        concat(cxform: ColorTransform): ColorTransform;
+        clone(): ColorTransform;
+        copy(cxform: ColorTransform): ColorTransform;
+    }
+}
+declare module flwebgl.e {
+    class AttributeDef {
+        byteOffset: number;
+        name: string;
+        type: number;
+        size: number;
+        constructor(byteOffset: number, name: string, type: number, size: number);
+    }
+    class AttributesDefs {
+        attrs: AttributeDef[];
+        totalSize: number;
+        constructor(attrs?: AttributeDef[], totalSize?: number);
+    }
+}
+declare module flwebgl.e {
+    class VertexData {
+        vertices: Float32Array;
+        attributeDefs: AttributesDefs;
+        constructor(vertices: Float32Array, attributeDefs: AttributesDefs);
+    }
+}
+declare module flwebgl.e {
+    interface VertexDataMap {
+        [atlasID: string]: VertexData[];
+    }
+    class AttributeDefsArray {
+        attrs: AttributesDefs[];
+        constructor();
+    }
+    class ca {
+        name: string;
+        isOpaque: boolean;
+        fillMode: number;
+        indices: Uint16Array;
+        vertexDataMap: VertexDataMap;
+        attributeDefsArray: AttributeDefsArray;
+        constructor(name: string, isOpaque: boolean);
+        id: number;
+        getVertexData(atlasID: string): VertexData[];
+        setVertexData(atlasID: string, vertexData: VertexData[]): void;
+        setIndices(indices: number[]): void;
+        getNumIndices(): number;
+        getAtlasIDs(): string[];
+        static kFill_Extend: string;
+        static kFill_Repeat: string;
+        static kFill_Reflect: string;
+        static fillModeMap: {
+            Extend: number;
+            Repeat: number;
+            Reflect: number;
+        };
+    }
+}
+declare module flwebgl.e {
+    interface IRenderable {
+        id: string;
+    }
+}
+declare module flwebgl.e {
+    import Rect = flwebgl.geom.Rect;
+    class Mesh implements IRenderable {
+        private _id;
+        private fd;
+        bounds: Rect;
+        constructor(id: string);
+        id: string;
+        Nb(edgeType: string, h: ca): void;
+        ra(edgeType: string): number;
+        yf(edgeType: string, i: number): ca;
+        calculateBounds(): void;
+        static INTERNAL: string;
+        static EXTERNAL: string;
+        static bb: string;
+    }
+}
+declare module flwebgl.e {
+    class vk {
+        Mb: any;
+        shape: any;
+        constructor();
+        In(a: any): void;
+        getColorTransform(): any;
+        Hn(shape: any): void;
+        setTransforms(a: any): void;
+        Qb(a: any): void;
+        destroy(): void;
+    }
+}
+declare module flwebgl.g {
+    import EventDispatcher = flwebgl.events.EventDispatcher;
+    import ColorTransform = flwebgl.geom.ColorTransform;
+    import Matrix = flwebgl.geom.Matrix;
+    import Rect = flwebgl.geom.Rect;
+    import IRenderable = flwebgl.e.IRenderable;
+    import vk = flwebgl.e.vk;
+    class DisplayObject extends EventDispatcher {
+        _id: string;
+        _name: string;
+        _parent: DisplayObject;
+        _dirty: boolean;
+        _visible: boolean;
+        _localTransform: Matrix;
+        _globalTransform: Matrix;
+        _localColorTransform: ColorTransform;
+        _globalColorTransform: ColorTransform;
+        W: number;
+        Ui: boolean;
+        constructor();
+        id: string;
+        name: string;
+        parent: DisplayObject;
+        depth: number;
+        dirty: boolean;
+        isVisible(): boolean;
+        setVisible(value: boolean, dirty?: boolean): void;
+        getLocalTransform(): Matrix;
+        setLocalTransform(transform: Matrix, dirty?: boolean): void;
+        getGlobalTransform(): Matrix;
+        getLocalColorTransform(): ColorTransform;
+        setLocalColorTransform(colorTransform?: ColorTransform, dirty?: boolean): void;
+        getGlobalColorTransform(): ColorTransform;
+        setTransforms(transform: Matrix, colorTransform: ColorTransform): void;
+        destroy(): void;
+        Ic(): IRenderable;
+        Of(renderable: IRenderable): void;
+        Qb(a: any): void;
+        $j(ps: vk): void;
+        getBounds(target?: DisplayObject, fast?: boolean, edgeType?: string, k?: boolean): Rect;
+    }
+}
 interface Window {
     webkitRequestAnimationFrame(callback: any, element?: any): number;
     mozRequestAnimationFrame(callback: any, element?: any): number;
@@ -19,6 +255,8 @@ interface Window {
 }
 declare module flwebgl.util {
     import Color = flwebgl.geom.Color;
+    import Matrix = flwebgl.geom.Matrix;
+    import DisplayObject = flwebgl.g.DisplayObject;
     class Utils {
         static requestAnimFrame(fn: any, frameRate: number, window: Window): number;
         static cancelAnimFrame(id: number, window: Window): void;
@@ -26,6 +264,8 @@ declare module flwebgl.util {
         static getColor: (color: string) => Color;
         static cm(meshID: string, i: number, edgeType: string): string;
         static em(a: any, b: any): string;
+        static sm(dobj: DisplayObject): Matrix;
+        static nextPowerOfTwo(value: number): number;
     }
 }
 declare module flwebgl {
@@ -46,53 +286,6 @@ declare module flwebgl {
         private static kOption_Caching;
         private static kOption_CacheAsBitmap;
         private static kOption_StandardDerivatives;
-    }
-}
-declare module flwebgl.geom {
-    class Rect {
-        left: number;
-        top: number;
-        width: number;
-        height: number;
-        isEmpty: boolean;
-        constructor(left?: number, top?: number, width?: number, height?: number);
-        intersects(rect: Rect): boolean;
-        copy(rect: Rect): void;
-        union(rect: Rect): void;
-        expand(x: number, y: number): void;
-    }
-}
-declare module flwebgl.geom {
-    class Point {
-        x: number;
-        y: number;
-        constructor(x: number, y: number);
-        add(point: Point): Point;
-        sub(point: Point): Point;
-    }
-}
-declare module flwebgl.geom {
-    class Matrix {
-        values: number[];
-        private _isIdentity;
-        constructor(values?: number[]);
-        isInvertible(): boolean;
-        isIdentity: boolean;
-        private setIsIdentity();
-        identity(): Matrix;
-        equals(matrix: Matrix): boolean;
-        getValues(): number[];
-        setValues: (values: number[]) => void;
-        clone(): Matrix;
-        copy(matrix: Matrix): Matrix;
-        concat(matrix: Matrix): Matrix;
-        multiply(matrix: Matrix): void;
-        transformPoint(point: Point): Point;
-        transformBoundsAABB(rect: Rect): Rect;
-        invert(): Matrix;
-        translate(tx: number, ty: number): Matrix;
-        setValue(column: number, row: number, value: number): void;
-        getValue(column: number, row: number): number;
     }
 }
 declare module flwebgl.util {
@@ -149,20 +342,6 @@ declare module flwebgl.e {
     }
 }
 declare module flwebgl.e {
-    class AttributeDef {
-        byteOffset: number;
-        name: string;
-        type: number;
-        size: number;
-        constructor(byteOffset: number, name: string, type: number, size: number);
-    }
-    class AttributesDefs {
-        attrs: AttributeDef[];
-        totalSize: number;
-        constructor(attrs?: AttributeDef[], totalSize?: number);
-    }
-}
-declare module flwebgl.e {
     interface AttributeMap {
         [name: string]: Attribute;
     }
@@ -178,29 +357,6 @@ declare module flwebgl.e {
         attributeMap: AttributeMap;
         constructor(attributes: Attribute[]);
         getAttributeByName(name: string): Attribute;
-    }
-}
-declare module flwebgl.geom {
-    class ColorTransform {
-        alphaOffset: number;
-        redOffset: number;
-        greenOffset: number;
-        blueOffset: number;
-        private _alphaMult;
-        private _redMult;
-        private _greenMult;
-        private _blueMult;
-        constructor(alphaOffs?: number, alphaMult?: number, redOffs?: number, redMult?: number, greenOffs?: number, greenMult?: number, blueOffs?: number, blueMult?: number);
-        alphaMultiplier: number;
-        redMultiplier: number;
-        greenMultiplier: number;
-        blueMultiplier: number;
-        identity(): ColorTransform;
-        isIdentity(): boolean;
-        equals(cxform: ColorTransform): boolean;
-        concat(cxform: ColorTransform): ColorTransform;
-        clone(): ColorTransform;
-        copy(cxform: ColorTransform): ColorTransform;
     }
 }
 declare module flwebgl.e {
@@ -479,62 +635,6 @@ declare module flwebgl.e {
     }
 }
 declare module flwebgl.e {
-    class VertexData {
-        vertices: Float32Array;
-        attributeDefs: AttributesDefs;
-        constructor(vertices: Float32Array, attributeDefs: AttributesDefs);
-    }
-}
-declare module flwebgl.e {
-    interface VertexDataMap {
-        [atlasID: string]: VertexData[];
-    }
-    class AttributeDefsArray {
-        attrs: AttributesDefs[];
-        constructor();
-    }
-    class ca {
-        name: string;
-        isOpaque: boolean;
-        fillMode: number;
-        indices: Uint16Array;
-        vertexDataMap: VertexDataMap;
-        attributeDefsArray: AttributeDefsArray;
-        constructor(name: string, isOpaque: boolean);
-        id: number;
-        getVertexData(atlasID: string): VertexData[];
-        setVertexData(atlasID: string, vertexData: VertexData[]): void;
-        setIndices(indices: number[]): void;
-        getNumIndices(): number;
-        getAtlasIDs(): string[];
-        static kFill_Extend: string;
-        static kFill_Repeat: string;
-        static kFill_Reflect: string;
-        static fillModeMap: {
-            Extend: number;
-            Repeat: number;
-            Reflect: number;
-        };
-    }
-}
-declare module flwebgl.e {
-    import Rect = flwebgl.geom.Rect;
-    class Mesh {
-        private _id;
-        private fd;
-        bounds: Rect;
-        constructor(id: string);
-        id: string;
-        Nb(edgeType: string, h: ca): void;
-        yf(edgeType: string, i: number): ca;
-        ra(edgeType: string): number;
-        calculateBounds(): void;
-        static INTERNAL: string;
-        static EXTERNAL: string;
-        static bb: string;
-    }
-}
-declare module flwebgl.e {
     import Matrix = flwebgl.geom.Matrix;
     import ColorTransform = flwebgl.geom.ColorTransform;
     import Shape = flwebgl.g.Shape;
@@ -553,11 +653,11 @@ declare module flwebgl.e {
 }
 declare module flwebgl.e {
     class Uniform {
-        location: any;
-        type: any;
-        size: any;
-        no: any;
-        constructor(location: any, type: any, size: any, no: any);
+        location: WebGLUniformLocation;
+        type: number;
+        size: number;
+        no: number;
+        constructor(location: WebGLUniformLocation, type: number, size: number, no: number);
         static Jd: number;
         static Q: number;
     }
@@ -824,7 +924,7 @@ declare module flwebgl.e {
     import Color = flwebgl.geom.Color;
     import Rect = flwebgl.geom.Rect;
     class Renderer {
-        private gl;
+        gl: GL;
         private renderer;
         private activeRenderer;
         private bitmapCacheRenderer;
@@ -861,77 +961,6 @@ declare module flwebgl.e {
         static Gj: number;
     }
 }
-declare module flwebgl.events {
-    class Event {
-        private _type;
-        private _bubbles;
-        private _currentTarget;
-        private _target;
-        _stopped: boolean;
-        _stoppedImmediate: boolean;
-        constructor(type: string, bubbles?: boolean);
-        type: string;
-        bubbles: boolean;
-        target: EventDispatcher;
-        currentTarget: EventDispatcher;
-        stopPropagation(): void;
-        stopImmediatePropagation(): void;
-        static ADDED: string;
-        static REMOVED: string;
-        static UPDATED: string;
-        static ENTER_FRAME: string;
-        static EXIT_FRAME: string;
-        static FRAME_CONSTRUCTED: string;
-    }
-}
-declare module flwebgl.events {
-    class EventDispatcher {
-        private listenerMap;
-        constructor();
-        addEventListener(type: string, listener: any): void;
-        hasEventListener(type: string, listener?: any): boolean;
-        removeEventListener(type: string, listener: any): void;
-        dispatchEvent(event: Event): void;
-        dispatch(event: Event): void;
-        removeAllListeners(): void;
-    }
-}
-declare module flwebgl.g {
-    import EventDispatcher = flwebgl.events.EventDispatcher;
-    import ColorTransform = flwebgl.geom.ColorTransform;
-    import Matrix = flwebgl.geom.Matrix;
-    import Rect = flwebgl.geom.Rect;
-    class DisplayObject extends EventDispatcher {
-        _id: string;
-        _name: string;
-        _parent: DisplayObject;
-        _dirty: boolean;
-        _visible: boolean;
-        _localTransform: Matrix;
-        _globalTransform: Matrix;
-        _localColorTransform: ColorTransform;
-        _globalColorTransform: ColorTransform;
-        W: number;
-        constructor();
-        id: string;
-        name: string;
-        parent: DisplayObject;
-        depth: number;
-        dirty: boolean;
-        isVisible(): boolean;
-        setVisible(value: boolean, dirty?: boolean): void;
-        getLocalTransform(): Matrix;
-        setLocalTransform(transform: Matrix, dirty?: boolean): void;
-        getGlobalTransform(): Matrix;
-        getLocalColorTransform(): ColorTransform;
-        setLocalColorTransform(colorTransform?: ColorTransform, dirty?: boolean): void;
-        getGlobalColorTransform(): ColorTransform;
-        setTransforms(transform: Matrix, colorTransform: ColorTransform): void;
-        Qb(a: any): void;
-        getBounds(target?: DisplayObject, fast?: boolean, edgeType?: string, k?: boolean): Rect;
-        destroy(): void;
-    }
-}
 declare module flwebgl.B.commands {
     import DisplayObject = flwebgl.g.DisplayObject;
     import Context = flwebgl.Context;
@@ -942,6 +971,7 @@ declare module flwebgl.B.commands {
 }
 declare module flwebgl.B {
     import IFrameCommand = flwebgl.B.commands.IFrameCommand;
+    import IRenderable = flwebgl.e.IRenderable;
     interface FrameLabel {
         frameNum: number;
         name: string;
@@ -953,7 +983,7 @@ declare module flwebgl.B {
     interface FrameScriptMap {
         [id: string]: string[];
     }
-    class Timeline {
+    class Timeline implements IRenderable {
         private _id;
         private _name;
         private _linkageName;
@@ -1040,16 +1070,17 @@ declare module flwebgl.g {
     import Rect = flwebgl.geom.Rect;
     import Matrix = flwebgl.geom.Matrix;
     import Event = flwebgl.events.Event;
+    import IRenderable = flwebgl.e.IRenderable;
     import Timeline = flwebgl.B.Timeline;
     import FrameLabel = flwebgl.B.FrameLabel;
+    import Context = flwebgl.Context;
     class MovieClip extends DisplayObject {
         timeline: Timeline;
-        context: any;
+        context: Context;
         totalFrames: number;
         loop: boolean;
         yc: any;
         pa: any;
-        Ui: any;
         df: boolean;
         Td: boolean;
         private children;
@@ -1057,6 +1088,8 @@ declare module flwebgl.g {
         private currentFrameIndex;
         private _isPlaying;
         constructor();
+        Ic(): IRenderable;
+        Of(renderable: IRenderable): void;
         addChild(dobj: DisplayObject, e?: boolean): boolean;
         addChildAt(dobj: DisplayObject, index: number, e?: boolean, defer?: boolean): boolean;
         removeChild(dobj: DisplayObject): DisplayObject;
@@ -1089,7 +1122,6 @@ declare module flwebgl.g {
         getCurrentFrameLabel(): string;
         getCurrentLabel(): string;
         getChildIndexByID(id: string): number;
-        Of(timeline: Timeline): void;
         $j(a: any): void;
         setTransforms(transform: Matrix, colorTransform: ColorTransform): void;
         destroy(): void;
@@ -1105,12 +1137,13 @@ declare module flwebgl.g {
     import Rect = flwebgl.geom.Rect;
     import Mesh = flwebgl.e.Mesh;
     import MeshInstanced = flwebgl.e.MeshInstanced;
+    import IRenderable = flwebgl.e.IRenderable;
     class Shape extends DisplayObject {
         yc: Mesh;
         mf: MeshInstanced;
         constructor();
-        Ic(): Mesh;
-        Of(mesh: Mesh): void;
+        Ic(): IRenderable;
+        Of(renderable: IRenderable): void;
         Qb(a: any): void;
         getBounds(target?: DisplayObject, fast?: boolean, edgeType?: string, k?: boolean): Rect;
         calculateBoundsAABB(a: any, transform: any): Rect;
@@ -1132,18 +1165,124 @@ declare module flwebgl.sg {
         getNextAvailableID(): number;
     }
 }
+declare module flwebgl.e {
+    import Matrix = flwebgl.geom.Matrix;
+    import Color = flwebgl.geom.Color;
+    import ColorTransform = flwebgl.geom.ColorTransform;
+    class wk {
+        private $n;
+        private _textureID;
+        private _mesh;
+        private _color;
+        private _transform;
+        private _colorTransform;
+        private _ug;
+        constructor(textureID: string, mesh: Mesh, d: any, color: Color, transform: Matrix, colorTransform: ColorTransform);
+        textureID: string;
+        mesh: Mesh;
+        color: Color;
+        transform: Matrix;
+        colorTransform: ColorTransform;
+        ug: number;
+        Vl(): void;
+        Wj(): void;
+    }
+}
+declare module flwebgl.e {
+    import Color = flwebgl.geom.Color;
+    import ColorTransform = flwebgl.geom.ColorTransform;
+    import DisplayObject = flwebgl.g.DisplayObject;
+    class yk {
+        displayObject: DisplayObject;
+        color: Color;
+        colorTransform: ColorTransform;
+        pa: vk;
+        constructor(displayObject: DisplayObject, color: Color, colorTransform: ColorTransform, pa: vk);
+    }
+}
+declare module flwebgl.geom {
+    class QuadTree {
+        private position;
+        private size;
+        private isFull;
+        private children;
+        constructor(position: Point, size: number);
+        fits(size: number): boolean;
+        insert(size: number): Point;
+        remove(position: Point): boolean;
+        createQuads(): void;
+        isEmpty(): boolean;
+    }
+}
+declare module flwebgl.e {
+    import Rect = flwebgl.geom.Rect;
+    import Color = flwebgl.geom.Color;
+    class zk {
+        private renderTarget;
+        private textureAtlas;
+        private tree;
+        private ol;
+        private uc;
+        constructor(renderTarget: RenderTarget, textureAtlas: TextureAtlas);
+        fits(width: number, height: number): boolean;
+        insert(width: number, height: number): string;
+        remove(frameID: string): void;
+        getFrame(frameID: string): Rect;
+        getTextureID(): string;
+        mn(renderables: any[], frameID: string, color: Color): void;
+        pn(renderer: Renderer): void;
+        static MIN_TEXTURE_SIZE: number;
+    }
+}
+declare module flwebgl.e {
+    import Rect = flwebgl.geom.Rect;
+    import Matrix = flwebgl.geom.Matrix;
+    import Color = flwebgl.geom.Color;
+    import ColorTransform = flwebgl.geom.ColorTransform;
+    import AssetPool = flwebgl.util.AssetPool;
+    import SceneGraphFactory = flwebgl.sg.SceneGraphFactory;
+    import DisplayObject = flwebgl.g.DisplayObject;
+    class BitmapCacheFactory {
+        private renderer;
+        private assetPool;
+        private sceneGraphFactory;
+        private colorTransform;
+        private oa;
+        private wc;
+        private numRenderTargets;
+        private maxRenderTargets;
+        private spriteSheetMap;
+        private ce;
+        constructor(renderer: Renderer, assetPool: AssetPool, sceneGraphFactory: SceneGraphFactory);
+        addCachedObject(a: yk): boolean;
+        Qn(): void;
+        Qk(a: any, color: Color, transform: Matrix, colorTransform: ColorTransform): wk;
+        ml(a: any): void;
+        pa(displayObject: DisplayObject, color: Color, transform: Matrix, colorTransform: ColorTransform): wk;
+        Ik(a: any): any;
+        getSpriteSheet(width: number, height: number): zk;
+        Jk(): void;
+        Tk(bounds: Rect, transform: Matrix, textureID: string, frameID: string, isOpaque: boolean): Mesh;
+        Sk(vertices: Float32Array[], indices: number[][], s: number, textureID: string, frameID: string, isOpaque: boolean): ca[];
+        Xk(a: number, rect: Rect, transform: Matrix): {
+            vertices: Float32Array[];
+            indices: number[][];
+        };
+    }
+}
 declare module flwebgl {
     import Renderer = flwebgl.e.Renderer;
     import AssetPool = flwebgl.util.AssetPool;
     import SoundFactory = flwebgl.media.SoundFactory;
     import SceneGraphFactory = flwebgl.sg.SceneGraphFactory;
+    import BitmapCacheFactory = flwebgl.e.BitmapCacheFactory;
     class Context {
         renderer: Renderer;
         assetPool: AssetPool;
         soundFactory: SoundFactory;
         sceneGraphFactory: SceneGraphFactory;
+        bitmapCacheFactory: BitmapCacheFactory;
         stage: any;
-        nd: any;
         constructor(renderer: Renderer, assetPool: AssetPool, soundFactory: SoundFactory);
     }
 }
@@ -1204,6 +1343,17 @@ declare module flwebgl.B.commands {
     import MovieClip = flwebgl.g.MovieClip;
     class RemoveObjectCommand implements IFrameCommand {
         targetID: string;
+        constructor(a: any[]);
+        execute(mc: MovieClip, context: Context, x: boolean): boolean;
+    }
+}
+declare module flwebgl.B.commands {
+    import Context = flwebgl.Context;
+    import Color = flwebgl.geom.Color;
+    import MovieClip = flwebgl.g.MovieClip;
+    class CacheAsBitmapCommand implements IFrameCommand {
+        targetID: string;
+        color: Color;
         constructor(a: any[]);
         execute(mc: MovieClip, context: Context, x: boolean): boolean;
     }
@@ -1355,12 +1505,12 @@ declare module flwebgl {
         private renderer;
         private soundFactory;
         private sceneGraphFactory;
+        private bitmapCacheFactory;
         private parser;
         private context;
         private stage;
         private sceneTimelines;
         private completeCBK;
-        private nd;
         private texturesLoaded;
         private soundsLoaded;
         private backgroundColor;

@@ -6,6 +6,7 @@
 /// <reference path="../../B/commands/SetTransformCommand.ts" />
 /// <reference path="../../B/commands/SetColorTransformCommand.ts" />
 /// <reference path="../../B/commands/RemoveObjectCommand.ts" />
+/// <reference path="../../B/commands/CacheAsBitmapCommand.ts" />
 /// <reference path="../../util/AssetPool.ts" />
 /// <reference path="../Parser.ts" />
 /// <reference path="IParser.ts" />
@@ -22,6 +23,7 @@ module flwebgl.xj.parsers
   import SetTransformCommand = flwebgl.B.commands.SetTransformCommand;
   import SetColorTransformCommand = flwebgl.B.commands.SetColorTransformCommand;
   import RemoveObjectCommand = flwebgl.B.commands.RemoveObjectCommand;
+  import CacheAsBitmapCommand = flwebgl.B.commands.CacheAsBitmapCommand;
   import AssetPool = flwebgl.util.AssetPool;
   import Parser = flwebgl.xj.Parser;
 
@@ -191,7 +193,7 @@ module flwebgl.xj.parsers
                 break;
               case 6:
                 if (this.parser.enableCacheAsBitmap) {
-                  //cmd = new c.B.Wh(frame[k].slice(1));
+                  cmd = new CacheAsBitmapCommand(frame[k].slice(1));
                 }
                 break;
               case 7:

@@ -3,9 +3,11 @@
 /// <reference path="../geom/Matrix.ts" />
 /// <reference path="../events/Event.ts" />
 /// <reference path="../e/Mesh.ts" />
+/// <reference path="../e/IRenderable.ts" />
 /// <reference path="../B/Timeline.ts" />
 /// <reference path="../B/commands/IFrameCommand.ts" />
 /// <reference path="../B/commands/PlaceObjectCommand.ts" />
+/// <reference path="../Context.ts" />
 /// <reference path="DisplayObject.ts" />
 
 module flwebgl.g
@@ -15,10 +17,12 @@ module flwebgl.g
   import Matrix = flwebgl.geom.Matrix;
   import Event = flwebgl.events.Event;
   import Mesh = flwebgl.e.Mesh;
+  import IRenderable = flwebgl.e.IRenderable;
   import Timeline = flwebgl.B.Timeline;
   import IFrameCommand = flwebgl.B.commands.IFrameCommand;
   import PlaceObjectCommand = flwebgl.B.commands.PlaceObjectCommand;
   import FrameLabel = flwebgl.B.FrameLabel;
+  import Context = flwebgl.Context;
 
   interface DeferredChild {
     index: number;
@@ -28,12 +32,11 @@ module flwebgl.g
   export class MovieClip extends DisplayObject
   {
     timeline: Timeline;
-    context: any;
+    context: Context;
     totalFrames: number;
     loop: boolean;
     yc: any;
     pa: any;
-    Ui: any;
     df: boolean;
     Td: boolean;
 
@@ -45,14 +48,23 @@ module flwebgl.g
     constructor() {
       super();
       this._id = "-1";
-      this.loop = true;
       this._isPlaying = true;
+      this.loop = true;
       this.children = [];
       this.childrenDeferred = [];
       this.currentFrameIndex = -1;
-      this.Ui = false;
       this.df = false;
       this.Td = false;
+    }
+
+    Ic(): IRenderable {
+      return this.timeline;
+    }
+
+    Of(renderable: IRenderable) {
+      this.timeline = <Timeline>renderable;
+      this.totalFrames = this.timeline.commands.length;
+      this.currentFrameIndex = -1;
     }
 
     addChild(dobj: DisplayObject, e: boolean = true): boolean {
@@ -88,7 +100,7 @@ module flwebgl.g
         while (p.parent) {
           p = p.parent;
         }
-        if (p === this.context.getStage() && mc.currentFrame === 0) {
+        if (p === this.context.stage && mc.currentFrame === 0) {
           mc.advanceFrame();
           mc.dispatchEnterFrame();
           mc.constructFrame();
@@ -415,12 +427,6 @@ module flwebgl.g
       return -1;
     }
 
-    Of(timeline: Timeline) {
-      this.timeline = timeline;
-      this.totalFrames = timeline.commands.length;
-      this.currentFrameIndex = -1;
-    }
-
     $j(a) {
       this.pa = a;
       this.Ui = true;
@@ -429,9 +435,6 @@ module flwebgl.g
     setTransforms(transform: Matrix, colorTransform: ColorTransform) {
       super.setTransforms(transform, colorTransform);
       for (var i = 0; i < this.children.length; ++i) {
-        if (!this.children[i]) {
-          debugger;
-        }
         this.children[i].setTransforms(this._globalTransform, this._globalColorTransform);
       }
       if (this.pa !== void 0) {
@@ -499,35 +502,46 @@ module flwebgl.g
       }
     }
 
+    // collect renderables
     Qb(a) {
-      var e;
+      // do nothing if this mc is not visible
       if (this.isVisible()) {
+        var e;
         if (this.pa === void 0) {
+          // this mc is not cached as bitmap:
+          // collect and add all children's renderables
           var b = a.length;
           for (e = 0; e < this.children.length; ++e) {
             this.children[e].Qb(a);
           }
+          // if this mc is dirty, make children's renderables dirty too
           if (this._dirty) {
             for (e = b; e < a.length; ++e) {
               a[e].dirty = true;
             }
           }
         } else {
+          // this mc is cached as bitmap:
+          // collect all children's renderables separately
           b = [];
           for (e = 0; e < this.children.length; ++e) {
             this.children[e].Qb(b);
           }
+          // check if any of them is dirty
           var k = false;
           for (e = 0; !k && e < b.length; ++e) {
             k = b[e].dirty;
           }
           if (k) {
+            // if any of them is dirty,
+            // kill cache as bitmap, make all of them dirty and add to list
             this.oi();
             for (e = 0; e < b.length; ++e) {
               b[e].dirty = true;
               a.push(b[e]);
             }
           } else {
+            // cache (?)
             this.pa.Qb(a);
           }
         }

@@ -5,6 +5,7 @@
 /// <reference path="../geom/Rect.ts" />
 /// <reference path="../e/Mesh.ts" />
 /// <reference path="../e/MeshInstanced.ts" />
+/// <reference path="../e/IRenderable.ts" />
 /// <reference path="DisplayObject.ts" />
 
 module flwebgl.g
@@ -16,6 +17,7 @@ module flwebgl.g
   import Rect = flwebgl.geom.Rect;
   import Mesh = flwebgl.e.Mesh;
   import MeshInstanced = flwebgl.e.MeshInstanced;
+  import IRenderable = flwebgl.e.IRenderable;
 
   export class Shape extends DisplayObject
   {
@@ -27,11 +29,12 @@ module flwebgl.g
       this.mf = new MeshInstanced(this);
     }
 
-    Ic() {
+    Ic(): IRenderable {
       return this.yc;
     }
-    Of(mesh: Mesh) {
-      this.yc = mesh;
+
+    Of(renderable: IRenderable) {
+      this.yc = <Mesh>renderable;
     }
 
     Qb(a) {

@@ -3,6 +3,8 @@
 /// <reference path="../geom/Matrix.ts" />
 /// <reference path="../geom/Rect.ts" />
 /// <reference path="../e/Mesh.ts" />
+/// <reference path="../e/IRenderable.ts" />
+/// <reference path="../e/vk.ts" />
 
 module flwebgl.g
 {
@@ -11,6 +13,8 @@ module flwebgl.g
   import Matrix = flwebgl.geom.Matrix;
   import Rect = flwebgl.geom.Rect;
   import Mesh = flwebgl.e.Mesh;
+  import IRenderable = flwebgl.e.IRenderable;
+  import vk = flwebgl.e.vk;
 
   export class DisplayObject extends EventDispatcher
   {
@@ -25,6 +29,7 @@ module flwebgl.g
     _globalColorTransform: ColorTransform;
 
     W: number;
+    Ui: boolean;
 
     constructor() {
       super();
@@ -35,6 +40,7 @@ module flwebgl.g
       this._visible = true;
       this._dirty = true;
       this.W = 0;
+      this.Ui = false;
     }
 
     get id(): string { return this._id; }
@@ -111,16 +117,21 @@ module flwebgl.g
       }
     }
 
-    Qb(a) {
-    }
-
-    getBounds(target: DisplayObject = this, fast: boolean = true, edgeType: string = Mesh.EXTERNAL, k: boolean = false): Rect {
-      return null;
-    }
-
     destroy() {
       this._id = "-1";
       this._parent = void 0;
     }
+
+    // Abstract methods:
+
+    Ic(): IRenderable { return void 0; }
+
+    Of(renderable: IRenderable) {}
+
+    Qb(a) {}
+
+    $j(ps: vk) {}
+
+    getBounds(target: DisplayObject = this, fast: boolean = true, edgeType: string = Mesh.EXTERNAL, k: boolean = false): Rect { return null; }
   }
 }

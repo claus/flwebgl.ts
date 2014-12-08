@@ -41,13 +41,13 @@ module flwebgl.e
     }
 
     ra(edgeType: string): number {
-      return this.shape.Ic().ra(edgeType);
+      return (<Mesh>this.shape.Ic()).ra(edgeType);
     }
 
     ab(edgeType: string, i: number, gl: GL): lk {
       var buffers = this.Gb[edgeType][i];
       if (!buffers) {
-        var mesh = this.shape.Ic();
+        var mesh = <Mesh>this.shape.Ic();
         var _ca = mesh.yf(edgeType, i);
         if (!_ca) {
           return void 0;

@@ -1,5 +1,6 @@
 /// <reference path="../geom/Rect.ts" />
 /// <reference path="ca.ts" />
+/// <reference path="IRenderable.ts" />
 
 module flwebgl.e
 {
@@ -7,7 +8,7 @@ module flwebgl.e
 
   interface CAMap { [edgeType: string]: ca[]; }
 
-  export class Mesh
+  export class Mesh implements IRenderable
   {
     private _id: string;
     private fd: CAMap;
@@ -30,14 +31,14 @@ module flwebgl.e
       this.fd[edgeType].push(h);
     }
 
+    ra(edgeType: string): number {
+      return this.fd[edgeType].length;
+    }
+
     yf(edgeType: string, i: number): ca {
       if (i < this.ra(edgeType)) {
         return this.fd[edgeType][i];
       }
-    }
-
-    ra(edgeType: string): number {
-      return this.fd[edgeType].length;
     }
 
     calculateBounds() {

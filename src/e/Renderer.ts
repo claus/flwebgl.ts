@@ -22,7 +22,8 @@ module flwebgl.e
   // Hh
   export class Renderer
   {
-    private gl: GL;
+    gl: GL;
+
     private renderer: IRenderer;
     private activeRenderer: IRenderer;
     private bitmapCacheRenderer: RendererBitmapCache;

@@ -36,7 +36,7 @@ module flwebgl.e.shaders
     private modelViewMatrix: Matrix;
 
     constructor() {
-      console.log("ShaderMSAA");
+      console.log("ShaderMSAAStdDev");
     }
 
     get id(): number {

@@ -1,5 +1,6 @@
 /// <reference path="e/GL.ts" />
 /// <reference path="e/Renderer.ts" />
+/// <reference path="e/BitmapCacheFactory.ts" />
 /// <reference path="g/MovieClip.ts" />
 /// <reference path="media/SoundFactory.ts" />
 /// <reference path="sg/SceneGraphFactory.ts" />
@@ -15,6 +16,7 @@ module flwebgl
 {
   import GL = flwebgl.e.GL;
   import Renderer = flwebgl.e.Renderer;
+  import BitmapCacheFactory = flwebgl.e.BitmapCacheFactory;
   import MovieClip = flwebgl.g.MovieClip;
   import SoundFactory = flwebgl.media.SoundFactory;
   import SceneGraphFactory = flwebgl.sg.SceneGraphFactory;
@@ -33,12 +35,12 @@ module flwebgl
     private renderer: Renderer;
     private soundFactory: SoundFactory;
     private sceneGraphFactory: SceneGraphFactory;
+    private bitmapCacheFactory: BitmapCacheFactory;
     private parser: Parser;
     private context: Context;
     private stage: MovieClip;
     private sceneTimelines: number[];
     private completeCBK: any;
-    private nd: any;
 
     private texturesLoaded: boolean;
     private soundsLoaded: boolean;
@@ -82,7 +84,7 @@ module flwebgl
       this.canvas = canvas;
       this.options = new PlayerOptions(options);
       try {
-        this.renderer = new Renderer(canvas, options);
+        this.renderer = new Renderer(canvas, this.options);
       } catch (error) {
         return Player.E_CONTEXT_CREATION_FAILED;
       }
@@ -95,10 +97,10 @@ module flwebgl
         this.context = new Context(this.renderer, this.assetPool, this.soundFactory);
         this.sceneGraphFactory = new SceneGraphFactory(this.context, this.parser.nextHighestID + 1);
         if (this.options.cacheAsBitmap) {
-          //this.nd = new c.e.xk(this.renderer, this.assetPool, this.sceneGraphFactory);
+          this.bitmapCacheFactory = new BitmapCacheFactory(this.renderer, this.assetPool, this.sceneGraphFactory);
         }
         this.context.sceneGraphFactory = this.sceneGraphFactory;
-        this.context.nd = this.nd;
+        this.context.bitmapCacheFactory = this.bitmapCacheFactory;
         if (textures && textures.length > 0) {
           this.renderer.loadTextures(this.assetPool.getTextureAtlases(), this._texturesLoadedCBK.bind(this))
         } else {
@@ -240,7 +242,7 @@ module flwebgl
     Sl() {
       this.stage.setTransforms(void 0, void 0);
       if (this.options.cacheAsBitmap) {
-        this.nd.Qn();
+        this.bitmapCacheFactory.Qn();
       }
       this.oa = [];
       this.stage.Qb(this.oa);

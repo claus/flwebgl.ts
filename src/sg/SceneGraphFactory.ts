@@ -41,7 +41,7 @@ module flwebgl.sg
     }
 
     // rm
-    getNextAvailableID() {
+    getNextAvailableID(): number {
       return this.nextAvailableID++;
     }
   }

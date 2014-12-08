@@ -43,7 +43,8 @@ module flwebgl
             break;
         }
       }
-      this.cacheAsBitmap = false;
+      //this.cacheAsBitmap = false;
+      //this.antialias = AAType.MSAA;
     }
 
     private static kOption_LogErrors = 0;

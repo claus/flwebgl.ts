@@ -53,6 +53,13 @@ module flwebgl.geom
           && this.values[10] == matrix.values[10];
     }
 
+    equalsScaleRotation(matrix: Matrix): boolean {
+      return this.values[0] == matrix.values[0]
+          && this.values[1] == matrix.values[1]
+          && this.values[4] == matrix.values[4]
+          && this.values[5] == matrix.values[5];
+    }
+
     getValues(): number[] {
       return [
         this.values[0],

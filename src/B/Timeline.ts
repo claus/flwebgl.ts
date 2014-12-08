@@ -1,3 +1,4 @@
+/// <reference path="../e/IRenderable.ts" />
 /// <reference path="../util/Utils.ts" />
 /// <reference path="commands/IFrameCommand.ts" />
 
@@ -5,6 +6,7 @@ module flwebgl.B
 {
   import Utils = flwebgl.util.Utils;
   import IFrameCommand = flwebgl.B.commands.IFrameCommand;
+  import IRenderable = flwebgl.e.IRenderable;
 
   export interface FrameLabel {
     frameNum: number;
@@ -18,7 +20,7 @@ module flwebgl.B
 
   export interface FrameScriptMap { [id: string]: string[]; }
 
-  export class Timeline
+  export class Timeline implements IRenderable
   {
     private _id: string;
     private _name: string;

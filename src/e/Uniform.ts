@@ -5,10 +5,10 @@ module flwebgl.e
   export class Uniform
   {
     constructor(
-      public location,
-      public type,
-      public size,
-      public no
+      public location: WebGLUniformLocation,
+      public type: number,
+      public size: number,
+      public no: number
     ) {}
 
     static Jd = 0;
