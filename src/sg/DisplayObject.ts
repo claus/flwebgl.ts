@@ -3,8 +3,8 @@
 /// <reference path="../geom/Matrix.ts" />
 /// <reference path="../geom/Rect.ts" />
 /// <reference path="../e/Mesh.ts" />
-/// <reference path="../e/IRenderable.ts" />
 /// <reference path="../e/vk.ts" />
+/// <reference path="IDisplayObjectDefinition.ts" />
 
 module flwebgl.sg
 {
@@ -13,7 +13,6 @@ module flwebgl.sg
   import Matrix = flwebgl.geom.Matrix;
   import Rect = flwebgl.geom.Rect;
   import Mesh = flwebgl.e.Mesh;
-  import IRenderable = flwebgl.e.IRenderable;
   import vk = flwebgl.e.vk;
 
   export class DisplayObject extends EventDispatcher
@@ -124,11 +123,11 @@ module flwebgl.sg
 
     // Abstract methods:
 
-    Ic(): IRenderable { return void 0; }
+    getDefinition(): IDisplayObjectDefinition { return void 0; }
 
-    Of(renderable: IRenderable) {}
+    setDefinition(obj: IDisplayObjectDefinition) {}
 
-    Qb(a) {}
+    collectRenderables(a) {}
 
     $j(ps: vk) {}
 

@@ -11,7 +11,7 @@
 /// <reference path="Mesh.ts" />
 /// <reference path="wk.ts" />
 /// <reference path="BitmapCacheObject.ts" />
-/// <reference path="zk.ts" />
+/// <reference path="BitmapCacheSpriteSheet.ts" />
 /// <reference path="AttributeDef.ts" />
 /// <reference path="VertexData.ts" />
 
@@ -27,7 +27,7 @@ module flwebgl.e
   import SceneGraphFactory = flwebgl.sg.SceneGraphFactory;
   import DisplayObject = flwebgl.sg.DisplayObject;
 
-  interface SpriteSheetMap { [textureID: string]: zk }
+  interface SpriteSheetMap { [textureID: string]: BitmapCacheSpriteSheet }
 
   // xk
   export class BitmapCacheFactory
@@ -38,8 +38,8 @@ module flwebgl.e
     private colorTransform: ColorTransform; // not used
     private oa: any[];
     private wc: BitmapCacheObject[];
-    private numRenderTargets: number;
-    private maxRenderTargets: number;
+    private numSpriteSheets: number;
+    private maxSpriteSheets: number;
     private spriteSheetMap: SpriteSheetMap;
     private ce: any;
 
@@ -50,8 +50,8 @@ module flwebgl.e
       this.colorTransform = new ColorTransform();
       this.oa = [];
       this.wc = [];
-      this.numRenderTargets = 0;
-      this.maxRenderTargets = 1;
+      this.numSpriteSheets = 0;
+      this.maxSpriteSheets = 1;
       this.spriteSheetMap = {};
       this.ce = {};
     }
@@ -75,7 +75,7 @@ module flwebgl.e
           var globalTransform = dobj.getGlobalTransform().clone();
           var globalColorTransform = dobj.getGlobalColorTransform();
           var transform = this.Ik(dobj);
-          var m: wk = this.Qk(dobj.Ic().id, color, transform, globalColorTransform);
+          var m: wk = this.Qk(dobj.getDefinition().id, color, transform, globalColorTransform);
           if (m === void 0) {
             m = this.pa(dobj, color, transform, cxform);
           } else {
@@ -97,7 +97,7 @@ module flwebgl.e
         var viewportTexMax = new Rect(0, 0, GL.MAX_TEXTURE_SIZE, GL.MAX_TEXTURE_SIZE);
         this.renderer.setViewport(viewportTexMax, false);
         for (var textureID in this.spriteSheetMap) {
-          this.spriteSheetMap[textureID].pn(this.renderer);
+          this.spriteSheetMap[textureID].rasterize(this.renderer);
         }
         this.renderer.setViewport(viewport);
       }
@@ -116,13 +116,14 @@ module flwebgl.e
     }
 
     ml(a) {
-      var b = [];
+      var i;
+      var renderables = [];
       a = a.getChildren();
-      for (var c = 0; c < a.length; ++c) {
-        a[c].Qb(b);
+      for (i = 0; i < a.length; ++i) {
+        a[i].collectRenderables(renderables);
       }
-      for (c = 0; c < b.length; ++c) {
-        b[c].setDirty(false);
+      for (i = 0; i < renderables.length; ++i) {
+        renderables[i].dirty = false;
       }
     }
 
@@ -153,7 +154,7 @@ module flwebgl.e
             if (mesh === void 0) {
               spriteSheet.remove(frameID);
             } else {
-              var renderableID = displayObject.Ic().id;
+              var renderableID = displayObject.getDefinition().id;
               var n = this.ce[renderableID];
               if (!n) {
                 n = this.ce[renderableID] = [];
@@ -166,8 +167,8 @@ module flwebgl.e
               var ty = s.getValue(1, 3);
               s.translate(frame.left + (tx - Math.floor(tx)), frame.top + (ty - Math.floor(ty)));
               displayObject.setTransforms(s, colorTransform);
-              displayObject.Qb(this.oa);
-              spriteSheet.mn(this.oa, frameID, color);
+              displayObject.collectRenderables(this.oa);
+              spriteSheet.addRenderables(this.oa, frameID, color);
               this.oa.length = 0;
               return d;
             }
@@ -180,40 +181,40 @@ module flwebgl.e
       return a.getGlobalTransform().clone();
     }
 
-    getSpriteSheet(width: number, height: number): zk {
-      var k: zk;
+    getSpriteSheet(width: number, height: number): BitmapCacheSpriteSheet {
+      var spriteSheet: BitmapCacheSpriteSheet;
       var maxSize = GL.MAX_TEXTURE_SIZE;
       if (width <= maxSize && height <= maxSize) {
         for (var i = 0; i < 2; i++) {
           for (var textureID in this.spriteSheetMap) {
             if (this.spriteSheetMap[textureID].fits(width, height)) {
-              k = this.spriteSheetMap[textureID];
+              spriteSheet = this.spriteSheetMap[textureID];
               break;
             }
           }
-          if (k === void 0 && this.numRenderTargets < this.maxRenderTargets) {
+          if (!spriteSheet && this.numSpriteSheets < this.maxSpriteSheets) {
             var renderTarget = this.renderer.createRenderTarget(maxSize, maxSize);
             if (renderTarget) {
               var textureAtlas = this.renderer.gl.getTextureAtlas(renderTarget.id);
               if (textureAtlas) {
-                k = new zk(renderTarget, textureAtlas);
-                this.spriteSheetMap[k.getTextureID()] = k;
-                this.numRenderTargets++;
+                spriteSheet = new BitmapCacheSpriteSheet(renderTarget, textureAtlas);
+                this.spriteSheetMap[spriteSheet.getTextureID()] = spriteSheet;
+                this.numSpriteSheets++;
               }
             }
           }
-          if (k === void 0 && i === 0) {
-            this.Jk();
+          if (!spriteSheet && i === 0) {
+            this.purgeSpriteSheets();
           }
-          if (k !== void 0) {
+          if (spriteSheet) {
             break;
           }
         }
       }
-      return k;
+      return spriteSheet;
     }
 
-    Jk() {
+    purgeSpriteSheets() {
       for (var a in this.ce) {
         var b = this.ce[a];
         for (var c = b.length - 1; c >= 0; c--) {

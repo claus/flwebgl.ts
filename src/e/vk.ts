@@ -1,32 +1,38 @@
+/// <reference path="../geom/Matrix.ts" />
+/// <reference path="wk.ts" />
+
 module flwebgl.e
 {
+  import Matrix = flwebgl.geom.Matrix;
+  import Shape = flwebgl.sg.Shape;
+
   export class vk
   {
-    Mb: any; // : wk
-    shape: any; // : Shape
+    Mb: wk;
+    shape: Shape;
 
     constructor() {}
 
-    In(a) {
+    Hn(shape: Shape) {
+      this.shape = shape;
+    }
+
+    In(a: wk) {
       if (this.Mb) { this.Mb.Wj(); }
       this.Mb = a;
       if (this.Mb) { this.Mb.Vl(); }
     }
 
     getColorTransform() {
-      return this.Mb.getColorTransform();
+      return this.Mb.colorTransform;
     }
 
-    Hn(shape) {
-      this.shape = shape;
+    setTransforms(transform: Matrix) {
+      this.shape.setTransforms(transform, void 0);
     }
 
-    setTransforms(a) {
-      this.shape.setTransforms(a, void 0);
-    }
-
-    Qb(a) {
-      this.shape.Qb(a);
+    collectRenderables(a) {
+      this.shape.collectRenderables(a);
     }
 
     destroy() {

@@ -721,6 +721,74 @@ var flwebgl;
 (function (flwebgl) {
     var e;
     (function (e) {
+        var ColorTransform = flwebgl.geom.ColorTransform;
+        var wk = (function () {
+            function wk(textureID, mesh, d, color, transform, colorTransform) {
+                this._textureID = textureID;
+                this._mesh = mesh;
+                this.$n = d;
+                this._color = color;
+                this._transform = transform.clone();
+                this._colorTransform = colorTransform ? colorTransform.clone() : new ColorTransform();
+                this._ug = 0;
+            }
+            Object.defineProperty(wk.prototype, "textureID", {
+                get: function () {
+                    return this._textureID;
+                },
+                enumerable: true,
+                configurable: true
+            });
+            Object.defineProperty(wk.prototype, "mesh", {
+                get: function () {
+                    return this._mesh;
+                },
+                enumerable: true,
+                configurable: true
+            });
+            Object.defineProperty(wk.prototype, "color", {
+                get: function () {
+                    return this._color;
+                },
+                enumerable: true,
+                configurable: true
+            });
+            Object.defineProperty(wk.prototype, "transform", {
+                get: function () {
+                    return this._transform;
+                },
+                enumerable: true,
+                configurable: true
+            });
+            Object.defineProperty(wk.prototype, "colorTransform", {
+                get: function () {
+                    return this._colorTransform;
+                },
+                enumerable: true,
+                configurable: true
+            });
+            Object.defineProperty(wk.prototype, "ug", {
+                get: function () {
+                    return this._ug;
+                },
+                enumerable: true,
+                configurable: true
+            });
+            wk.prototype.Vl = function () {
+                this._ug++;
+            };
+            wk.prototype.Wj = function () {
+                this._ug--;
+            };
+            return wk;
+        })();
+        e.wk = wk;
+    })(e = flwebgl.e || (flwebgl.e = {}));
+})(flwebgl || (flwebgl = {}));
+var flwebgl;
+(function (flwebgl) {
+    var e;
+    (function (e) {
         var vk = (function () {
             function vk() {
             }
@@ -734,16 +802,16 @@ var flwebgl;
                 }
             };
             vk.prototype.getColorTransform = function () {
-                return this.Mb.getColorTransform();
+                return this.Mb.colorTransform;
             };
             vk.prototype.Hn = function (shape) {
                 this.shape = shape;
             };
-            vk.prototype.setTransforms = function (a) {
-                this.shape.setTransforms(a, void 0);
+            vk.prototype.setTransforms = function (transform) {
+                this.shape.setTransforms(transform, void 0);
             };
-            vk.prototype.Qb = function (a) {
-                this.shape.Qb(a);
+            vk.prototype.collectRenderables = function (a) {
+                this.shape.collectRenderables(a);
             };
             vk.prototype.destroy = function () {
                 if (this.Mb) {
@@ -901,12 +969,12 @@ var flwebgl;
                 this._id = "-1";
                 this._parent = void 0;
             };
-            DisplayObject.prototype.Ic = function () {
+            DisplayObject.prototype.getDefinition = function () {
                 return void 0;
             };
-            DisplayObject.prototype.Of = function (renderable) {
+            DisplayObject.prototype.setDefinition = function (obj) {
             };
-            DisplayObject.prototype.Qb = function (a) {
+            DisplayObject.prototype.collectRenderables = function (a) {
             };
             DisplayObject.prototype.$j = function (ps) {
             };
@@ -2069,12 +2137,12 @@ var flwebgl;
                 configurable: true
             });
             MeshInstanced.prototype.ra = function (edgeType) {
-                return this.shape.Ic().ra(edgeType);
+                return this.shape.getDefinition().ra(edgeType);
             };
             MeshInstanced.prototype.ab = function (edgeType, i, gl) {
                 var buffers = this.Gb[edgeType][i];
                 if (!buffers) {
-                    var mesh = this.shape.Ic();
+                    var mesh = this.shape.getDefinition();
                     var _ca = mesh.yf(edgeType, i);
                     if (!_ca) {
                         return void 0;
@@ -3921,11 +3989,11 @@ var flwebgl;
                 this.df = false;
                 this.Td = false;
             }
-            MovieClip.prototype.Ic = function () {
+            MovieClip.prototype.getDefinition = function () {
                 return this.timeline;
             };
-            MovieClip.prototype.Of = function (renderable) {
-                this.timeline = renderable;
+            MovieClip.prototype.setDefinition = function (obj) {
+                this.timeline = obj;
                 this.totalFrames = this.timeline.commands.length;
                 this.currentFrameIndex = -1;
             };
@@ -4352,13 +4420,13 @@ var flwebgl;
                     this.pa = void 0;
                 }
             };
-            MovieClip.prototype.Qb = function (a) {
+            MovieClip.prototype.collectRenderables = function (a) {
                 if (this.isVisible()) {
                     var e;
                     if (this.pa === void 0) {
                         var b = a.length;
                         for (e = 0; e < this.children.length; ++e) {
-                            this.children[e].Qb(a);
+                            this.children[e].collectRenderables(a);
                         }
                         if (this._dirty) {
                             for (e = b; e < a.length; ++e) {
@@ -4369,7 +4437,7 @@ var flwebgl;
                     else {
                         b = [];
                         for (e = 0; e < this.children.length; ++e) {
-                            this.children[e].Qb(b);
+                            this.children[e].collectRenderables(b);
                         }
                         var k = false;
                         for (e = 0; !k && e < b.length; ++e) {
@@ -4383,7 +4451,7 @@ var flwebgl;
                             }
                         }
                         else {
-                            this.pa.Qb(a);
+                            this.pa.collectRenderables(a);
                         }
                     }
                     this._dirty = false;
@@ -4423,13 +4491,13 @@ var flwebgl;
                 _super.call(this);
                 this.mf = new MeshInstanced(this);
             }
-            Shape.prototype.Ic = function () {
+            Shape.prototype.getDefinition = function () {
                 return this.yc;
             };
-            Shape.prototype.Of = function (renderable) {
-                this.yc = renderable;
+            Shape.prototype.setDefinition = function (obj) {
+                this.yc = obj;
             };
-            Shape.prototype.Qb = function (a) {
+            Shape.prototype.collectRenderables = function (a) {
                 if (this.isVisible()) {
                     this.mf.dirty = this.dirty;
                     a.push(this.mf);
@@ -4528,14 +4596,14 @@ var flwebgl;
                 var mc = new sg.MovieClip();
                 mc.context = this.context;
                 if (timelineID !== void 0) {
-                    mc.Of(this.context.assetPool.getTimeline(timelineID));
+                    mc.setDefinition(this.context.assetPool.getTimeline(timelineID));
                 }
                 mc.id = mcID;
                 return mc;
             };
             SceneGraphFactory.prototype.createShape = function (meshID, shapeID) {
                 var shape = new sg.Shape();
-                shape.Of(this.context.assetPool.getMesh(meshID));
+                shape.setDefinition(this.context.assetPool.getMesh(meshID));
                 shape.id = shapeID;
                 return shape;
             };
@@ -4546,74 +4614,6 @@ var flwebgl;
         })();
         sg.SceneGraphFactory = SceneGraphFactory;
     })(sg = flwebgl.sg || (flwebgl.sg = {}));
-})(flwebgl || (flwebgl = {}));
-var flwebgl;
-(function (flwebgl) {
-    var e;
-    (function (e) {
-        var ColorTransform = flwebgl.geom.ColorTransform;
-        var wk = (function () {
-            function wk(textureID, mesh, d, color, transform, colorTransform) {
-                this._textureID = textureID;
-                this._mesh = mesh;
-                this.$n = d;
-                this._color = color;
-                this._transform = transform.clone();
-                this._colorTransform = colorTransform ? colorTransform.clone() : new ColorTransform();
-                this._ug = 0;
-            }
-            Object.defineProperty(wk.prototype, "textureID", {
-                get: function () {
-                    return this._textureID;
-                },
-                enumerable: true,
-                configurable: true
-            });
-            Object.defineProperty(wk.prototype, "mesh", {
-                get: function () {
-                    return this._mesh;
-                },
-                enumerable: true,
-                configurable: true
-            });
-            Object.defineProperty(wk.prototype, "color", {
-                get: function () {
-                    return this._color;
-                },
-                enumerable: true,
-                configurable: true
-            });
-            Object.defineProperty(wk.prototype, "transform", {
-                get: function () {
-                    return this._transform;
-                },
-                enumerable: true,
-                configurable: true
-            });
-            Object.defineProperty(wk.prototype, "colorTransform", {
-                get: function () {
-                    return this._colorTransform;
-                },
-                enumerable: true,
-                configurable: true
-            });
-            Object.defineProperty(wk.prototype, "ug", {
-                get: function () {
-                    return this._ug;
-                },
-                enumerable: true,
-                configurable: true
-            });
-            wk.prototype.Vl = function () {
-                this._ug++;
-            };
-            wk.prototype.Wj = function () {
-                this._ug--;
-            };
-            return wk;
-        })();
-        e.wk = wk;
-    })(e = flwebgl.e || (flwebgl.e = {}));
 })(flwebgl || (flwebgl = {}));
 var flwebgl;
 (function (flwebgl) {
@@ -4740,23 +4740,23 @@ var flwebgl;
         var Point = flwebgl.geom.Point;
         var QuadTree = flwebgl.geom.QuadTree;
         var Utils = flwebgl.util.Utils;
-        var zk = (function () {
-            function zk(renderTarget, textureAtlas) {
+        var BitmapCacheSpriteSheet = (function () {
+            function BitmapCacheSpriteSheet(renderTarget, textureAtlas) {
                 this.renderTarget = renderTarget;
                 this.textureAtlas = textureAtlas;
                 this.tree = new QuadTree(new Point(0, 0), e.GL.MAX_TEXTURE_SIZE);
                 this.ol = 0;
                 this.uc = {};
             }
-            zk.prototype.fits = function (width, height) {
+            BitmapCacheSpriteSheet.prototype.fits = function (width, height) {
                 var w = Utils.nextPowerOfTwo(width);
                 var h = Utils.nextPowerOfTwo(height);
-                return this.tree.fits(Math.max(w, h, zk.MIN_TEXTURE_SIZE));
+                return this.tree.fits(Math.max(w, h, BitmapCacheSpriteSheet.MIN_TEXTURE_SIZE));
             };
-            zk.prototype.insert = function (width, height) {
+            BitmapCacheSpriteSheet.prototype.insert = function (width, height) {
                 var w = Utils.nextPowerOfTwo(width);
                 var h = Utils.nextPowerOfTwo(height);
-                var pos = this.tree.insert(Math.max(w, h, zk.MIN_TEXTURE_SIZE));
+                var pos = this.tree.insert(Math.max(w, h, BitmapCacheSpriteSheet.MIN_TEXTURE_SIZE));
                 var frameID;
                 if (pos) {
                     var frame = new Rect(pos.x, pos.y, width, height);
@@ -4765,19 +4765,19 @@ var flwebgl;
                 }
                 return frameID;
             };
-            zk.prototype.remove = function (frameID) {
+            BitmapCacheSpriteSheet.prototype.remove = function (frameID) {
                 var frame = this.getFrame(frameID);
                 if (frame) {
                     this.tree.remove(new Point(frame.left, frame.top));
                 }
             };
-            zk.prototype.getFrame = function (frameID) {
+            BitmapCacheSpriteSheet.prototype.getFrame = function (frameID) {
                 return this.textureAtlas.getFrame(frameID);
             };
-            zk.prototype.getTextureID = function () {
+            BitmapCacheSpriteSheet.prototype.getTextureID = function () {
                 return this.renderTarget.id;
             };
-            zk.prototype.mn = function (renderables, frameID, color) {
+            BitmapCacheSpriteSheet.prototype.addRenderables = function (renderables, frameID, color) {
                 if (!this.uc[frameID]) {
                     this.uc[frameID] = {
                         color: color,
@@ -4789,7 +4789,7 @@ var flwebgl;
                     xj.push(renderables[i]);
                 }
             };
-            zk.prototype.pn = function (renderer) {
+            BitmapCacheSpriteSheet.prototype.rasterize = function (renderer) {
                 if (Object.keys(this.uc).length !== 0) {
                     var oldBackgroundColor = renderer.getBackgroundColor();
                     var oldRenderTarget = renderer.activateRenderTarget(this.renderTarget);
@@ -4803,11 +4803,11 @@ var flwebgl;
                         renderer.scissor(l);
                         renderer.setBackgroundColor(k.color);
                         renderer.ij(e.Renderer.Gj);
-                        var k = k.Xj;
-                        var len = k.length;
+                        var xj = k.Xj;
+                        var len = xj.length;
                         for (var i = 0; i < len; ++i) {
-                            k[i].depth = i / len;
-                            renderer.e(k[i], 1);
+                            xj[i].depth = i / len;
+                            renderer.e(xj[i], 1);
                         }
                         renderer.lj();
                     }
@@ -4817,10 +4817,10 @@ var flwebgl;
                     this.uc = {};
                 }
             };
-            zk.MIN_TEXTURE_SIZE = 64;
-            return zk;
+            BitmapCacheSpriteSheet.MIN_TEXTURE_SIZE = 64;
+            return BitmapCacheSpriteSheet;
         })();
-        e.zk = zk;
+        e.BitmapCacheSpriteSheet = BitmapCacheSpriteSheet;
     })(e = flwebgl.e || (flwebgl.e = {}));
 })(flwebgl || (flwebgl = {}));
 var flwebgl;
@@ -4839,8 +4839,8 @@ var flwebgl;
                 this.colorTransform = new ColorTransform();
                 this.oa = [];
                 this.wc = [];
-                this.numRenderTargets = 0;
-                this.maxRenderTargets = 1;
+                this.numSpriteSheets = 0;
+                this.maxSpriteSheets = 1;
                 this.spriteSheetMap = {};
                 this.ce = {};
             }
@@ -4862,7 +4862,7 @@ var flwebgl;
                         var globalTransform = dobj.getGlobalTransform().clone();
                         var globalColorTransform = dobj.getGlobalColorTransform();
                         var transform = this.Ik(dobj);
-                        var m = this.Qk(dobj.Ic().id, color, transform, globalColorTransform);
+                        var m = this.Qk(dobj.getDefinition().id, color, transform, globalColorTransform);
                         if (m === void 0) {
                             m = this.pa(dobj, color, transform, cxform);
                         }
@@ -4886,7 +4886,7 @@ var flwebgl;
                     var viewportTexMax = new Rect(0, 0, _e.GL.MAX_TEXTURE_SIZE, _e.GL.MAX_TEXTURE_SIZE);
                     this.renderer.setViewport(viewportTexMax, false);
                     for (var textureID in this.spriteSheetMap) {
-                        this.spriteSheetMap[textureID].pn(this.renderer);
+                        this.spriteSheetMap[textureID].rasterize(this.renderer);
                     }
                     this.renderer.setViewport(viewport);
                 }
@@ -4903,13 +4903,14 @@ var flwebgl;
                 }
             };
             BitmapCacheFactory.prototype.ml = function (a) {
-                var b = [];
+                var i;
+                var renderables = [];
                 a = a.getChildren();
-                for (var c = 0; c < a.length; ++c) {
-                    a[c].Qb(b);
+                for (i = 0; i < a.length; ++i) {
+                    a[i].collectRenderables(renderables);
                 }
-                for (c = 0; c < b.length; ++c) {
-                    b[c].setDirty(false);
+                for (i = 0; i < renderables.length; ++i) {
+                    renderables[i].dirty = false;
                 }
             };
             BitmapCacheFactory.prototype.pa = function (displayObject, color, transform, colorTransform) {
@@ -4944,7 +4945,7 @@ var flwebgl;
                                 spriteSheet.remove(frameID);
                             }
                             else {
-                                var renderableID = displayObject.Ic().id;
+                                var renderableID = displayObject.getDefinition().id;
                                 var n = this.ce[renderableID];
                                 if (!n) {
                                     n = this.ce[renderableID] = [];
@@ -4957,8 +4958,8 @@ var flwebgl;
                                 var ty = s.getValue(1, 3);
                                 s.translate(frame.left + (tx - Math.floor(tx)), frame.top + (ty - Math.floor(ty)));
                                 displayObject.setTransforms(s, colorTransform);
-                                displayObject.Qb(this.oa);
-                                spriteSheet.mn(this.oa, frameID, color);
+                                displayObject.collectRenderables(this.oa);
+                                spriteSheet.addRenderables(this.oa, frameID, color);
                                 this.oa.length = 0;
                                 return d;
                             }
@@ -4970,38 +4971,38 @@ var flwebgl;
                 return a.getGlobalTransform().clone();
             };
             BitmapCacheFactory.prototype.getSpriteSheet = function (width, height) {
-                var k;
+                var spriteSheet;
                 var maxSize = _e.GL.MAX_TEXTURE_SIZE;
                 if (width <= maxSize && height <= maxSize) {
                     for (var i = 0; i < 2; i++) {
                         for (var textureID in this.spriteSheetMap) {
                             if (this.spriteSheetMap[textureID].fits(width, height)) {
-                                k = this.spriteSheetMap[textureID];
+                                spriteSheet = this.spriteSheetMap[textureID];
                                 break;
                             }
                         }
-                        if (k === void 0 && this.numRenderTargets < this.maxRenderTargets) {
+                        if (!spriteSheet && this.numSpriteSheets < this.maxSpriteSheets) {
                             var renderTarget = this.renderer.createRenderTarget(maxSize, maxSize);
                             if (renderTarget) {
                                 var textureAtlas = this.renderer.gl.getTextureAtlas(renderTarget.id);
                                 if (textureAtlas) {
-                                    k = new _e.zk(renderTarget, textureAtlas);
-                                    this.spriteSheetMap[k.getTextureID()] = k;
-                                    this.numRenderTargets++;
+                                    spriteSheet = new _e.BitmapCacheSpriteSheet(renderTarget, textureAtlas);
+                                    this.spriteSheetMap[spriteSheet.getTextureID()] = spriteSheet;
+                                    this.numSpriteSheets++;
                                 }
                             }
                         }
-                        if (k === void 0 && i === 0) {
-                            this.Jk();
+                        if (!spriteSheet && i === 0) {
+                            this.purgeSpriteSheets();
                         }
-                        if (k !== void 0) {
+                        if (spriteSheet) {
                             break;
                         }
                     }
                 }
-                return k;
+                return spriteSheet;
             };
-            BitmapCacheFactory.prototype.Jk = function () {
+            BitmapCacheFactory.prototype.purgeSpriteSheets = function () {
                 for (var a in this.ce) {
                     var b = this.ce[a];
                     for (var c = b.length - 1; c >= 0; c--) {
@@ -6112,7 +6113,7 @@ var flwebgl;
         (function (commands) {
             var Color = flwebgl.geom.Color;
             var vk = flwebgl.e.vk;
-            var yk = flwebgl.e.BitmapCacheObject;
+            var BitmapCacheObject = flwebgl.e.BitmapCacheObject;
             var CacheAsBitmapCommand = (function () {
                 function CacheAsBitmapCommand(a) {
                     this.targetID = a[0];
@@ -6128,8 +6129,8 @@ var flwebgl;
                         return true;
                     }
                     var colorTransform = mc.getGlobalColorTransform().clone();
-                    var d = new yk(displayObject, this.color, colorTransform, new vk());
-                    return context.bitmapCacheFactory.addCachedObject(d);
+                    var bitmapCacheObject = new BitmapCacheObject(displayObject, this.color, colorTransform, new vk());
+                    return context.bitmapCacheFactory.addCachedObject(bitmapCacheObject);
                 };
                 return CacheAsBitmapCommand;
             })();
@@ -7178,7 +7179,7 @@ var flwebgl;
                 this.bitmapCacheFactory.Qn();
             }
             this.oa = [];
-            this.stage.Qb(this.oa);
+            this.stage.collectRenderables(this.oa);
         };
         Player.prototype.Pk = function () {
             this.startTime = (new Date).getTime();
@@ -7226,7 +7227,7 @@ var flwebgl;
             if (b || this.rc !== a) {
                 var timelineID = "" + this.sceneTimelines[a];
                 var timeline = this.assetPool.getTimeline(timelineID);
-                this.stage.Of(timeline);
+                this.stage.setDefinition(timeline);
                 this.stage.play();
                 this.numFrames = timeline.commands.length;
             }

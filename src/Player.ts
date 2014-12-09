@@ -245,7 +245,7 @@ module flwebgl
         this.bitmapCacheFactory.Qn();
       }
       this.oa = [];
-      this.stage.Qb(this.oa);
+      this.stage.collectRenderables(this.oa);
     }
 
     Pk() {
@@ -296,7 +296,7 @@ module flwebgl
       if (b || this.rc !== a) {
         var timelineID = "" + this.sceneTimelines[a];
         var timeline = this.assetPool.getTimeline(timelineID);
-        this.stage.Of(timeline);
+        this.stage.setDefinition(timeline);
         this.stage.play();
         this.numFrames = timeline.commands.length;
       }

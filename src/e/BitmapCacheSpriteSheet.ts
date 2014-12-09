@@ -16,8 +16,8 @@ module flwebgl.e
   import Color = flwebgl.geom.Color;
   import Utils = flwebgl.util.Utils;
 
-  // SpriteSheet
-  export class zk
+  // zk
+  export class BitmapCacheSpriteSheet
   {
     private renderTarget: RenderTarget;
     private textureAtlas: TextureAtlas;
@@ -36,13 +36,13 @@ module flwebgl.e
     fits(width: number, height: number): boolean {
       var w = Utils.nextPowerOfTwo(width);
       var h = Utils.nextPowerOfTwo(height);
-      return this.tree.fits(Math.max(w, h, zk.MIN_TEXTURE_SIZE));
+      return this.tree.fits(Math.max(w, h, BitmapCacheSpriteSheet.MIN_TEXTURE_SIZE));
     }
 
     insert(width: number, height: number): string {
       var w = Utils.nextPowerOfTwo(width);
       var h = Utils.nextPowerOfTwo(height);
-      var pos = this.tree.insert(Math.max(w, h, zk.MIN_TEXTURE_SIZE));
+      var pos = this.tree.insert(Math.max(w, h, BitmapCacheSpriteSheet.MIN_TEXTURE_SIZE));
       var frameID: string;
       if (pos) {
         var frame = new Rect(pos.x, pos.y, width, height);
@@ -59,15 +59,15 @@ module flwebgl.e
       }
     }
 
-    getFrame(frameID: string) {
+    getFrame(frameID: string): Rect {
       return this.textureAtlas.getFrame(frameID);
     }
 
-    getTextureID() {
+    getTextureID(): string {
       return this.renderTarget.id;
     }
 
-    mn(renderables: any[], frameID: string, color: Color) {
+    addRenderables(renderables: any[], frameID: string, color: Color) {
       if (!this.uc[frameID]) {
         this.uc[frameID] = {
           color: color,
@@ -80,7 +80,7 @@ module flwebgl.e
       }
     }
 
-    pn(renderer: Renderer) {
+    rasterize(renderer: Renderer) {
       if (Object.keys(this.uc).length !== 0) {
         var oldBackgroundColor = renderer.getBackgroundColor();
         var oldRenderTarget = renderer.activateRenderTarget(this.renderTarget);
@@ -94,11 +94,11 @@ module flwebgl.e
           renderer.scissor(l);
           renderer.setBackgroundColor(k.color);
           renderer.ij(Renderer.Gj);
-          var k = k.Xj;
-          var len = k.length;
+          var xj = k.Xj;
+          var len = xj.length;
           for (var i = 0; i < len; ++i) {
-            k[i].depth = i / len;
-            renderer.e(k[i], 1);
+            xj[i].depth = i / len;
+            renderer.e(xj[i], 1);
           }
           renderer.lj();
         }

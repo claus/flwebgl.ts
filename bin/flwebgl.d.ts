@@ -114,6 +114,11 @@ declare module flwebgl.geom {
         copy(cxform: ColorTransform): ColorTransform;
     }
 }
+declare module flwebgl.sg {
+    interface IDisplayObjectDefinition {
+        id: string;
+    }
+}
 declare module flwebgl.e {
     class AttributeDef {
         byteOffset: number;
@@ -168,13 +173,9 @@ declare module flwebgl.e {
     }
 }
 declare module flwebgl.e {
-    interface IRenderable {
-        id: string;
-    }
-}
-declare module flwebgl.e {
     import Rect = flwebgl.geom.Rect;
-    class Mesh implements IRenderable {
+    import IDisplayObjectDefinition = flwebgl.sg.IDisplayObjectDefinition;
+    class Mesh implements IDisplayObjectDefinition {
         private _id;
         private fd;
         bounds: Rect;
@@ -190,15 +191,40 @@ declare module flwebgl.e {
     }
 }
 declare module flwebgl.e {
+    import Matrix = flwebgl.geom.Matrix;
+    import Color = flwebgl.geom.Color;
+    import ColorTransform = flwebgl.geom.ColorTransform;
+    class wk {
+        private $n;
+        private _textureID;
+        private _mesh;
+        private _color;
+        private _transform;
+        private _colorTransform;
+        private _ug;
+        constructor(textureID: string, mesh: Mesh, d: any, color: Color, transform: Matrix, colorTransform: ColorTransform);
+        textureID: string;
+        mesh: Mesh;
+        color: Color;
+        transform: Matrix;
+        colorTransform: ColorTransform;
+        ug: number;
+        Vl(): void;
+        Wj(): void;
+    }
+}
+declare module flwebgl.e {
+    import Matrix = flwebgl.geom.Matrix;
+    import Shape = flwebgl.sg.Shape;
     class vk {
-        Mb: any;
-        shape: any;
+        Mb: wk;
+        shape: Shape;
         constructor();
-        In(a: any): void;
-        getColorTransform(): any;
-        Hn(shape: any): void;
-        setTransforms(a: any): void;
-        Qb(a: any): void;
+        In(a: wk): void;
+        getColorTransform(): geom.ColorTransform;
+        Hn(shape: Shape): void;
+        setTransforms(transform: Matrix): void;
+        collectRenderables(a: any): void;
         destroy(): void;
     }
 }
@@ -207,7 +233,6 @@ declare module flwebgl.sg {
     import ColorTransform = flwebgl.geom.ColorTransform;
     import Matrix = flwebgl.geom.Matrix;
     import Rect = flwebgl.geom.Rect;
-    import IRenderable = flwebgl.e.IRenderable;
     import vk = flwebgl.e.vk;
     class DisplayObject extends EventDispatcher {
         _id: string;
@@ -237,9 +262,9 @@ declare module flwebgl.sg {
         getGlobalColorTransform(): ColorTransform;
         setTransforms(transform: Matrix, colorTransform: ColorTransform): void;
         destroy(): void;
-        Ic(): IRenderable;
-        Of(renderable: IRenderable): void;
-        Qb(a: any): void;
+        getDefinition(): IDisplayObjectDefinition;
+        setDefinition(obj: IDisplayObjectDefinition): void;
+        collectRenderables(a: any): void;
         $j(ps: vk): void;
         getBounds(target?: DisplayObject, fast?: boolean, edgeType?: string, k?: boolean): Rect;
     }
@@ -971,7 +996,7 @@ declare module flwebgl.B.commands {
 }
 declare module flwebgl.B {
     import IFrameCommand = flwebgl.B.commands.IFrameCommand;
-    import IRenderable = flwebgl.e.IRenderable;
+    import IDisplayObjectDefinition = flwebgl.sg.IDisplayObjectDefinition;
     interface FrameLabel {
         frameNum: number;
         name: string;
@@ -983,7 +1008,7 @@ declare module flwebgl.B {
     interface FrameScriptMap {
         [id: string]: string[];
     }
-    class Timeline implements IRenderable {
+    class Timeline implements IDisplayObjectDefinition {
         private _id;
         private _name;
         private _linkageName;
@@ -1070,8 +1095,8 @@ declare module flwebgl.sg {
     import Rect = flwebgl.geom.Rect;
     import Matrix = flwebgl.geom.Matrix;
     import Event = flwebgl.events.Event;
-    import IRenderable = flwebgl.e.IRenderable;
     import Timeline = flwebgl.B.Timeline;
+    import IDisplayObjectDefinition = flwebgl.sg.IDisplayObjectDefinition;
     import FrameLabel = flwebgl.B.FrameLabel;
     import Context = flwebgl.Context;
     class MovieClip extends DisplayObject {
@@ -1088,8 +1113,8 @@ declare module flwebgl.sg {
         private currentFrameIndex;
         private _isPlaying;
         constructor();
-        Ic(): IRenderable;
-        Of(renderable: IRenderable): void;
+        getDefinition(): IDisplayObjectDefinition;
+        setDefinition(obj: IDisplayObjectDefinition): void;
         addChild(dobj: DisplayObject, e?: boolean): boolean;
         addChildAt(dobj: DisplayObject, index: number, e?: boolean, defer?: boolean): boolean;
         removeChild(dobj: DisplayObject): DisplayObject;
@@ -1127,7 +1152,7 @@ declare module flwebgl.sg {
         destroy(): void;
         resetPlayHead(a?: boolean): void;
         oi(): void;
-        Qb(a: any): void;
+        collectRenderables(a: any): void;
         getBounds(target?: DisplayObject, fast?: boolean, edgeType?: string, k?: boolean): Rect;
         executeFrameScript(name: any): void;
     }
@@ -1137,14 +1162,14 @@ declare module flwebgl.sg {
     import Rect = flwebgl.geom.Rect;
     import Mesh = flwebgl.e.Mesh;
     import MeshInstanced = flwebgl.e.MeshInstanced;
-    import IRenderable = flwebgl.e.IRenderable;
+    import IDisplayObjectDefinition = flwebgl.sg.IDisplayObjectDefinition;
     class Shape extends DisplayObject {
         yc: Mesh;
         mf: MeshInstanced;
         constructor();
-        Ic(): IRenderable;
-        Of(renderable: IRenderable): void;
-        Qb(a: any): void;
+        getDefinition(): IDisplayObjectDefinition;
+        setDefinition(obj: IDisplayObjectDefinition): void;
+        collectRenderables(a: any): void;
         getBounds(target?: DisplayObject, fast?: boolean, edgeType?: string, k?: boolean): Rect;
         calculateBoundsAABB(a: any, transform: any): Rect;
         dispatch(event: Event): void;
@@ -1161,29 +1186,6 @@ declare module flwebgl.sg {
         createMovieClip(timelineID: string, mcID: string): MovieClip;
         createShape(meshID: string, shapeID: string): Shape;
         getNextAvailableID(): number;
-    }
-}
-declare module flwebgl.e {
-    import Matrix = flwebgl.geom.Matrix;
-    import Color = flwebgl.geom.Color;
-    import ColorTransform = flwebgl.geom.ColorTransform;
-    class wk {
-        private $n;
-        private _textureID;
-        private _mesh;
-        private _color;
-        private _transform;
-        private _colorTransform;
-        private _ug;
-        constructor(textureID: string, mesh: Mesh, d: any, color: Color, transform: Matrix, colorTransform: ColorTransform);
-        textureID: string;
-        mesh: Mesh;
-        color: Color;
-        transform: Matrix;
-        colorTransform: ColorTransform;
-        ug: number;
-        Vl(): void;
-        Wj(): void;
     }
 }
 declare module flwebgl.e {
@@ -1215,7 +1217,7 @@ declare module flwebgl.geom {
 declare module flwebgl.e {
     import Rect = flwebgl.geom.Rect;
     import Color = flwebgl.geom.Color;
-    class zk {
+    class BitmapCacheSpriteSheet {
         private renderTarget;
         private textureAtlas;
         private tree;
@@ -1227,8 +1229,8 @@ declare module flwebgl.e {
         remove(frameID: string): void;
         getFrame(frameID: string): Rect;
         getTextureID(): string;
-        mn(renderables: any[], frameID: string, color: Color): void;
-        pn(renderer: Renderer): void;
+        addRenderables(renderables: any[], frameID: string, color: Color): void;
+        rasterize(renderer: Renderer): void;
         static MIN_TEXTURE_SIZE: number;
     }
 }
@@ -1247,8 +1249,8 @@ declare module flwebgl.e {
         private colorTransform;
         private oa;
         private wc;
-        private numRenderTargets;
-        private maxRenderTargets;
+        private numSpriteSheets;
+        private maxSpriteSheets;
         private spriteSheetMap;
         private ce;
         constructor(renderer: Renderer, assetPool: AssetPool, sceneGraphFactory: SceneGraphFactory);
@@ -1258,8 +1260,8 @@ declare module flwebgl.e {
         ml(a: any): void;
         pa(displayObject: DisplayObject, color: Color, transform: Matrix, colorTransform: ColorTransform): wk;
         Ik(a: any): any;
-        getSpriteSheet(width: number, height: number): zk;
-        Jk(): void;
+        getSpriteSheet(width: number, height: number): BitmapCacheSpriteSheet;
+        purgeSpriteSheets(): void;
         Tk(bounds: Rect, transform: Matrix, textureID: string, frameID: string, isOpaque: boolean): Mesh;
         Sk(vertices: Float32Array[], indices: number[][], s: number, textureID: string, frameID: string, isOpaque: boolean): ca[];
         Xk(a: number, rect: Rect, transform: Matrix): {

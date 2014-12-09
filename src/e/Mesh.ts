@@ -1,14 +1,15 @@
 /// <reference path="../geom/Rect.ts" />
+/// <reference path="../sg/IDisplayObjectDefinition.ts" />
 /// <reference path="ca.ts" />
-/// <reference path="IRenderable.ts" />
 
 module flwebgl.e
 {
   import Rect = flwebgl.geom.Rect;
+  import IDisplayObjectDefinition = flwebgl.sg.IDisplayObjectDefinition;
 
   interface CAMap { [edgeType: string]: ca[]; }
 
-  export class Mesh implements IRenderable
+  export class Mesh implements IDisplayObjectDefinition
   {
     private _id: string;
     private fd: CAMap;

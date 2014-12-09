@@ -25,7 +25,7 @@ module flwebgl.sg
       var mc = new MovieClip();
       mc.context = this.context;
       if (timelineID !== void 0) {
-        mc.Of(this.context.assetPool.getTimeline(timelineID));
+        mc.setDefinition(this.context.assetPool.getTimeline(timelineID));
       }
       mc.id = mcID;
       return mc;
@@ -33,7 +33,7 @@ module flwebgl.sg
 
     createShape(meshID: string, shapeID: string): Shape {
       var shape = new Shape();
-      shape.Of(this.context.assetPool.getMesh(meshID));
+      shape.setDefinition(this.context.assetPool.getMesh(meshID));
       shape.id = shapeID;
       return shape;
     }

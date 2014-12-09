@@ -10,7 +10,7 @@ module flwebgl.B.commands
   import Color = flwebgl.geom.Color;
   import MovieClip = flwebgl.sg.MovieClip;
   import vk = flwebgl.e.vk;
-  import yk = flwebgl.e.BitmapCacheObject;
+  import BitmapCacheObject = flwebgl.e.BitmapCacheObject;
 
   export class CacheAsBitmapCommand implements IFrameCommand
   {
@@ -32,8 +32,8 @@ module flwebgl.B.commands
         return true;
       }
       var colorTransform = mc.getGlobalColorTransform().clone();
-      var d = new yk(displayObject, this.color, colorTransform, new vk());
-      return context.bitmapCacheFactory.addCachedObject(d);
+      var bitmapCacheObject = new BitmapCacheObject(displayObject, this.color, colorTransform, new vk());
+      return context.bitmapCacheFactory.addCachedObject(bitmapCacheObject);
     }
   }
 }

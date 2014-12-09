@@ -3,11 +3,11 @@
 /// <reference path="../geom/Matrix.ts" />
 /// <reference path="../events/Event.ts" />
 /// <reference path="../e/Mesh.ts" />
-/// <reference path="../e/IRenderable.ts" />
 /// <reference path="../B/Timeline.ts" />
 /// <reference path="../B/commands/IFrameCommand.ts" />
 /// <reference path="../B/commands/PlaceObjectCommand.ts" />
 /// <reference path="../Context.ts" />
+/// <reference path="IDisplayObjectDefinition.ts" />
 /// <reference path="DisplayObject.ts" />
 
 module flwebgl.sg
@@ -17,8 +17,8 @@ module flwebgl.sg
   import Matrix = flwebgl.geom.Matrix;
   import Event = flwebgl.events.Event;
   import Mesh = flwebgl.e.Mesh;
-  import IRenderable = flwebgl.e.IRenderable;
   import Timeline = flwebgl.B.Timeline;
+  import IDisplayObjectDefinition = flwebgl.sg.IDisplayObjectDefinition;
   import IFrameCommand = flwebgl.B.commands.IFrameCommand;
   import PlaceObjectCommand = flwebgl.B.commands.PlaceObjectCommand;
   import FrameLabel = flwebgl.B.FrameLabel;
@@ -57,12 +57,12 @@ module flwebgl.sg
       this.Td = false;
     }
 
-    Ic(): IRenderable {
+    getDefinition(): IDisplayObjectDefinition {
       return this.timeline;
     }
 
-    Of(renderable: IRenderable) {
-      this.timeline = <Timeline>renderable;
+    setDefinition(obj: IDisplayObjectDefinition) {
+      this.timeline = <Timeline>obj;
       this.totalFrames = this.timeline.commands.length;
       this.currentFrameIndex = -1;
     }
@@ -502,8 +502,7 @@ module flwebgl.sg
       }
     }
 
-    // collect renderables
-    Qb(a) {
+    collectRenderables(a) {
       // do nothing if this mc is not visible
       if (this.isVisible()) {
         var e;
@@ -512,7 +511,7 @@ module flwebgl.sg
           // collect and add all children's renderables
           var b = a.length;
           for (e = 0; e < this.children.length; ++e) {
-            this.children[e].Qb(a);
+            this.children[e].collectRenderables(a);
           }
           // if this mc is dirty, make children's renderables dirty too
           if (this._dirty) {
@@ -525,7 +524,7 @@ module flwebgl.sg
           // collect all children's renderables separately
           b = [];
           for (e = 0; e < this.children.length; ++e) {
-            this.children[e].Qb(b);
+            this.children[e].collectRenderables(b);
           }
           // check if any of them is dirty
           var k = false;
@@ -542,7 +541,7 @@ module flwebgl.sg
             }
           } else {
             // cache (?)
-            this.pa.Qb(a);
+            this.pa.collectRenderables(a);
           }
         }
         this._dirty = false;
