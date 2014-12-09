@@ -220,9 +220,9 @@ declare module flwebgl.e {
         Mb: wk;
         shape: Shape;
         constructor();
+        Hn(shape: Shape): void;
         In(a: wk): void;
         getColorTransform(): geom.ColorTransform;
-        Hn(shape: Shape): void;
         setTransforms(transform: Matrix): void;
         collectRenderables(a: any): void;
         destroy(): void;
@@ -982,8 +982,8 @@ declare module flwebgl.e {
         flush(): void;
         init(): void;
         destroy(): void;
-        static Hj: number;
-        static Gj: number;
+        static USE_DEFAULT_RENDERER: number;
+        static USE_BITMAP_CACHE_RENDERER: number;
     }
 }
 declare module flwebgl.B.commands {
@@ -1104,7 +1104,6 @@ declare module flwebgl.sg {
         context: Context;
         totalFrames: number;
         loop: boolean;
-        yc: any;
         pa: any;
         df: boolean;
         Td: boolean;
@@ -1135,7 +1134,7 @@ declare module flwebgl.sg {
         gotoAndStop(frame: string): any;
         gotoFrame(frame: number, stop: boolean): any;
         gotoFrame(frame: string, stop: boolean): any;
-        swap(a: number, b: number): void;
+        swap(idx1: number, idx2: number): void;
         dispatch(event: Event): void;
         advanceFrame(a?: boolean, b?: boolean): void;
         dispatchFrameConstructed(): void;
@@ -1148,10 +1147,10 @@ declare module flwebgl.sg {
         getCurrentLabel(): string;
         getChildIndexByID(id: string): number;
         $j(a: any): void;
+        oi(): void;
         setTransforms(transform: Matrix, colorTransform: ColorTransform): void;
         destroy(): void;
         resetPlayHead(a?: boolean): void;
-        oi(): void;
         collectRenderables(a: any): void;
         getBounds(target?: DisplayObject, fast?: boolean, edgeType?: string, k?: boolean): Rect;
         executeFrameScript(name: any): void;
@@ -1354,6 +1353,16 @@ declare module flwebgl.B.commands {
     class CacheAsBitmapCommand implements IFrameCommand {
         targetID: string;
         color: Color;
+        constructor(a: any[]);
+        execute(mc: MovieClip, context: Context, x: boolean): boolean;
+    }
+}
+declare module flwebgl.B.commands {
+    import Context = flwebgl.Context;
+    import MovieClip = flwebgl.sg.MovieClip;
+    class SetVisibilityCommand implements IFrameCommand {
+        targetID: string;
+        visible: boolean;
         constructor(a: any[]);
         execute(mc: MovieClip, context: Context, x: boolean): boolean;
     }

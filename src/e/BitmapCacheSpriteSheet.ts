@@ -93,7 +93,7 @@ module flwebgl.e
           l.height = Utils.nextPowerOfTwo(l.height);
           renderer.scissor(l);
           renderer.setBackgroundColor(k.color);
-          renderer.ij(Renderer.Gj);
+          renderer.ij(Renderer.USE_BITMAP_CACHE_RENDERER);
           var xj = k.Xj;
           var len = xj.length;
           for (var i = 0; i < len; ++i) {

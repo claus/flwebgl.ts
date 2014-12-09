@@ -35,7 +35,6 @@ module flwebgl.sg
     context: Context;
     totalFrames: number;
     loop: boolean;
-    yc: any;
     pa: any;
     df: boolean;
     Td: boolean;
@@ -141,7 +140,7 @@ module flwebgl.sg
       var dobj: DisplayObject;
       if (index < this.getNumChildren()) {
         dobj = this.children[index];
-        if (dobj == null && includeDeferred) {
+        if (!dobj && includeDeferred) {
           for (var i = 0; i < this.childrenDeferred.length; i++) {
             if (this.childrenDeferred[i].index == index) {
               dobj = this.childrenDeferred[i].displayObject;
@@ -243,18 +242,18 @@ module flwebgl.sg
       }
     }
 
-    swap(a: number, b: number) {
-      if (a !== b && a >= 0 && a < this.children.length && b >= 0 && b < this.children.length) {
-        this.children.splice(b, 0, this.children.splice(a, 1)[0]);
+    swap(idx1: number, idx2: number) {
+      if (idx1 !== idx2 && idx1 >= 0 && idx1 < this.children.length && idx2 >= 0 && idx2 < this.children.length) {
+        this.children.splice(idx2, 0, this.children.splice(idx1, 1)[0]);
         for (var i = 0; i < this.childrenDeferred.length; i++) {
           var k = this.childrenDeferred[i];
-          if (k.index == a) {
-            k.index = b;
+          if (k.index == idx1) {
+            k.index = idx2;
           } else {
-            if (k.index > a) {
+            if (k.index > idx1) {
               k.index--;
             }
-            if (k.index >= b) {
+            if (k.index >= idx2) {
               k.index++;
             }
           }
@@ -272,7 +271,7 @@ module flwebgl.sg
     advanceFrame(a: boolean = false, b: boolean = false) {
       var i;
       var advance = this._isPlaying;
-      if (advance && !this.loop && this.currentFrameIndex == this.totalFrames - 1) { advance = false; }
+      if (advance && this.currentFrameIndex == this.totalFrames - 1 && !this.loop) { advance = false; }
       if (advance && this.currentFrameIndex == 0 && this.totalFrames == 1) { advance = false; }
       if (advance) {
         if (++this.currentFrameIndex == this.totalFrames) {
@@ -432,6 +431,13 @@ module flwebgl.sg
       this.Ui = true;
     }
 
+    oi() {
+      if (this.pa !== void 0) {
+        this.pa.destroy();
+        this.pa = void 0;
+      }
+    }
+
     setTransforms(transform: Matrix, colorTransform: ColorTransform) {
       super.setTransforms(transform, colorTransform);
       for (var i = 0; i < this.children.length; ++i) {
@@ -493,13 +499,6 @@ module flwebgl.sg
       }
       this.Td = false;
       this.df = true;
-    }
-
-    oi() {
-      if (this.pa !== void 0) {
-        this.pa.destroy();
-        this.pa = void 0;
-      }
     }
 
     collectRenderables(a) {

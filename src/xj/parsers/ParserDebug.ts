@@ -16,19 +16,19 @@ module flwebgl.xj.parsers
     }
 
     parseSounds(): boolean {
-      return true;
+      return false;
     }
 
     parseFills(): boolean {
-      return true;
+      return false;
     }
 
     parseShapes(): boolean {
-      return true;
+      return false;
     }
 
     parseTimelines(): boolean {
-      return true;
+      return false;
     }
 
     static kSolid = "solid";

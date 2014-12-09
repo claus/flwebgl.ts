@@ -92,12 +92,12 @@ module flwebgl.e
       this.gl.scissor(rect);
     }
 
-    ij(a: number = Renderer.Hj) {
+    ij(a: number = Renderer.USE_DEFAULT_RENDERER) {
       switch (a) {
-        case Renderer.Hj:
+        case Renderer.USE_DEFAULT_RENDERER:
           this.activeRenderer = this.renderer;
           break;
-        case Renderer.Gj:
+        case Renderer.USE_BITMAP_CACHE_RENDERER:
           if (!this.bitmapCacheRenderer) {
             this.bitmapCacheRenderer = new RendererBitmapCache();
             this.bitmapCacheRenderer.setGL(this.gl);
@@ -162,7 +162,7 @@ module flwebgl.e
       this.H = null;
     }
 
-    static Hj = 0;
-    static Gj = 1;
+    static USE_DEFAULT_RENDERER = 0;
+    static USE_BITMAP_CACHE_RENDERER = 1;
   }
 }

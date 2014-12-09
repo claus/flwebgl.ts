@@ -7,6 +7,7 @@
 /// <reference path="../../B/commands/SetColorTransformCommand.ts" />
 /// <reference path="../../B/commands/RemoveObjectCommand.ts" />
 /// <reference path="../../B/commands/CacheAsBitmapCommand.ts" />
+/// <reference path="../../B/commands/SetVisibilityCommand.ts" />
 /// <reference path="../../util/AssetPool.ts" />
 /// <reference path="../Parser.ts" />
 /// <reference path="IParser.ts" />
@@ -24,6 +25,7 @@ module flwebgl.xj.parsers
   import SetColorTransformCommand = flwebgl.B.commands.SetColorTransformCommand;
   import RemoveObjectCommand = flwebgl.B.commands.RemoveObjectCommand;
   import CacheAsBitmapCommand = flwebgl.B.commands.CacheAsBitmapCommand;
+  import SetVisibilityCommand = flwebgl.B.commands.SetVisibilityCommand;
   import AssetPool = flwebgl.util.AssetPool;
   import Parser = flwebgl.xj.Parser;
 
@@ -50,31 +52,31 @@ module flwebgl.xj.parsers
     }
 
     parseSounds(): boolean {
-      var sounds = this.content[ParserRelease.kSounds];
-      for (var i = 0; i < sounds.length; i++) {
-        var sound = sounds[i];
-        var id = sound[0];
-        var name = sound[1];
-        var src = sound[2];
+      var soundsJSON = this.content[ParserRelease.kSounds];
+      for (var i = 0; i < soundsJSON.length; i++) {
+        var soundJSON = soundsJSON[i];
+        var id = soundJSON[0];
+        var name = soundJSON[1];
+        var src = soundJSON[2];
         this.assetPool.setSound(new Sound(id, name, src));
       }
       return true;
     }
 
     parseFills(): boolean {
-      var fills = this.content[ParserRelease.kFills];
-      if (fills.length === 0) {
+      var fillsJSON = this.content[ParserRelease.kFills];
+      if (fillsJSON.length === 0) {
         return true;
       }
       this.fillIDNameMap = {};
       this.fillNameIsOpaqueMap = {};
       this.fillNameStyleMap = {};
-      for (var i = 0; i < fills.length; i++) {
-        var fill = fills[i];
-        var id = "" + fill[0];
-        var style = fill[1];
-        var name = fill[2];
-        var isOpaque = (fill[3] == "T");
+      for (var i = 0; i < fillsJSON.length; i++) {
+        var fillJSON = fillsJSON[i];
+        var id = "" + fillJSON[0];
+        var style = fillJSON[1];
+        var name = fillJSON[2];
+        var isOpaque = (fillJSON[3] == "T");
         this.fillIDNameMap[id] = name;
         this.fillNameIsOpaqueMap[name] = isOpaque;
         this.fillNameStyleMap[name] = style;
@@ -83,21 +85,21 @@ module flwebgl.xj.parsers
     }
 
     parseShapes(): boolean {
-      var shapes = this.content[ParserRelease.kShapes];
-      if (shapes.length === 0) {
+      var shapesJSON = this.content[ParserRelease.kShapes];
+      if (shapesJSON.length === 0) {
         return true;
       }
-      for (var i = 0; i < shapes.length; i++) {
-        var shape = shapes[i];
-        var meshAsset = new Mesh(shape[0]);
-        for (var j = 1; j < shape.length; j++) {
-          var mesh = shape[j];
-          var id = mesh[0];
-          var vertices = mesh[1];
-          var internalIndices = mesh[2];
-          var edgeIndices = mesh[3];
-          var concaveCurveIndices = mesh[4];
-          var convexCurveIndices = mesh[5];
+      for (var i = 0; i < shapesJSON.length; i++) {
+        var shapeJSON = shapesJSON[i];
+        var mesh = new Mesh(shapeJSON[0]);
+        for (var j = 1; j < shapeJSON.length; j++) {
+          var meshJSON = shapeJSON[j];
+          var id = meshJSON[0];
+          var vertices = meshJSON[1];
+          var internalIndices = meshJSON[2];
+          var edgeIndices = meshJSON[3];
+          var concaveCurveIndices = meshJSON[4];
+          var convexCurveIndices = meshJSON[5];
           var fillMatrix = [];
           var fillOverflow = "";
           var fillIsBitmapClipped = false;
@@ -106,12 +108,12 @@ module flwebgl.xj.parsers
           var fillStyle = this.fillNameStyleMap[fillName];
           switch (fillStyle) {
             case ParserRelease.kLinearGradient:
-              fillMatrix = mesh[6];
-              fillOverflow = mesh[7];
+              fillMatrix = meshJSON[6];
+              fillOverflow = meshJSON[7];
               break;
             case ParserRelease.kBitmap:
-              fillMatrix = mesh[6];
-              fillIsBitmapClipped = mesh[7];
+              fillMatrix = meshJSON[6];
+              fillIsBitmapClipped = meshJSON[7];
               break;
           }
           var f = this.parser.If(vertices, fillName, fillStyle, fillMatrix, fillOverflow, fillIsBitmapClipped, fillIsOpaque, internalIndices);
@@ -120,59 +122,58 @@ module flwebgl.xj.parsers
           var k;
           if (f.length) {
             for (k = 0; k < f.length; k++) {
-              meshAsset.Nb(Mesh.INTERNAL, f[k]);
+              mesh.Nb(Mesh.INTERNAL, f[k]);
             }
           }
           if (q.length) {
             for (k = 0; k < q.length; k++) {
-              meshAsset.Nb(Mesh.EXTERNAL, q[k]);
+              mesh.Nb(Mesh.EXTERNAL, q[k]);
             }
           }
           if (t && t.length) {
             for (k = 0; k < t.length; k++) {
-              meshAsset.Nb(Mesh.bb, t[k]);
+              mesh.Nb(Mesh.bb, t[k]);
             }
           }
         }
-        meshAsset.calculateBounds();
-        this.assetPool.setMesh(meshAsset);
+        mesh.calculateBounds();
+        this.assetPool.setMesh(mesh);
       }
       return true;
     }
 
     parseTimelines(): boolean {
-      var timelines = this.content[ParserRelease.kTimelines];
-      if (timelines.length === 0) {
+      var timelinesJSON = this.content[ParserRelease.kTimelines];
+      if (timelinesJSON.length === 0) {
         return true;
       }
-      for (var i = 0; i < timelines.length; i++) {
-        var timeline = timelines[i];
-        var id = timeline[0];
-        var name = timeline[1];
-        var linkageName = timeline[2];
-        var isScene = timeline[3];
+      for (var i = 0; i < timelinesJSON.length; i++) {
+        var timelineJSON = timelinesJSON[i];
+        var id = timelineJSON[0];
+        var name = timelineJSON[1];
+        var linkageName = timelineJSON[2];
+        var isScene = timelineJSON[3];
         var labels: FrameLabel[] = [];
         var scripts: FrameScript[] = [];
         var j;
-        for (j = 0; j < timeline[4].length; j += 2) {
+        for (j = 0; j < timelineJSON[4].length; j += 2) {
           labels.push({
-            frameNum: timeline[4][j],
-            name: timeline[4][j + 1]
+            frameNum: timelineJSON[4][j],
+            name: timelineJSON[4][j + 1]
           });
         }
-        for (j = 0; j < timeline[5].length; j += 2) {
+        for (j = 0; j < timelineJSON[5].length; j += 2) {
           scripts.push({
-            frameNum: timeline[5][j],
-            name: timeline[5][j + 1]
+            frameNum: timelineJSON[5][j],
+            name: timelineJSON[5][j + 1]
           })
         }
-        var timelineAsset = new Timeline(id, name, linkageName, isScene, labels, scripts);
-        for (j = 6; j < timeline.length; j++) {
-          var frame = timeline[j];
+        var timeline = new Timeline(id, name, linkageName, isScene, labels, scripts);
+        for (j = 6; j < timelineJSON.length; j++) {
+          var frame = timelineJSON[j];
           var cmds: IFrameCommand[] = [];
           var cmd: IFrameCommand = null;
           for (var k = 0; k < frame.length; k++) {
-            // TODO
             switch (frame[k][0]) {
               case 1:
                 cmd = new PlaceObjectCommand(frame[k].slice(1));
@@ -188,8 +189,7 @@ module flwebgl.xj.parsers
                 cmd = new RemoveObjectCommand(frame[k].slice(1));
                 break;
               case 5:
-                // SetVisibility
-                //cmd = new c.B.Vh(frame[k].slice(1));
+                cmd = new SetVisibilityCommand(frame[k].slice(1));
                 break;
               case 6:
                 if (this.parser.enableCacheAsBitmap) {
@@ -197,6 +197,7 @@ module flwebgl.xj.parsers
                 }
                 break;
               case 7:
+                // TODO: sounds
                 //cmd = new c.media.Mh(frame[k].slice(1));
                 break;
             }
@@ -204,9 +205,9 @@ module flwebgl.xj.parsers
               cmds.push(cmd);
             }
           }
-          timelineAsset.addFrameCommands(cmds);
+          timeline.addFrameCommands(cmds);
         }
-        this.assetPool.setTimeline(timelineAsset);
+        this.assetPool.setTimeline(timeline);
       }
       return true
     }

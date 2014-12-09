@@ -792,6 +792,9 @@ var flwebgl;
         var vk = (function () {
             function vk() {
             }
+            vk.prototype.Hn = function (shape) {
+                this.shape = shape;
+            };
             vk.prototype.In = function (a) {
                 if (this.Mb) {
                     this.Mb.Wj();
@@ -803,9 +806,6 @@ var flwebgl;
             };
             vk.prototype.getColorTransform = function () {
                 return this.Mb.colorTransform;
-            };
-            vk.prototype.Hn = function (shape) {
-                this.shape = shape;
             };
             vk.prototype.setTransforms = function (transform) {
                 this.shape.setTransforms(transform, void 0);
@@ -3618,12 +3618,12 @@ var flwebgl;
                 this.gl.scissor(rect);
             };
             Renderer.prototype.ij = function (a) {
-                if (a === void 0) { a = Renderer.Hj; }
+                if (a === void 0) { a = Renderer.USE_DEFAULT_RENDERER; }
                 switch (a) {
-                    case Renderer.Hj:
+                    case Renderer.USE_DEFAULT_RENDERER:
                         this.activeRenderer = this.renderer;
                         break;
-                    case Renderer.Gj:
+                    case Renderer.USE_BITMAP_CACHE_RENDERER:
                         if (!this.bitmapCacheRenderer) {
                             this.bitmapCacheRenderer = new RendererBitmapCache();
                             this.bitmapCacheRenderer.setGL(this.gl);
@@ -3673,8 +3673,8 @@ var flwebgl;
                 this.activeRenderer = null;
                 this.H = null;
             };
-            Renderer.Hj = 0;
-            Renderer.Gj = 1;
+            Renderer.USE_DEFAULT_RENDERER = 0;
+            Renderer.USE_BITMAP_CACHE_RENDERER = 1;
             return Renderer;
         })();
         e.Renderer = Renderer;
@@ -4071,7 +4071,7 @@ var flwebgl;
                 var dobj;
                 if (index < this.getNumChildren()) {
                     dobj = this.children[index];
-                    if (dobj == null && includeDeferred) {
+                    if (!dobj && includeDeferred) {
                         for (var i = 0; i < this.childrenDeferred.length; i++) {
                             if (this.childrenDeferred[i].index == index) {
                                 dobj = this.childrenDeferred[i].displayObject;
@@ -4166,19 +4166,19 @@ var flwebgl;
                     this.dispatchExitFrame();
                 }
             };
-            MovieClip.prototype.swap = function (a, b) {
-                if (a !== b && a >= 0 && a < this.children.length && b >= 0 && b < this.children.length) {
-                    this.children.splice(b, 0, this.children.splice(a, 1)[0]);
+            MovieClip.prototype.swap = function (idx1, idx2) {
+                if (idx1 !== idx2 && idx1 >= 0 && idx1 < this.children.length && idx2 >= 0 && idx2 < this.children.length) {
+                    this.children.splice(idx2, 0, this.children.splice(idx1, 1)[0]);
                     for (var i = 0; i < this.childrenDeferred.length; i++) {
                         var k = this.childrenDeferred[i];
-                        if (k.index == a) {
-                            k.index = b;
+                        if (k.index == idx1) {
+                            k.index = idx2;
                         }
                         else {
-                            if (k.index > a) {
+                            if (k.index > idx1) {
                                 k.index--;
                             }
-                            if (k.index >= b) {
+                            if (k.index >= idx2) {
                                 k.index++;
                             }
                         }
@@ -4196,7 +4196,7 @@ var flwebgl;
                 if (b === void 0) { b = false; }
                 var i;
                 var advance = this._isPlaying;
-                if (advance && !this.loop && this.currentFrameIndex == this.totalFrames - 1) {
+                if (advance && this.currentFrameIndex == this.totalFrames - 1 && !this.loop) {
                     advance = false;
                 }
                 if (advance && this.currentFrameIndex == 0 && this.totalFrames == 1) {
@@ -4350,6 +4350,12 @@ var flwebgl;
                 this.pa = a;
                 this.Ui = true;
             };
+            MovieClip.prototype.oi = function () {
+                if (this.pa !== void 0) {
+                    this.pa.destroy();
+                    this.pa = void 0;
+                }
+            };
             MovieClip.prototype.setTransforms = function (transform, colorTransform) {
                 _super.prototype.setTransforms.call(this, transform, colorTransform);
                 for (var i = 0; i < this.children.length; ++i) {
@@ -4413,12 +4419,6 @@ var flwebgl;
                 }
                 this.Td = false;
                 this.df = true;
-            };
-            MovieClip.prototype.oi = function () {
-                if (this.pa !== void 0) {
-                    this.pa.destroy();
-                    this.pa = void 0;
-                }
             };
             MovieClip.prototype.collectRenderables = function (a) {
                 if (this.isVisible()) {
@@ -4802,7 +4802,7 @@ var flwebgl;
                         l.height = Utils.nextPowerOfTwo(l.height);
                         renderer.scissor(l);
                         renderer.setBackgroundColor(k.color);
-                        renderer.ij(e.Renderer.Gj);
+                        renderer.ij(e.Renderer.USE_BITMAP_CACHE_RENDERER);
                         var xj = k.Xj;
                         var len = xj.length;
                         for (var i = 0; i < len; ++i) {
@@ -6140,6 +6140,34 @@ var flwebgl;
 })(flwebgl || (flwebgl = {}));
 var flwebgl;
 (function (flwebgl) {
+    var B;
+    (function (B) {
+        var commands;
+        (function (commands) {
+            var SetVisibilityCommand = (function () {
+                function SetVisibilityCommand(a) {
+                    this.targetID = a[0];
+                    this.visible = (a[1] === 1);
+                }
+                SetVisibilityCommand.prototype.execute = function (mc, context, x) {
+                    var b = mc.getChildIndexByID(this.targetID);
+                    if (b < 0) {
+                        return false;
+                    }
+                    var child = mc.getChildAt(b, true);
+                    if ((child.W & 4) === 0) {
+                        child.setVisible(this.visible, false);
+                    }
+                    return true;
+                };
+                return SetVisibilityCommand;
+            })();
+            commands.SetVisibilityCommand = SetVisibilityCommand;
+        })(commands = B.commands || (B.commands = {}));
+    })(B = flwebgl.B || (flwebgl.B = {}));
+})(flwebgl || (flwebgl = {}));
+var flwebgl;
+(function (flwebgl) {
     var xj;
     (function (xj) {
         var parsers;
@@ -6152,6 +6180,7 @@ var flwebgl;
             var SetColorTransformCommand = flwebgl.B.commands.SetColorTransformCommand;
             var RemoveObjectCommand = flwebgl.B.commands.RemoveObjectCommand;
             var CacheAsBitmapCommand = flwebgl.B.commands.CacheAsBitmapCommand;
+            var SetVisibilityCommand = flwebgl.B.commands.SetVisibilityCommand;
             var ParserRelease = (function () {
                 function ParserRelease(content, parser, assetPool) {
                     this.content = content;
@@ -6160,30 +6189,30 @@ var flwebgl;
                     this.nextHighestID = -1;
                 }
                 ParserRelease.prototype.parseSounds = function () {
-                    var sounds = this.content[ParserRelease.kSounds];
-                    for (var i = 0; i < sounds.length; i++) {
-                        var sound = sounds[i];
-                        var id = sound[0];
-                        var name = sound[1];
-                        var src = sound[2];
+                    var soundsJSON = this.content[ParserRelease.kSounds];
+                    for (var i = 0; i < soundsJSON.length; i++) {
+                        var soundJSON = soundsJSON[i];
+                        var id = soundJSON[0];
+                        var name = soundJSON[1];
+                        var src = soundJSON[2];
                         this.assetPool.setSound(new Sound(id, name, src));
                     }
                     return true;
                 };
                 ParserRelease.prototype.parseFills = function () {
-                    var fills = this.content[ParserRelease.kFills];
-                    if (fills.length === 0) {
+                    var fillsJSON = this.content[ParserRelease.kFills];
+                    if (fillsJSON.length === 0) {
                         return true;
                     }
                     this.fillIDNameMap = {};
                     this.fillNameIsOpaqueMap = {};
                     this.fillNameStyleMap = {};
-                    for (var i = 0; i < fills.length; i++) {
-                        var fill = fills[i];
-                        var id = "" + fill[0];
-                        var style = fill[1];
-                        var name = fill[2];
-                        var isOpaque = (fill[3] == "T");
+                    for (var i = 0; i < fillsJSON.length; i++) {
+                        var fillJSON = fillsJSON[i];
+                        var id = "" + fillJSON[0];
+                        var style = fillJSON[1];
+                        var name = fillJSON[2];
+                        var isOpaque = (fillJSON[3] == "T");
                         this.fillIDNameMap[id] = name;
                         this.fillNameIsOpaqueMap[name] = isOpaque;
                         this.fillNameStyleMap[name] = style;
@@ -6191,21 +6220,21 @@ var flwebgl;
                     return true;
                 };
                 ParserRelease.prototype.parseShapes = function () {
-                    var shapes = this.content[ParserRelease.kShapes];
-                    if (shapes.length === 0) {
+                    var shapesJSON = this.content[ParserRelease.kShapes];
+                    if (shapesJSON.length === 0) {
                         return true;
                     }
-                    for (var i = 0; i < shapes.length; i++) {
-                        var shape = shapes[i];
-                        var meshAsset = new Mesh(shape[0]);
-                        for (var j = 1; j < shape.length; j++) {
-                            var mesh = shape[j];
-                            var id = mesh[0];
-                            var vertices = mesh[1];
-                            var internalIndices = mesh[2];
-                            var edgeIndices = mesh[3];
-                            var concaveCurveIndices = mesh[4];
-                            var convexCurveIndices = mesh[5];
+                    for (var i = 0; i < shapesJSON.length; i++) {
+                        var shapeJSON = shapesJSON[i];
+                        var mesh = new Mesh(shapeJSON[0]);
+                        for (var j = 1; j < shapeJSON.length; j++) {
+                            var meshJSON = shapeJSON[j];
+                            var id = meshJSON[0];
+                            var vertices = meshJSON[1];
+                            var internalIndices = meshJSON[2];
+                            var edgeIndices = meshJSON[3];
+                            var concaveCurveIndices = meshJSON[4];
+                            var convexCurveIndices = meshJSON[5];
                             var fillMatrix = [];
                             var fillOverflow = "";
                             var fillIsBitmapClipped = false;
@@ -6214,12 +6243,12 @@ var flwebgl;
                             var fillStyle = this.fillNameStyleMap[fillName];
                             switch (fillStyle) {
                                 case ParserRelease.kLinearGradient:
-                                    fillMatrix = mesh[6];
-                                    fillOverflow = mesh[7];
+                                    fillMatrix = meshJSON[6];
+                                    fillOverflow = meshJSON[7];
                                     break;
                                 case ParserRelease.kBitmap:
-                                    fillMatrix = mesh[6];
-                                    fillIsBitmapClipped = mesh[7];
+                                    fillMatrix = meshJSON[6];
+                                    fillIsBitmapClipped = meshJSON[7];
                                     break;
                             }
                             var f = this.parser.If(vertices, fillName, fillStyle, fillMatrix, fillOverflow, fillIsBitmapClipped, fillIsOpaque, internalIndices);
@@ -6228,54 +6257,54 @@ var flwebgl;
                             var k;
                             if (f.length) {
                                 for (k = 0; k < f.length; k++) {
-                                    meshAsset.Nb(Mesh.INTERNAL, f[k]);
+                                    mesh.Nb(Mesh.INTERNAL, f[k]);
                                 }
                             }
                             if (q.length) {
                                 for (k = 0; k < q.length; k++) {
-                                    meshAsset.Nb(Mesh.EXTERNAL, q[k]);
+                                    mesh.Nb(Mesh.EXTERNAL, q[k]);
                                 }
                             }
                             if (t && t.length) {
                                 for (k = 0; k < t.length; k++) {
-                                    meshAsset.Nb(Mesh.bb, t[k]);
+                                    mesh.Nb(Mesh.bb, t[k]);
                                 }
                             }
                         }
-                        meshAsset.calculateBounds();
-                        this.assetPool.setMesh(meshAsset);
+                        mesh.calculateBounds();
+                        this.assetPool.setMesh(mesh);
                     }
                     return true;
                 };
                 ParserRelease.prototype.parseTimelines = function () {
-                    var timelines = this.content[ParserRelease.kTimelines];
-                    if (timelines.length === 0) {
+                    var timelinesJSON = this.content[ParserRelease.kTimelines];
+                    if (timelinesJSON.length === 0) {
                         return true;
                     }
-                    for (var i = 0; i < timelines.length; i++) {
-                        var timeline = timelines[i];
-                        var id = timeline[0];
-                        var name = timeline[1];
-                        var linkageName = timeline[2];
-                        var isScene = timeline[3];
+                    for (var i = 0; i < timelinesJSON.length; i++) {
+                        var timelineJSON = timelinesJSON[i];
+                        var id = timelineJSON[0];
+                        var name = timelineJSON[1];
+                        var linkageName = timelineJSON[2];
+                        var isScene = timelineJSON[3];
                         var labels = [];
                         var scripts = [];
                         var j;
-                        for (j = 0; j < timeline[4].length; j += 2) {
+                        for (j = 0; j < timelineJSON[4].length; j += 2) {
                             labels.push({
-                                frameNum: timeline[4][j],
-                                name: timeline[4][j + 1]
+                                frameNum: timelineJSON[4][j],
+                                name: timelineJSON[4][j + 1]
                             });
                         }
-                        for (j = 0; j < timeline[5].length; j += 2) {
+                        for (j = 0; j < timelineJSON[5].length; j += 2) {
                             scripts.push({
-                                frameNum: timeline[5][j],
-                                name: timeline[5][j + 1]
+                                frameNum: timelineJSON[5][j],
+                                name: timelineJSON[5][j + 1]
                             });
                         }
-                        var timelineAsset = new Timeline(id, name, linkageName, isScene, labels, scripts);
-                        for (j = 6; j < timeline.length; j++) {
-                            var frame = timeline[j];
+                        var timeline = new Timeline(id, name, linkageName, isScene, labels, scripts);
+                        for (j = 6; j < timelineJSON.length; j++) {
+                            var frame = timelineJSON[j];
                             var cmds = [];
                             var cmd = null;
                             for (var k = 0; k < frame.length; k++) {
@@ -6294,6 +6323,7 @@ var flwebgl;
                                         cmd = new RemoveObjectCommand(frame[k].slice(1));
                                         break;
                                     case 5:
+                                        cmd = new SetVisibilityCommand(frame[k].slice(1));
                                         break;
                                     case 6:
                                         if (this.parser.enableCacheAsBitmap) {
@@ -6307,9 +6337,9 @@ var flwebgl;
                                     cmds.push(cmd);
                                 }
                             }
-                            timelineAsset.addFrameCommands(cmds);
+                            timeline.addFrameCommands(cmds);
                         }
-                        this.assetPool.setTimeline(timelineAsset);
+                        this.assetPool.setTimeline(timeline);
                     }
                     return true;
                 };
@@ -6338,16 +6368,16 @@ var flwebgl;
                     this.nextHighestID = -1;
                 }
                 ParserDebug.prototype.parseSounds = function () {
-                    return true;
+                    return false;
                 };
                 ParserDebug.prototype.parseFills = function () {
-                    return true;
+                    return false;
                 };
                 ParserDebug.prototype.parseShapes = function () {
-                    return true;
+                    return false;
                 };
                 ParserDebug.prototype.parseTimelines = function () {
-                    return true;
+                    return false;
                 };
                 ParserDebug.kSolid = "solid";
                 ParserDebug.kLinearGradient = "linearGradient";
