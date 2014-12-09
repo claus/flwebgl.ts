@@ -6,7 +6,7 @@
 /// <reference path="../util/AssetPool.ts" />
 /// <reference path="../util/Utils.ts" />
 /// <reference path="../e/GL.ts" />
-/// <reference path="../e/ca.ts" />
+/// <reference path="../e/Geometry.ts" />
 /// <reference path="../e/Mesh.ts" />
 /// <reference path="../e/TextureAtlas.ts" />
 /// <reference path="../e/VertexData.ts" />
@@ -27,7 +27,7 @@ module flwebgl.xj
   import AssetPool = flwebgl.util.AssetPool;
   import Utils = flwebgl.util.Utils;
   import GL = flwebgl.e.GL;
-  import ca = flwebgl.e.ca;
+  import Geometry = flwebgl.e.Geometry;
   import Mesh = flwebgl.e.Mesh;
   import TextureAtlas = flwebgl.e.TextureAtlas;
   import VertexData = flwebgl.e.VertexData;
@@ -64,7 +64,7 @@ module flwebgl.xj
 
     private assetPool: AssetPool;
     private attributeDefs: AttributeDefs;
-    private S: number;
+    private attributesPerVertex: number;
 
     constructor(assetPool: AssetPool) {
       this.assetPool = assetPool;
@@ -104,7 +104,7 @@ module flwebgl.xj
 
       this.enableCacheAsBitmap = options.cacheAsBitmap;
       this.emulateStandardDerivatives = options.emulateStandardDerivatives;
-      this.S = this.emulateStandardDerivatives ? 11 : 7;
+      this.attributesPerVertex = this.emulateStandardDerivatives ? 11 : 7;
 
       if (!parser.parseSounds() || !parser.parseFills()) {
         return stageInfo;
@@ -122,7 +122,7 @@ module flwebgl.xj
       } else {
         this.attributeDefs.attrs = [y, w, t, q];
       }
-      this.attributeDefs.totalSize = this.S * Float32Array.BYTES_PER_ELEMENT;
+      this.attributeDefs.totalSize = this.attributesPerVertex * Float32Array.BYTES_PER_ELEMENT;
 
       if (!parser.parseShapes() || !parser.parseTimelines()) {
         return stageInfo;
@@ -153,11 +153,11 @@ module flwebgl.xj
       return true;
     }
 
-    If(vertices: number[], fillName: string, fillStyle: string, fillMatrix: number[], fillOverflow: string, fillIsBitmapClipped: boolean, fillIsOpaque: boolean, internalIndices: number[] = [], concaveCurveIndices: number[] = [], convexCurveIndices: number[] = [], edgeIndices: number[] = []): ca[] {
+    If(vertices: number[], fillName: string, fillStyle: string, fillMatrix: number[], fillOverflow: string, fillIsBitmapClipped: boolean, fillIsOpaque: boolean, internalIndices: number[] = [], concaveCurveIndices: number[] = [], convexCurveIndices: number[] = [], edgeIndices: number[] = []): Geometry[] {
       if (internalIndices.length == 0 && concaveCurveIndices.length == 0 && convexCurveIndices.length == 0 && edgeIndices.length == 0) {
         return [];
       }
-      var C: ca[] = [];
+      var geometries: Geometry[] = [];
       var bufferDataArray: BufferData[];
       var edgeType;
       if (internalIndices.length > 0) {
@@ -169,28 +169,28 @@ module flwebgl.xj
       }
       for (var i = 0; i < bufferDataArray.length; i++) {
         var bufferData = bufferDataArray[i];
-        var u = new ca(fillName, fillIsOpaque);
+        var geometry = new Geometry(fillName, fillIsOpaque);
         var r = this.injectLoopBlinnTexCoords(bufferData, fillName, fillStyle, fillMatrix);
         for (var atlasID in r) {
           var fillVertices = r[atlasID];
           if (this.emulateStandardDerivatives) {
             this.injectStandardDerivativeTexCoords(edgeType, fillVertices, bufferData.indices.length);
           }
-          u.setVertexData(atlasID, [new VertexData(new Float32Array(fillVertices), this.attributeDefs)]);
-          u.setIndices(bufferData.indices);
+          geometry.setVertexData(atlasID, [new VertexData(new Float32Array(fillVertices), this.attributeDefs)]);
+          geometry.setIndices(bufferData.indices);
         }
-        u.fillMode = this.getFillMode(fillStyle, fillOverflow, fillIsBitmapClipped);
-        C.push(u);
+        geometry.fillMode = this.getFillMode(fillStyle, fillOverflow, fillIsBitmapClipped);
+        geometries.push(geometry);
       }
-      return C;
+      return geometries;
     }
 
-    dj(vertices, concaveCurveIndices, convexCurveIndices, edgeIndices, fillName, fillStyle, fillIsOpaque, fillMatrix, fillOverflow, fillIsBitmapClipped): ca[] {
+    dj(vertices, concaveCurveIndices, convexCurveIndices, edgeIndices, fillName, fillStyle, fillIsOpaque, fillMatrix, fillOverflow, fillIsBitmapClipped): Geometry[] {
       var C = 0;
       var v = 0;
       var B = 0;
       var I = 0;
-      var X = [];
+      var geometries = [];
       var index0, index1, index2;
       var vertex0, vertex1, vertex2;
       var p1x, p1y, p2x, p2y;
@@ -230,10 +230,10 @@ module flwebgl.xj
           var Q = new Point(vertex2.x - 2 * (-p2y / p2len), vertex2.y - 2 * (p2x / p2len));
           var V = this.wi([vertex0, vertex1, vertex2], [texCoord0, texCoord1, texCoord2], [P, vertex1, Q]);
           this.Sc(resVertices, resIndices, [vertex0, P, vertex1], [texCoord0, V[0], texCoord1], [1, 1, 1], vertexOffs, indexOffs);
-          vertexOffs += 3 * this.S;
+          vertexOffs += 3 * this.attributesPerVertex;
           indexOffs += 3;
           this.Sc(resVertices, resIndices, [vertex1, Q, vertex2], [texCoord1, V[2], texCoord2], [1, 1, 1], vertexOffs, indexOffs);
-          vertexOffs += 3 * this.S;
+          vertexOffs += 3 * this.attributesPerVertex;
           indexOffs += 3;
         }
         if (L > 0) {
@@ -261,10 +261,10 @@ module flwebgl.xj
             Q = new Point(vertex2.x + 0.1 * Math.min(2, p2len) * (-p2y / p2len), vertex2.y + 0.1 * Math.min(2, p2len) * (p2x / p2len));
             V = this.wi([vertex0, vertex1, vertex2], [texCoord0, texCoord1, texCoord2], [P, Y, Q]);
             this.Sc(resVertices, resIndices, [vertex0, P, vertex2], [texCoord0, V[0], texCoord2], [-1, -1, -1], vertexOffs, indexOffs);
-            vertexOffs += 3 * this.S;
+            vertexOffs += 3 * this.attributesPerVertex;
             indexOffs += 3;
             this.Sc(resVertices, resIndices, [vertex2, P, Q], [texCoord2, V[0], V[2]], [-1, -1, -1], vertexOffs, indexOffs);
-            vertexOffs += 3 * this.S;
+            vertexOffs += 3 * this.attributesPerVertex;
             indexOffs += 3;
           }
         }
@@ -287,19 +287,19 @@ module flwebgl.xj
             P = new Point(vertex0.x - 2 * (-p1y / p1len), vertex0.y - 2 * (p1x / p1len));
             Y = new Point(vertex2.x - 2 * (-p1y / p1len), vertex2.y - 2 * (p1x / p1len));
             this.Sc(resVertices, resIndices, [vertex0, P, vertex2], [texCoord0, W, texCoord1], [-1, -1, -1], vertexOffs, indexOffs);
-            vertexOffs += 3 * this.S;
+            vertexOffs += 3 * this.attributesPerVertex;
             indexOffs += 3;
             this.Sc(resVertices, resIndices, [P, Y, vertex2], [W, W, texCoord1], [-1, -1, -1], vertexOffs, indexOffs);
-            vertexOffs += 3 * this.S;
+            vertexOffs += 3 * this.attributesPerVertex;
             indexOffs += 3;
           }
         }
         if (resIndices.length == 0) {
           return null;
         }
-        //var L = new ca(fillName, fillIsOpaque); // TODO: remove this? doesn't seem to be used
+        //var L = new Geometry(fillName, fillIsOpaque); // TODO: remove this? doesn't seem to be used
         var bufferData = new BufferData(resVertices, resIndices);
-        var u = new ca(fillName, fillIsOpaque);
+        var geometry = new Geometry(fillName, fillIsOpaque);
         var r = this.injectLoopBlinnTexCoords(bufferData, fillName, fillStyle, fillMatrix);
         var edgeType = Mesh.bb;
         for (var atlasID in r) {
@@ -307,13 +307,13 @@ module flwebgl.xj
           if (this.emulateStandardDerivatives) {
             this.injectStandardDerivativeTexCoords(edgeType, fillVertices, bufferData.indices.length);
           }
-          u.setVertexData(atlasID, [new VertexData(new Float32Array(fillVertices), this.attributeDefs)]);
-          u.setIndices(bufferData.indices);
+          geometry.setVertexData(atlasID, [new VertexData(new Float32Array(fillVertices), this.attributeDefs)]);
+          geometry.setIndices(bufferData.indices);
         }
-        u.fillMode = this.getFillMode(fillStyle, fillOverflow, fillIsBitmapClipped);
-        X.push(u);
+        geometry.fillMode = this.getFillMode(fillStyle, fillOverflow, fillIsBitmapClipped);
+        geometries.push(geometry);
       }
-      return X;
+      return geometries;
     }
 
     Sc(vertices: number[], indices: number[], positions: Point[], texCoords: Point[], isConvexMultipliers: number[], vertexOffs, indexOffs) {
@@ -322,14 +322,14 @@ module flwebgl.xj
       vertices[vertexOffs + 2] = texCoords[0].x;
       vertices[vertexOffs + 3] = texCoords[0].y;
       vertices[vertexOffs + 4] = isConvexMultipliers[0];
-      vertexOffs += this.S;
+      vertexOffs += this.attributesPerVertex;
 
       vertices[vertexOffs + 0] = positions[1].x;
       vertices[vertexOffs + 1] = positions[1].y;
       vertices[vertexOffs + 2] = texCoords[1].x;
       vertices[vertexOffs + 3] = texCoords[1].y;
       vertices[vertexOffs + 4] = isConvexMultipliers[1];
-      vertexOffs += this.S;
+      vertexOffs += this.attributesPerVertex;
 
       vertices[vertexOffs + 0] = positions[2].x;
       vertices[vertexOffs + 1] = positions[2].y;
@@ -367,17 +367,14 @@ module flwebgl.xj
       v = v * det2;
       for (var i = 0; i < h.length; i++) {
         var pt = h[i].sub(a[0]);
-        var pt2 = new Point(
-          pt.x * v + pt.y * u,
-          pt.x * t + pt.y * s
-        );
+        var pt2 = new Point(pt.x * v + pt.y * u, pt.x * t + pt.y * s);
         k.push(pt2.add(b[0]));
       }
       return k;
     }
 
     // xl
-    createInternalBuffers(vertices, indices): BufferData[] {
+    createInternalBuffers(vertices: number[], indices: number[]): BufferData[] {
       var bufferDataArray: BufferData[] = [];
       var start = 0;
       var end = 0;
@@ -385,13 +382,13 @@ module flwebgl.xj
       while (end < indices.length) {
         start = end;
         end = (indices.length - end > GL.MAX_VERTICES) ? end + GL.MAX_VERTICES : indices.length;
-        bufferDataArray.push(this.af(vertices, indices, start, end, texCoords, 100000));
+        bufferDataArray.push(this.createBufferData(vertices, indices, start, end, texCoords, 100000));
       }
       return bufferDataArray;
     }
 
     // wl
-    createExternalBuffers(vertices, concaveCurveIndices, convexCurveIndices, edgeIndices): BufferData[] {
+    createExternalBuffers(vertices: number[], concaveCurveIndices: number[], convexCurveIndices: number[], edgeIndices: number[]): BufferData[] {
       var bufferDataArray: BufferData[] = [];
       var w = 0;
       var t = 0;
@@ -415,7 +412,7 @@ module flwebgl.xj
                       : endConcave;
         w -= (endConcave - start);
         if (start != endConcave) {
-          bufferData = this.af(vertices, concaveCurveIndices, start, endConcave, curveTexCoords, -1);
+          bufferData = this.createBufferData(vertices, concaveCurveIndices, start, endConcave, curveTexCoords, -1);
         }
         if (w > 0) {
           start = endConvex;
@@ -425,7 +422,7 @@ module flwebgl.xj
                         : endConvex + w
                       : endConvex;
           w -= endConvex - start;
-          bufferData = this.af(vertices, convexCurveIndices, start, endConvex, curveTexCoords, 1, bufferData);
+          bufferData = this.createBufferData(vertices, convexCurveIndices, start, endConvex, curveTexCoords, 1, bufferData);
         }
         if (w > 0) {
           start = endEdge;
@@ -434,14 +431,15 @@ module flwebgl.xj
                       ? edgeIndices.length
                       : endEdge + w
                     : endEdge;
-          bufferData = this.af(vertices, edgeIndices, start, endEdge, edgeTexCoords, 1, bufferData);
+          bufferData = this.createBufferData(vertices, edgeIndices, start, endEdge, edgeTexCoords, 1, bufferData);
         }
         bufferDataArray.push(bufferData);
       }
       return bufferDataArray;
     }
 
-    af(vertices, indices, start, end, texCoords, isConvexMultiplier, bufferData?: BufferData): BufferData {
+    // af
+    createBufferData(vertices: number[], indices: number[], start: number, end: number, texCoords: Point[], isConvexMultiplier: number, bufferData?: BufferData): BufferData {
       if (!bufferData) { bufferData = new BufferData(); }
       var bufVertices = bufferData.vertices;
       var bufIndices = bufferData.indices;
@@ -457,7 +455,7 @@ module flwebgl.xj
           bufVertices[bufVertexOffset++] = texCoords[i].x;
           bufVertices[bufVertexOffset++] = texCoords[i].y;
           bufVertices[bufVertexOffset++] = isConvexMultiplier;
-          for (var iVertex = 5; iVertex < this.S; iVertex++) {
+          for (var iVertex = 5; iVertex < this.attributesPerVertex; iVertex++) {
             bufVertices[bufVertexOffset++] = null;
           }
           iIndex++;
@@ -470,7 +468,7 @@ module flwebgl.xj
     injectLoopBlinnTexCoords(bufferData: BufferData, fillName: string, fillStyle: string, fillMatrix: number[]) {
       var d = {};
       var atlases = this.assetPool.getTextureAtlases();
-      var offset = this.emulateStandardDerivatives ? this.S - 6 : this.S - 2;
+      var offset = this.emulateStandardDerivatives ? this.attributesPerVertex - 6 : this.attributesPerVertex - 2;
       for (var i = 0; i < atlases.length; i++) {
         var atlas = atlases[i];
         var frame = atlas.getFrame(fillName);
@@ -480,15 +478,15 @@ module flwebgl.xj
           switch (fillStyle) {
             case ParserRelease.kSolid:
             case ParserDebug.kSolid:
-              this.injectLoopBlinnTexCoords_SolidFill(bufferData.vertices, this.S, offset, textureWidth, textureHeight, frame, bufferData.indices.length);
+              this.injectLoopBlinnTexCoords_SolidFill(bufferData.vertices, this.attributesPerVertex, offset, textureWidth, textureHeight, frame, bufferData.indices.length);
               break;
             case ParserRelease.kLinearGradient:
             case ParserDebug.kLinearGradient:
-              this.injectLoopBlinnTexCoords_LinearGradientFill(bufferData.vertices, this.S, offset, bufferData.indices.length, fillMatrix);
+              this.injectLoopBlinnTexCoords_LinearGradientFill(bufferData.vertices, this.attributesPerVertex, offset, bufferData.indices.length, fillMatrix);
               break;
             case ParserRelease.kBitmap:
             case ParserDebug.kBitmap:
-              this.injectLoopBlinnTexCoords_BitmapFill(bufferData.vertices, this.S, offset, bufferData.indices.length, fillMatrix, frame.width, frame.height);
+              this.injectLoopBlinnTexCoords_BitmapFill(bufferData.vertices, this.attributesPerVertex, offset, bufferData.indices.length, fillMatrix, frame.width, frame.height);
               break;
           }
           if (bufferData.vertices && bufferData.vertices.length > 0) {
@@ -562,8 +560,8 @@ module flwebgl.xj
 
     // ti
     injectStandardDerivativeTexCoords(edgeType, vertices, count) {
-      var offset = this.S - 4;
-      var stride = this.S;
+      var offset = this.attributesPerVertex - 4;
+      var stride = this.attributesPerVertex;
       var len = count * stride;
       var i = 0;
       switch (edgeType) {
@@ -643,11 +641,11 @@ module flwebgl.xj
       switch (fillStyle) {
         case ParserRelease.kLinearGradient:
         case ParserDebug.kLinearGradient:
-          fillMode = ca.fillModeMap[fillOverflow];
+          fillMode = Geometry.fillModeMap[fillOverflow];
           break;
         case ParserRelease.kBitmap:
         case ParserDebug.kBitmap:
-          fillMode = ca.fillModeMap[fillIsBitmapClipped ? ca.kFill_Repeat : ca.kFill_Extend];
+          fillMode = Geometry.fillModeMap[fillIsBitmapClipped ? Geometry.kFill_Repeat : Geometry.kFill_Extend];
           break;
       }
       // 0: n/a

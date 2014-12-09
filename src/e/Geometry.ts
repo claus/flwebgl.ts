@@ -12,7 +12,7 @@ module flwebgl.e
     constructor() {}
   }
 
-  export class ca
+  export class Geometry
   {
     name: string;
     isOpaque: boolean;

@@ -74,10 +74,10 @@ module flwebgl.sg
 
     calculateBoundsAABB(a, transform) {
       var bounds = new Rect();
-      var k = this.yc.ra(a);
+      var k = this.yc.getGeometryCount(a);
       var p = new Point(0, 0);
       for (var i = 0; i < k; i++) {
-        var m = this.yc.yf(a, i);
+        var m = this.yc.getGeometry(a, i);
         var atlasIDs = m.getAtlasIDs();
         var vertexDataArr = m.getVertexData(atlasIDs[0]);
         for (var j = 0; j < vertexDataArr.length; j++) {

@@ -221,9 +221,9 @@ module flwebgl.e
           var e: wk = b[c];
           if (e.ug === 0) {
             var f = e.mesh;
-            var l = f.ra(Mesh.INTERNAL);
+            var l = f.getGeometryCount(Mesh.INTERNAL);
             for (var s = 0; s < l; ++s) {
-              var m = f.yf(Mesh.INTERNAL, s);
+              var m = f.getGeometry(Mesh.INTERNAL, s);
               if (this.spriteSheetMap[e.textureID]) {
                 this.spriteSheetMap[e.textureID].remove(m.name);
               }
@@ -242,7 +242,7 @@ module flwebgl.e
         var sk = this.Sk(xk.vertices, xk.indices, s, textureID, frameID, isOpaque);
         var edgeTypes = [ Mesh.INTERNAL, Mesh.EXTERNAL, Mesh.bb ];
         for (var i = 0; i < sk.length; i++) {
-          mesh.Nb(edgeTypes[i], sk[i]);
+          mesh.setGeometry(edgeTypes[i], sk[i]);
         }
         mesh.calculateBounds();
         this.assetPool.setMesh(mesh);
@@ -250,7 +250,7 @@ module flwebgl.e
       }
     }
 
-    Sk(vertices: Float32Array[], indices: number[][], s: number, textureID: string, frameID: string, isOpaque: boolean): ca[] {
+    Sk(vertices: Float32Array[], indices: number[][], s: number, textureID: string, frameID: string, isOpaque: boolean): Geometry[] {
       var attrDefs = new AttributesDefs();
       var a0 = new AttributeDef(0, "POSITION0", GL.FLOAT, 2);
       var a1 = new AttributeDef(2 * Float32Array.BYTES_PER_ELEMENT, "TEXCOORD0", GL.FLOAT, 2);
@@ -265,11 +265,11 @@ module flwebgl.e
       }
       attrDefs.totalSize = s * Float32Array.BYTES_PER_ELEMENT;
 
-      var m: ca[] = [];
+      var m: Geometry[] = [];
       for (var i = 0; i < vertices.length; i++) {
         var f = new VertexData(vertices[i], attrDefs);
-        var n = new ca(frameID, isOpaque);
-        n.fillMode = ca.fillModeMap[ca.kFill_Repeat];
+        var n = new Geometry(frameID, isOpaque);
+        n.fillMode = Geometry.fillModeMap[Geometry.kFill_Repeat];
         n.setVertexData(textureID, [f]);
         n.setIndices(indices[i]);
         m[i] = n;

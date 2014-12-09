@@ -122,17 +122,17 @@ module flwebgl.xj.parsers
           var k;
           if (f.length) {
             for (k = 0; k < f.length; k++) {
-              mesh.Nb(Mesh.INTERNAL, f[k]);
+              mesh.setGeometry(Mesh.INTERNAL, f[k]);
             }
           }
           if (q.length) {
             for (k = 0; k < q.length; k++) {
-              mesh.Nb(Mesh.EXTERNAL, q[k]);
+              mesh.setGeometry(Mesh.EXTERNAL, q[k]);
             }
           }
           if (t && t.length) {
             for (k = 0; k < t.length; k++) {
-              mesh.Nb(Mesh.bb, t[k]);
+              mesh.setGeometry(Mesh.bb, t[k]);
             }
           }
         }

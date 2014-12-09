@@ -148,7 +148,7 @@ declare module flwebgl.e {
         attrs: AttributesDefs[];
         constructor();
     }
-    class ca {
+    class Geometry {
         name: string;
         isOpaque: boolean;
         fillMode: number;
@@ -181,9 +181,9 @@ declare module flwebgl.e {
         bounds: Rect;
         constructor(id: string);
         id: string;
-        Nb(edgeType: string, h: ca): void;
+        Nb(edgeType: string, h: Geometry): void;
         ra(edgeType: string): number;
-        yf(edgeType: string, i: number): ca;
+        yf(edgeType: string, i: number): Geometry;
         calculateBounds(): void;
         static INTERNAL: string;
         static EXTERNAL: string;
@@ -392,8 +392,8 @@ declare module flwebgl.e {
         private _atlasID;
         private parent;
         private se;
-        ka: ca;
-        constructor(id: string, h: ca, atlasID: string, parent: MeshInstanced);
+        ka: Geometry;
+        constructor(id: string, h: Geometry, atlasID: string, parent: MeshInstanced);
         id: string;
         atlasID: string;
         depth: number;
@@ -1262,7 +1262,7 @@ declare module flwebgl.e {
         getSpriteSheet(width: number, height: number): BitmapCacheSpriteSheet;
         purgeSpriteSheets(): void;
         Tk(bounds: Rect, transform: Matrix, textureID: string, frameID: string, isOpaque: boolean): Mesh;
-        Sk(vertices: Float32Array[], indices: number[][], s: number, textureID: string, frameID: string, isOpaque: boolean): ca[];
+        Sk(vertices: Float32Array[], indices: number[][], s: number, textureID: string, frameID: string, isOpaque: boolean): Geometry[];
         Xk(a: number, rect: Rect, transform: Matrix): {
             vertices: Float32Array[];
             indices: number[][];
@@ -1441,7 +1441,7 @@ declare module flwebgl.xj {
     import Rect = flwebgl.geom.Rect;
     import Matrix = flwebgl.geom.Matrix;
     import AssetPool = flwebgl.util.AssetPool;
-    import ca = flwebgl.e.ca;
+    import Geometry = flwebgl.e.Geometry;
     import PlayerOptions = flwebgl.PlayerOptions;
     class StageInfo {
         width: number;
@@ -1463,19 +1463,19 @@ declare module flwebgl.xj {
         nextHighestID: number;
         private assetPool;
         private attributeDefs;
-        private S;
+        private attributesPerVertex;
         constructor(assetPool: AssetPool);
         init(content: any, textures: flwebgl.TextureAtlas[], options: PlayerOptions): StageInfo;
         parse(content: any, options: PlayerOptions): StageInfo;
         parseTextureAtlas(textureJSON: any, imageURL: string, atlasID: string): boolean;
-        If(vertices: number[], fillName: string, fillStyle: string, fillMatrix: number[], fillOverflow: string, fillIsBitmapClipped: boolean, fillIsOpaque: boolean, internalIndices?: number[], concaveCurveIndices?: number[], convexCurveIndices?: number[], edgeIndices?: number[]): ca[];
-        dj(vertices: any, concaveCurveIndices: any, convexCurveIndices: any, edgeIndices: any, fillName: any, fillStyle: any, fillIsOpaque: any, fillMatrix: any, fillOverflow: any, fillIsBitmapClipped: any): ca[];
+        If(vertices: number[], fillName: string, fillStyle: string, fillMatrix: number[], fillOverflow: string, fillIsBitmapClipped: boolean, fillIsOpaque: boolean, internalIndices?: number[], concaveCurveIndices?: number[], convexCurveIndices?: number[], edgeIndices?: number[]): Geometry[];
+        dj(vertices: any, concaveCurveIndices: any, convexCurveIndices: any, edgeIndices: any, fillName: any, fillStyle: any, fillIsOpaque: any, fillMatrix: any, fillOverflow: any, fillIsBitmapClipped: any): Geometry[];
         Sc(vertices: number[], indices: number[], positions: Point[], texCoords: Point[], isConvexMultipliers: number[], vertexOffs: any, indexOffs: any): void;
         ec(a: any): Point;
         wi(a: any, b: any, h: any): Point[];
-        createInternalBuffers(vertices: any, indices: any): BufferData[];
-        createExternalBuffers(vertices: any, concaveCurveIndices: any, convexCurveIndices: any, edgeIndices: any): BufferData[];
-        af(vertices: any, indices: any, start: any, end: any, texCoords: any, isConvexMultiplier: any, bufferData?: BufferData): BufferData;
+        createInternalBuffers(vertices: number[], indices: number[]): BufferData[];
+        createExternalBuffers(vertices: number[], concaveCurveIndices: number[], convexCurveIndices: number[], edgeIndices: number[]): BufferData[];
+        createBufferData(vertices: number[], indices: number[], start: number, end: number, texCoords: Point[], isConvexMultiplier: number, bufferData?: BufferData): BufferData;
         injectLoopBlinnTexCoords(bufferData: BufferData, fillName: string, fillStyle: string, fillMatrix: number[]): {};
         injectLoopBlinnTexCoords_SolidFill(vertices: number[], stride: number, offset: number, textureWidth: number, textureHeight: number, frame: Rect, count: number): void;
         injectLoopBlinnTexCoords_LinearGradientFill(vertices: number[], stride: number, offset: number, count: number, matrixValues: number[]): void;

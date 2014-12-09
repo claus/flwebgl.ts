@@ -15,9 +15,9 @@ module flwebgl.e
     private parent: MeshInstanced;
     private se: UniformValuesMap;
 
-    ka: ca;
+    ka: Geometry;
 
-    constructor(id: string, h: ca, atlasID: string, parent: MeshInstanced) {
+    constructor(id: string, h: Geometry, atlasID: string, parent: MeshInstanced) {
       this._id = id;
       this._atlasID = atlasID;
       this.ka = h;

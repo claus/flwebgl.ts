@@ -1,18 +1,18 @@
 /// <reference path="../geom/Rect.ts" />
 /// <reference path="../sg/IDisplayObjectDefinition.ts" />
-/// <reference path="ca.ts" />
+/// <reference path="Geometry.ts" />
 
 module flwebgl.e
 {
   import Rect = flwebgl.geom.Rect;
   import IDisplayObjectDefinition = flwebgl.sg.IDisplayObjectDefinition;
 
-  interface CAMap { [edgeType: string]: ca[]; }
+  interface GeometryMap { [edgeType: string]: Geometry[]; }
 
   export class Mesh implements IDisplayObjectDefinition
   {
     private _id: string;
-    private fd: CAMap;
+    private fd: GeometryMap;
 
     bounds: Rect;
 
@@ -28,25 +28,25 @@ module flwebgl.e
       return this._id;
     }
 
-    Nb(edgeType: string, h: ca) {
-      this.fd[edgeType].push(h);
+    setGeometry(edgeType: string, geometry: Geometry) {
+      this.fd[edgeType].push(geometry);
     }
 
-    ra(edgeType: string): number {
+    getGeometryCount(edgeType: string): number {
       return this.fd[edgeType].length;
     }
 
-    yf(edgeType: string, i: number): ca {
-      if (i < this.ra(edgeType)) {
+    getGeometry(edgeType: string, i: number): Geometry {
+      if (i < this.getGeometryCount(edgeType)) {
         return this.fd[edgeType][i];
       }
     }
 
     calculateBounds() {
       this.bounds = new Rect();
-      var count = this.ra(Mesh.EXTERNAL);
+      var count = this.getGeometryCount(Mesh.EXTERNAL);
       for (var i = 0; i < count; i++) {
-        var yf = this.yf(Mesh.EXTERNAL, i);
+        var yf = this.getGeometry(Mesh.EXTERNAL, i);
         var atlasIDs = yf.getAtlasIDs();
         var vertexDataArr = yf.getVertexData(atlasIDs[0]);
         for (var j = 0; j < vertexDataArr.length; j++) {

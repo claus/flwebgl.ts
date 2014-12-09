@@ -41,18 +41,18 @@ module flwebgl.e
     }
 
     ra(edgeType: string): number {
-      return (<Mesh>this.shape.getDefinition()).ra(edgeType);
+      return (<Mesh>this.shape.getDefinition()).getGeometryCount(edgeType);
     }
 
     ab(edgeType: string, i: number, gl: GL): lk {
       var buffers = this.Gb[edgeType][i];
       if (!buffers) {
         var mesh = <Mesh>this.shape.getDefinition();
-        var _ca = mesh.yf(edgeType, i);
-        if (!_ca) {
+        var geometry = mesh.getGeometry(edgeType, i);
+        if (!geometry) {
           return void 0;
         }
-        buffers = new lk(Utils.cm(mesh.id, i, edgeType), _ca, gl.getTextureAtlasByFrameID(_ca.name).id, this);
+        buffers = new lk(Utils.cm(mesh.id, i, edgeType), geometry, gl.getTextureAtlasByFrameID(geometry.name).id, this);
         //         "meshid_i_edgetype",         bufs, atlasid, parent
         this.Gb[edgeType][i] = buffers;
       }
