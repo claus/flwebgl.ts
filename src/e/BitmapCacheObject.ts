@@ -1,15 +1,15 @@
 /// <reference path="../geom/Color.ts" />
 /// <reference path="../geom/ColorTransform.ts" />
-/// <reference path="../g/DisplayObject.ts" />
+/// <reference path="../sg/DisplayObject.ts" />
 /// <reference path="vk.ts" />
 
 module flwebgl.e
 {
   import Color = flwebgl.geom.Color;
   import ColorTransform = flwebgl.geom.ColorTransform;
-  import DisplayObject = flwebgl.g.DisplayObject;
+  import DisplayObject = flwebgl.sg.DisplayObject;
 
-  export class yk
+  export class BitmapCacheObject
   {
     constructor(
       public displayObject: DisplayObject,

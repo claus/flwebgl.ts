@@ -1,9 +1,9 @@
 /// <reference path="e/GL.ts" />
 /// <reference path="e/Renderer.ts" />
 /// <reference path="e/BitmapCacheFactory.ts" />
-/// <reference path="g/MovieClip.ts" />
-/// <reference path="media/SoundFactory.ts" />
+/// <reference path="sg/MovieClip.ts" />
 /// <reference path="sg/SceneGraphFactory.ts" />
+/// <reference path="media/SoundFactory.ts" />
 /// <reference path="util/AssetPool.ts" />
 /// <reference path="util/Utils.ts" />
 /// <reference path="xj/Parser.ts" />
@@ -17,9 +17,9 @@ module flwebgl
   import GL = flwebgl.e.GL;
   import Renderer = flwebgl.e.Renderer;
   import BitmapCacheFactory = flwebgl.e.BitmapCacheFactory;
-  import MovieClip = flwebgl.g.MovieClip;
-  import SoundFactory = flwebgl.media.SoundFactory;
+  import MovieClip = flwebgl.sg.MovieClip;
   import SceneGraphFactory = flwebgl.sg.SceneGraphFactory;
+  import SoundFactory = flwebgl.media.SoundFactory;
   import AssetPool = flwebgl.util.AssetPool;
   import Utils = flwebgl.util.Utils;
   import Parser = flwebgl.xj.Parser;

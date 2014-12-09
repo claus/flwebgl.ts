@@ -202,7 +202,7 @@ declare module flwebgl.e {
         destroy(): void;
     }
 }
-declare module flwebgl.g {
+declare module flwebgl.sg {
     import EventDispatcher = flwebgl.events.EventDispatcher;
     import ColorTransform = flwebgl.geom.ColorTransform;
     import Matrix = flwebgl.geom.Matrix;
@@ -256,7 +256,7 @@ interface Window {
 declare module flwebgl.util {
     import Color = flwebgl.geom.Color;
     import Matrix = flwebgl.geom.Matrix;
-    import DisplayObject = flwebgl.g.DisplayObject;
+    import DisplayObject = flwebgl.sg.DisplayObject;
     class Utils {
         static requestAnimFrame(fn: any, frameRate: number, window: Window): number;
         static cancelAnimFrame(id: number, window: Window): void;
@@ -637,7 +637,7 @@ declare module flwebgl.e {
 declare module flwebgl.e {
     import Matrix = flwebgl.geom.Matrix;
     import ColorTransform = flwebgl.geom.ColorTransform;
-    import Shape = flwebgl.g.Shape;
+    import Shape = flwebgl.sg.Shape;
     class MeshInstanced {
         private shape;
         private Gb;
@@ -962,7 +962,7 @@ declare module flwebgl.e {
     }
 }
 declare module flwebgl.B.commands {
-    import DisplayObject = flwebgl.g.DisplayObject;
+    import DisplayObject = flwebgl.sg.DisplayObject;
     import Context = flwebgl.Context;
     interface IFrameCommand {
         targetID: string;
@@ -1053,7 +1053,7 @@ declare module flwebgl.B.commands {
     import Matrix = flwebgl.geom.Matrix;
     import AssetPool = flwebgl.util.AssetPool;
     import SceneGraphFactory = flwebgl.sg.SceneGraphFactory;
-    import MovieClip = flwebgl.g.MovieClip;
+    import MovieClip = flwebgl.sg.MovieClip;
     class PlaceObjectCommand implements IFrameCommand {
         timelineID: any;
         hf: any;
@@ -1065,7 +1065,7 @@ declare module flwebgl.B.commands {
         Ek(mc: MovieClip, assetPool: AssetPool, sceneGraphFactory: SceneGraphFactory): number;
     }
 }
-declare module flwebgl.g {
+declare module flwebgl.sg {
     import ColorTransform = flwebgl.geom.ColorTransform;
     import Rect = flwebgl.geom.Rect;
     import Matrix = flwebgl.geom.Matrix;
@@ -1132,7 +1132,7 @@ declare module flwebgl.g {
         executeFrameScript(name: any): void;
     }
 }
-declare module flwebgl.g {
+declare module flwebgl.sg {
     import Event = flwebgl.events.Event;
     import Rect = flwebgl.geom.Rect;
     import Mesh = flwebgl.e.Mesh;
@@ -1152,8 +1152,6 @@ declare module flwebgl.g {
     }
 }
 declare module flwebgl.sg {
-    import MovieClip = flwebgl.g.MovieClip;
-    import Shape = flwebgl.g.Shape;
     import Context = flwebgl.Context;
     class SceneGraphFactory {
         context: Context;
@@ -1191,8 +1189,8 @@ declare module flwebgl.e {
 declare module flwebgl.e {
     import Color = flwebgl.geom.Color;
     import ColorTransform = flwebgl.geom.ColorTransform;
-    import DisplayObject = flwebgl.g.DisplayObject;
-    class yk {
+    import DisplayObject = flwebgl.sg.DisplayObject;
+    class BitmapCacheObject {
         displayObject: DisplayObject;
         color: Color;
         colorTransform: ColorTransform;
@@ -1241,7 +1239,7 @@ declare module flwebgl.e {
     import ColorTransform = flwebgl.geom.ColorTransform;
     import AssetPool = flwebgl.util.AssetPool;
     import SceneGraphFactory = flwebgl.sg.SceneGraphFactory;
-    import DisplayObject = flwebgl.g.DisplayObject;
+    import DisplayObject = flwebgl.sg.DisplayObject;
     class BitmapCacheFactory {
         private renderer;
         private assetPool;
@@ -1254,7 +1252,7 @@ declare module flwebgl.e {
         private spriteSheetMap;
         private ce;
         constructor(renderer: Renderer, assetPool: AssetPool, sceneGraphFactory: SceneGraphFactory);
-        addCachedObject(a: yk): boolean;
+        addCachedObject(a: BitmapCacheObject): boolean;
         Qn(): void;
         Qk(a: any, color: Color, transform: Matrix, colorTransform: ColorTransform): wk;
         ml(a: any): void;
@@ -1318,7 +1316,7 @@ declare module flwebgl.xj.parsers {
 declare module flwebgl.B.commands {
     import Context = flwebgl.Context;
     import Matrix = flwebgl.geom.Matrix;
-    import MovieClip = flwebgl.g.MovieClip;
+    import MovieClip = flwebgl.sg.MovieClip;
     class SetTransformCommand implements IFrameCommand {
         targetID: string;
         hf: any;
@@ -1330,7 +1328,7 @@ declare module flwebgl.B.commands {
 declare module flwebgl.B.commands {
     import Context = flwebgl.Context;
     import ColorTransform = flwebgl.geom.ColorTransform;
-    import MovieClip = flwebgl.g.MovieClip;
+    import MovieClip = flwebgl.sg.MovieClip;
     class SetColorTransformCommand implements IFrameCommand {
         targetID: string;
         colorTransform: ColorTransform;
@@ -1340,7 +1338,7 @@ declare module flwebgl.B.commands {
 }
 declare module flwebgl.B.commands {
     import Context = flwebgl.Context;
-    import MovieClip = flwebgl.g.MovieClip;
+    import MovieClip = flwebgl.sg.MovieClip;
     class RemoveObjectCommand implements IFrameCommand {
         targetID: string;
         constructor(a: any[]);
@@ -1350,7 +1348,7 @@ declare module flwebgl.B.commands {
 declare module flwebgl.B.commands {
     import Context = flwebgl.Context;
     import Color = flwebgl.geom.Color;
-    import MovieClip = flwebgl.g.MovieClip;
+    import MovieClip = flwebgl.sg.MovieClip;
     class CacheAsBitmapCommand implements IFrameCommand {
         targetID: string;
         color: Color;

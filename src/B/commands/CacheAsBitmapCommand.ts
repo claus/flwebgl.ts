@@ -1,16 +1,16 @@
 /// <reference path="../../Context.ts" />
-/// <reference path="../../g/MovieClip.ts" />
+/// <reference path="../../sg/MovieClip.ts" />
 /// <reference path="../../e/vk.ts" />
-/// <reference path="../../e/yk.ts" />
+/// <reference path="../../e/BitmapCacheObject.ts" />
 /// <reference path="IFrameCommand.ts" />
 
 module flwebgl.B.commands
 {
   import Context = flwebgl.Context;
   import Color = flwebgl.geom.Color;
-  import MovieClip = flwebgl.g.MovieClip;
+  import MovieClip = flwebgl.sg.MovieClip;
   import vk = flwebgl.e.vk;
-  import yk = flwebgl.e.yk;
+  import yk = flwebgl.e.BitmapCacheObject;
 
   export class CacheAsBitmapCommand implements IFrameCommand
   {

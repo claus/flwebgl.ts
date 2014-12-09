@@ -10,7 +10,7 @@
 /// <reference path="../Context.ts" />
 /// <reference path="DisplayObject.ts" />
 
-module flwebgl.g
+module flwebgl.sg
 {
   import ColorTransform = flwebgl.geom.ColorTransform;
   import Rect = flwebgl.geom.Rect;

@@ -8,7 +8,7 @@
 /// <reference path="../e/IRenderable.ts" />
 /// <reference path="DisplayObject.ts" />
 
-module flwebgl.g
+module flwebgl.sg
 {
   import Event = flwebgl.events.Event;
   import ColorTransform = flwebgl.geom.ColorTransform;

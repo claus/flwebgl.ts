@@ -768,8 +768,8 @@ var __extends = this.__extends || function (d, b) {
 };
 var flwebgl;
 (function (flwebgl) {
-    var g;
-    (function (g) {
+    var sg;
+    (function (sg) {
         var EventDispatcher = flwebgl.events.EventDispatcher;
         var ColorTransform = flwebgl.geom.ColorTransform;
         var Matrix = flwebgl.geom.Matrix;
@@ -919,8 +919,8 @@ var flwebgl;
             };
             return DisplayObject;
         })(EventDispatcher);
-        g.DisplayObject = DisplayObject;
-    })(g = flwebgl.g || (flwebgl.g = {}));
+        sg.DisplayObject = DisplayObject;
+    })(sg = flwebgl.sg || (flwebgl.sg = {}));
 })(flwebgl || (flwebgl = {}));
 var flwebgl;
 (function (flwebgl) {
@@ -3902,8 +3902,8 @@ var flwebgl;
 })(flwebgl || (flwebgl = {}));
 var flwebgl;
 (function (flwebgl) {
-    var g;
-    (function (g) {
+    var sg;
+    (function (sg) {
         var Rect = flwebgl.geom.Rect;
         var Event = flwebgl.events.Event;
         var Mesh = flwebgl.e.Mesh;
@@ -4404,14 +4404,14 @@ var flwebgl;
                 eval("flwebgl.actions." + name + ".call(this);");
             };
             return MovieClip;
-        })(g.DisplayObject);
-        g.MovieClip = MovieClip;
-    })(g = flwebgl.g || (flwebgl.g = {}));
+        })(sg.DisplayObject);
+        sg.MovieClip = MovieClip;
+    })(sg = flwebgl.sg || (flwebgl.sg = {}));
 })(flwebgl || (flwebgl = {}));
 var flwebgl;
 (function (flwebgl) {
-    var g;
-    (function (g) {
+    var sg;
+    (function (sg) {
         var Matrix = flwebgl.geom.Matrix;
         var Point = flwebgl.geom.Point;
         var Rect = flwebgl.geom.Rect;
@@ -4507,16 +4507,14 @@ var flwebgl;
                 this.mf.destroy();
             };
             return Shape;
-        })(g.DisplayObject);
-        g.Shape = Shape;
-    })(g = flwebgl.g || (flwebgl.g = {}));
+        })(sg.DisplayObject);
+        sg.Shape = Shape;
+    })(sg = flwebgl.sg || (flwebgl.sg = {}));
 })(flwebgl || (flwebgl = {}));
 var flwebgl;
 (function (flwebgl) {
     var sg;
     (function (sg) {
-        var MovieClip = flwebgl.g.MovieClip;
-        var Shape = flwebgl.g.Shape;
         var SceneGraphFactory = (function () {
             function SceneGraphFactory(context, nextAvailableID) {
                 this.context = context;
@@ -4527,7 +4525,7 @@ var flwebgl;
                 return (!timeline || timeline.isScene) ? void 0 : this.createMovieClip(timeline.id, "-1");
             };
             SceneGraphFactory.prototype.createMovieClip = function (timelineID, mcID) {
-                var mc = new MovieClip();
+                var mc = new sg.MovieClip();
                 mc.context = this.context;
                 if (timelineID !== void 0) {
                     mc.Of(this.context.assetPool.getTimeline(timelineID));
@@ -4536,7 +4534,7 @@ var flwebgl;
                 return mc;
             };
             SceneGraphFactory.prototype.createShape = function (meshID, shapeID) {
-                var shape = new Shape();
+                var shape = new sg.Shape();
                 shape.Of(this.context.assetPool.getMesh(meshID));
                 shape.id = shapeID;
                 return shape;
@@ -4621,16 +4619,16 @@ var flwebgl;
 (function (flwebgl) {
     var e;
     (function (e) {
-        var yk = (function () {
-            function yk(displayObject, color, colorTransform, pa) {
+        var BitmapCacheObject = (function () {
+            function BitmapCacheObject(displayObject, color, colorTransform, pa) {
                 this.displayObject = displayObject;
                 this.color = color;
                 this.colorTransform = colorTransform;
                 this.pa = pa;
             }
-            return yk;
+            return BitmapCacheObject;
         })();
-        e.yk = yk;
+        e.BitmapCacheObject = BitmapCacheObject;
     })(e = flwebgl.e || (flwebgl.e = {}));
 })(flwebgl || (flwebgl = {}));
 var flwebgl;
@@ -4885,10 +4883,10 @@ var flwebgl;
                     }
                     this.wc.length = 0;
                     var viewport = this.renderer.getViewport();
-                    var texMax = new Rect(0, 0, _e.GL.MAX_TEXTURE_SIZE, _e.GL.MAX_TEXTURE_SIZE);
-                    this.renderer.setViewport(texMax, false);
-                    for (var y in this.spriteSheetMap) {
-                        this.spriteSheetMap[y].pn(this.renderer);
+                    var viewportTexMax = new Rect(0, 0, _e.GL.MAX_TEXTURE_SIZE, _e.GL.MAX_TEXTURE_SIZE);
+                    this.renderer.setViewport(viewportTexMax, false);
+                    for (var textureID in this.spriteSheetMap) {
+                        this.spriteSheetMap[textureID].pn(this.renderer);
                     }
                     this.renderer.setViewport(viewport);
                 }
@@ -6114,7 +6112,7 @@ var flwebgl;
         (function (commands) {
             var Color = flwebgl.geom.Color;
             var vk = flwebgl.e.vk;
-            var yk = flwebgl.e.yk;
+            var yk = flwebgl.e.BitmapCacheObject;
             var CacheAsBitmapCommand = (function () {
                 function CacheAsBitmapCommand(a) {
                     this.targetID = a[0];
@@ -7005,8 +7003,8 @@ var flwebgl;
     var GL = flwebgl.e.GL;
     var Renderer = flwebgl.e.Renderer;
     var BitmapCacheFactory = flwebgl.e.BitmapCacheFactory;
-    var SoundFactory = flwebgl.media.SoundFactory;
     var SceneGraphFactory = flwebgl.sg.SceneGraphFactory;
+    var SoundFactory = flwebgl.media.SoundFactory;
     var AssetPool = flwebgl.util.AssetPool;
     var Utils = flwebgl.util.Utils;
     var Parser = flwebgl.xj.Parser;

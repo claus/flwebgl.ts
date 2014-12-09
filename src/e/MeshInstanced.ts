@@ -9,7 +9,7 @@ module flwebgl.e
 {
   import Matrix = flwebgl.geom.Matrix;
   import ColorTransform = flwebgl.geom.ColorTransform;
-  import Shape = flwebgl.g.Shape;
+  import Shape = flwebgl.sg.Shape;
   import Utils = flwebgl.util.Utils;
 
   interface LKMap { [edgeType: string]: lk[]; }

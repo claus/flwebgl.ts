@@ -1,6 +1,6 @@
 /// <reference path="../geom/Color.ts" />
 /// <reference path="../geom/Matrix.ts" />
-/// <reference path="../g/DisplayObject.ts" />
+/// <reference path="../sg/DisplayObject.ts" />
 
 interface Window {
   webkitRequestAnimationFrame(callback: any, element?: any): number;
@@ -16,7 +16,7 @@ module flwebgl.util
 {
   import Color = flwebgl.geom.Color;
   import Matrix = flwebgl.geom.Matrix;
-  import DisplayObject = flwebgl.g.DisplayObject;
+  import DisplayObject = flwebgl.sg.DisplayObject;
 
   export class Utils
   {

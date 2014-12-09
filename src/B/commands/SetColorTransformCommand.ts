@@ -1,8 +1,8 @@
 /// <reference path="../../Context.ts" />
 /// <reference path="../../geom/ColorTransform.ts" />
 /// <reference path="../../util/AssetPool.ts" />
-/// <reference path="../../g/MovieClip.ts" />
-/// <reference path="../../g/DisplayObject.ts" />
+/// <reference path="../../sg/MovieClip.ts" />
+/// <reference path="../../sg/DisplayObject.ts" />
 /// <reference path="IFrameCommand.ts" />
 
 module flwebgl.B.commands
@@ -10,8 +10,8 @@ module flwebgl.B.commands
   import Context = flwebgl.Context;
   import ColorTransform = flwebgl.geom.ColorTransform;
   import AssetPool = flwebgl.util.AssetPool;
-  import MovieClip = flwebgl.g.MovieClip;
-  import DisplayObject = flwebgl.g.DisplayObject;
+  import MovieClip = flwebgl.sg.MovieClip;
+  import DisplayObject = flwebgl.sg.DisplayObject;
 
   export class SetColorTransformCommand implements IFrameCommand
   {

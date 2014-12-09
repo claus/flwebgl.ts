@@ -6,7 +6,7 @@
 /// <reference path="../e/IRenderable.ts" />
 /// <reference path="../e/vk.ts" />
 
-module flwebgl.g
+module flwebgl.sg
 {
   import EventDispatcher = flwebgl.events.EventDispatcher;
   import ColorTransform = flwebgl.geom.ColorTransform;

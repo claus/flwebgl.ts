@@ -1,9 +1,9 @@
-/// <reference path="../../g/DisplayObject.ts" />
+/// <reference path="../../sg/DisplayObject.ts" />
 /// <reference path="../../Context.ts" />
 
 module flwebgl.B.commands
 {
-  import DisplayObject = flwebgl.g.DisplayObject;
+  import DisplayObject = flwebgl.sg.DisplayObject;
   import Context = flwebgl.Context;
 
   export interface IFrameCommand

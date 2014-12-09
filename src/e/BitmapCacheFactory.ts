@@ -6,11 +6,11 @@
 /// <reference path="../util/Utils.ts" />
 /// <reference path="../util/AssetPool.ts" />
 /// <reference path="../sg/SceneGraphFactory.ts" />
-/// <reference path="../g/DisplayObject.ts" />
+/// <reference path="../sg/DisplayObject.ts" />
 /// <reference path="GL.ts" />
 /// <reference path="Mesh.ts" />
 /// <reference path="wk.ts" />
-/// <reference path="yk.ts" />
+/// <reference path="BitmapCacheObject.ts" />
 /// <reference path="zk.ts" />
 /// <reference path="AttributeDef.ts" />
 /// <reference path="VertexData.ts" />
@@ -25,7 +25,7 @@ module flwebgl.e
   import Utils = flwebgl.util.Utils;
   import AssetPool = flwebgl.util.AssetPool;
   import SceneGraphFactory = flwebgl.sg.SceneGraphFactory;
-  import DisplayObject = flwebgl.g.DisplayObject;
+  import DisplayObject = flwebgl.sg.DisplayObject;
 
   interface SpriteSheetMap { [textureID: string]: zk }
 
@@ -37,10 +37,10 @@ module flwebgl.e
     private sceneGraphFactory: SceneGraphFactory;
     private colorTransform: ColorTransform; // not used
     private oa: any[];
-    private wc: yk[];
+    private wc: BitmapCacheObject[];
     private numRenderTargets: number;
     private maxRenderTargets: number;
-    private spriteSheetMap: any;
+    private spriteSheetMap: SpriteSheetMap;
     private ce: any;
 
     constructor(renderer: Renderer, assetPool: AssetPool, sceneGraphFactory: SceneGraphFactory) {
@@ -52,11 +52,11 @@ module flwebgl.e
       this.wc = [];
       this.numRenderTargets = 0;
       this.maxRenderTargets = 1;
-      this.spriteSheetMap = {}; // ZKMap
+      this.spriteSheetMap = {};
       this.ce = {};
     }
 
-    addCachedObject(a: yk): boolean {
+    addCachedObject(a: BitmapCacheObject): boolean {
       if (!a.displayObject || !a.color || !a.pa) {
         return false;
       }
@@ -94,10 +94,10 @@ module flwebgl.e
         }
         this.wc.length = 0;
         var viewport = this.renderer.getViewport();
-        var texMax = new Rect(0, 0, GL.MAX_TEXTURE_SIZE, GL.MAX_TEXTURE_SIZE);
-        this.renderer.setViewport(texMax, false);
-        for (var y in this.spriteSheetMap) {
-          this.spriteSheetMap[y].pn(this.renderer);
+        var viewportTexMax = new Rect(0, 0, GL.MAX_TEXTURE_SIZE, GL.MAX_TEXTURE_SIZE);
+        this.renderer.setViewport(viewportTexMax, false);
+        for (var textureID in this.spriteSheetMap) {
+          this.spriteSheetMap[textureID].pn(this.renderer);
         }
         this.renderer.setViewport(viewport);
       }

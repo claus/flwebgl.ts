@@ -1,11 +1,9 @@
-/// <reference path="../g/MovieClip.ts" />
-/// <reference path="../g/Shape.ts" />
 /// <reference path="../Context.ts" />
+/// <reference path="MovieClip.ts" />
+/// <reference path="Shape.ts" />
 
 module flwebgl.sg
 {
-  import MovieClip = flwebgl.g.MovieClip;
-  import Shape = flwebgl.g.Shape;
   import Context = flwebgl.Context;
 
   export class SceneGraphFactory

@@ -1,7 +1,7 @@
 /// <reference path="../../Context.ts" />
 /// <reference path="../../geom/Matrix.ts" />
 /// <reference path="../../util/AssetPool.ts" />
-/// <reference path="../../g/MovieClip.ts" />
+/// <reference path="../../sg/MovieClip.ts" />
 /// <reference path="IFrameCommand.ts" />
 
 module flwebgl.B.commands
@@ -9,7 +9,7 @@ module flwebgl.B.commands
   import Context = flwebgl.Context;
   import Matrix = flwebgl.geom.Matrix;
   import AssetPool = flwebgl.util.AssetPool;
-  import MovieClip = flwebgl.g.MovieClip;
+  import MovieClip = flwebgl.sg.MovieClip;
 
   export class SetTransformCommand implements IFrameCommand
   {
