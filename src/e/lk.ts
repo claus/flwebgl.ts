@@ -13,16 +13,16 @@ module flwebgl.e
     private _id: string;
     private _atlasID: string;
     private parent: MeshInstanced;
-    private se: UniformValuesMap;
+    private uniformValuesMap: UniformValuesMap;
 
-    ka: Geometry;
+    geometry: Geometry;
 
     constructor(id: string, h: Geometry, atlasID: string, parent: MeshInstanced) {
       this._id = id;
       this._atlasID = atlasID;
-      this.ka = h;
+      this.geometry = h;
       this.parent = parent;
-      this.se = {};
+      this.uniformValuesMap = {};
     }
 
     get id(): string {
@@ -43,23 +43,23 @@ module flwebgl.e
 
     get isOpaque(): boolean {
       var cxform = this.parent.getColorTransform();
-      return (this.ka.isOpaque && cxform.alphaMultiplier == 1 && cxform.alphaOffset == 0);
+      return (this.geometry.isOpaque && cxform.alphaMultiplier == 1 && cxform.alphaOffset == 0);
     }
 
     getVertexData(): VertexData[] {
-      return this.ka.getVertexData(this._atlasID);
+      return this.geometry.getVertexData(this._atlasID);
     }
     
     getNumIndices(): number {
-      return this.ka.getNumIndices();
+      return this.geometry.getNumIndices();
     }
     
     getUniforms(shaderID: number): UniformValue[] {
-      return this.se["" + shaderID];
+      return this.uniformValuesMap["" + shaderID];
     }
     
     setUniforms(shaderID: number, uniforms: UniformValue[]) {
-      this.se["" + shaderID] = uniforms;
+      this.uniformValuesMap["" + shaderID] = uniforms;
     }
     
     getTransform(): Matrix {

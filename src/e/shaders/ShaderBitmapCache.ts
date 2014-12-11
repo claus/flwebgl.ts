@@ -1,10 +1,12 @@
 /// <reference path="../GL.ts" />
+/// <reference path="../Pe.ts" />
 /// <reference path="../../util/Logger.ts" />
 /// <reference path="IShader.ts" />
 
 module flwebgl.e.shaders
 {
   import GL = flwebgl.e.GL;
+  import Pe = flwebgl.e.Pe;
   import Logger = flwebgl.util.Logger;
 
   // pk
@@ -52,7 +54,7 @@ module flwebgl.e.shaders
       this.gl.vertexAttribPointer(1, 2, GL.FLOAT, false, 0, 32)
     }
 
-    draw(a, b?) {
+    draw(a: Pe, b?) {
       this.setUniformValues(b);
       this.gl.drawElements(this.indexBufferValues.length);
     }

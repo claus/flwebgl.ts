@@ -1,4 +1,5 @@
 /// <reference path="../GL.ts" />
+/// <reference path="../IRenderable.ts" />
 /// <reference path="../RenderTarget.ts" />
 /// <reference path="../shaders/ShaderBitmapCache.ts" />
 /// <reference path="../../geom/Color.ts" />
@@ -8,6 +9,7 @@
 module flwebgl.e.renderers
 {
   import GL = flwebgl.e.GL;
+  import IRenderable = flwebgl.e.IRenderable;
   import RenderTarget = flwebgl.e.RenderTarget;
   import ShaderBitmapCache = flwebgl.e.shaders.ShaderBitmapCache;
   import Color = flwebgl.geom.Color;
@@ -36,10 +38,10 @@ module flwebgl.e.renderers
       return this.shader.setGL(gl) && this.renderer.setGL(gl);
     }
 
-    e(a) {
+    draw(renderables: IRenderable[], b?) {
       this.ld();
       var oldRenderTarget = this.gl.activateRenderTarget(this.renderTarget);
-      this.renderer.e(a);
+      this.renderer.draw(renderables);
       this.gl.activateRenderTarget(oldRenderTarget);
       this.shader.activate();
       this.gl.activateRenderTargetTexture(this.renderTarget);

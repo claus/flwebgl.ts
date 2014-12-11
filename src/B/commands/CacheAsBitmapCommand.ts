@@ -18,7 +18,7 @@ module flwebgl.B.commands
     color: Color;
 
     constructor(a: any[]) {
-      this.targetID = a[0];
+      this.targetID = "" + a[0];
       this.color = new Color(a[2], a[3], a[4], a[1]);
     }
 

@@ -98,7 +98,7 @@ module flwebgl.e
           var len = xj.length;
           for (var i = 0; i < len; ++i) {
             xj[i].depth = i / len;
-            renderer.e(xj[i], 1);
+            renderer.draw(xj[i], 1);
           }
           renderer.lj();
         }

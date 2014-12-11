@@ -1,10 +1,12 @@
 /// <reference path="e/GL.ts" />
 /// <reference path="e/Renderer.ts" />
+/// <reference path="e/IRenderable.ts" />
 /// <reference path="e/BitmapCacheFactory.ts" />
 /// <reference path="sg/MovieClip.ts" />
 /// <reference path="sg/SceneGraphFactory.ts" />
 /// <reference path="media/SoundFactory.ts" />
 /// <reference path="util/AssetPool.ts" />
+/// <reference path="util/Logger.ts" />
 /// <reference path="util/Utils.ts" />
 /// <reference path="xj/Parser.ts" />
 /// <reference path="geom/Rect.ts" />
@@ -16,11 +18,13 @@ module flwebgl
 {
   import GL = flwebgl.e.GL;
   import Renderer = flwebgl.e.Renderer;
+  import IRenderable = flwebgl.e.IRenderable;
   import BitmapCacheFactory = flwebgl.e.BitmapCacheFactory;
   import MovieClip = flwebgl.sg.MovieClip;
   import SceneGraphFactory = flwebgl.sg.SceneGraphFactory;
   import SoundFactory = flwebgl.media.SoundFactory;
   import AssetPool = flwebgl.util.AssetPool;
+  import Logger = flwebgl.util.Logger;
   import Utils = flwebgl.util.Utils;
   import Parser = flwebgl.xj.Parser;
   import Rect = flwebgl.geom.Rect;
@@ -58,9 +62,9 @@ module flwebgl
     private startTime: number;
     private Xe: number;
     private Hi: number;
-    private rc: number;
+    private currentSceneIndex: number;
     private jd: boolean;
-    private oa: any[];
+    private renderables: IRenderable[];
     private mainLoop: Function;
     private frameRenderListener: Function;
 
@@ -70,7 +74,7 @@ module flwebgl
       this.playMode = Player.kIsStopped;
       this.stageWidth = 550;
       this.stageHeight = 400;
-      this.rc = -1;
+      this.currentSceneIndex = -1;
       this.jd = true;
       this.numFrames = 0;
       this.soundsLoaded = false;
@@ -128,16 +132,18 @@ module flwebgl
       }
     }
 
-    _texturesLoadedCBK() {
+    private _texturesLoadedCBK() {
       this.renderer.setGL();
       this.texturesLoaded = true;
       this._checkComplete();
     }
-    _soundsLoadedCBK() {
+
+    private _soundsLoadedCBK() {
       this.soundsLoaded = true;
       this._checkComplete();
     }
-    _checkComplete() {
+
+    private _checkComplete() {
       if (this.completeCBK && this.texturesLoaded && this.soundsLoaded) {
         this.completeCBK();
         this.completeCBK = null;
@@ -157,7 +163,7 @@ module flwebgl
     }
 
     play(scene?: string): boolean {
-      var timelineIndex = 0;
+      var sceneIndex = 0;
       var h = this.jd;
       this.jd = true;
       if (scene && scene.length) {
@@ -165,7 +171,7 @@ module flwebgl
         for (var i = 0; i < this.sceneTimelines.length; i++) {
           var timelineID = "" + this.sceneTimelines[i];
           if (this.assetPool.getTimeline(timelineID).name === scene) {
-            timelineIndex = i;
+            sceneIndex = i;
             found = true;
             this.jd = false;
             break;
@@ -179,7 +185,7 @@ module flwebgl
       this.canvas.addEventListener("webglcontextrestored", this.webglContextRestoredHandler, false);
       this.startTime = (new Date).getTime();
       if (!h || !this.jd) {
-        this.Ri(timelineIndex, h !== this.jd);
+        this.gotoScene(sceneIndex, h !== this.jd);
       }
       this.playMode = Player.kIsPlaying;
       this.rafID = Utils.requestAnimFrame(this.mainLoop, this.frameRate, window);
@@ -217,45 +223,34 @@ module flwebgl
             }
             this.timeoutID = window.setTimeout(this.mainLoop, this.frameDuration - elapsed);
           } else if (elapsed >= this.frameDuration) {
-            this.Sl();
-            /*
-            Player.fps += elapsed;
-            if (++Player.fpsCounter == 1000) {
-              console.log(Player.fps / Player.fpsCounter);
-              Player.fpsCounter = 1;
-              Player.fps = elapsed;
-            }
-            */
-            this.Pk();
+            this.collectRenderables();
+            this.draw();
           }
         }
       } catch (error) {
-        //c.l.w.error(error.message);
+        Logger.error(error.message);
         this.stop();
         throw error;
       }
     }
 
-    //static fpsCounter: number = 0;
-    //static fps: number = 0;
-
-    Sl() {
+    collectRenderables() {
       this.stage.setTransforms(void 0, void 0);
       if (this.options.cacheAsBitmap) {
         this.bitmapCacheFactory.Qn();
       }
-      this.oa = [];
-      this.stage.collectRenderables(this.oa);
+      this.renderables = [];
+      this.stage.collectRenderables(this.renderables);
     }
 
-    Pk() {
+    draw() {
       this.startTime = (new Date).getTime();
-      this.me();
+      this.initStateGL();
       this.renderer.ij();
-      var b = this.oa.length;
-      for (var a = 0; a < b; ++a) {
-        this.oa[a].depth = a / b;
-        this.renderer.e(this.oa[a], 1);
+      var numRenderables = this.renderables.length;
+      for (var i = 0; i < numRenderables; i++) {
+        this.renderables[i].depth = i / numRenderables;
+        this.renderer.draw(this.renderables[i], 1);
       }
       this.renderer.lj();
       if (this.frameRenderListener) {
@@ -264,7 +259,7 @@ module flwebgl
       this.Hi = this.Xe;
     }
 
-    me() {
+    initStateGL() {
       this.renderer.setBackgroundColor(this.renderer.getBackgroundColor());
       this.renderer.blendFunc(GL.SRC_ALPHA, GL.ONE_MINUS_SRC_ALPHA);
       this.renderer.enable(GL.BLEND);
@@ -276,8 +271,12 @@ module flwebgl
     }
 
     Gk() {
-      if (this.stage.currentFrame === this.numFrames && this.stage.isPlaying && this.jd && (this.loop || this.rc !== this.sceneTimelines.length - 1)) {
-        this.Ri((this.rc + 1) % this.sceneTimelines.length);
+      if (this.stage.currentFrame === this.numFrames
+          && this.stage.isPlaying
+          && this.jd
+          && (this.loop || this.currentSceneIndex !== this.sceneTimelines.length - 1))
+      {
+        this.gotoScene((this.currentSceneIndex + 1) % this.sceneTimelines.length);
       }
       this.stage.advanceFrame();
       this.stage.dispatchEnterFrame();
@@ -287,26 +286,26 @@ module flwebgl
       this.stage.dispatchExitFrame()
     }
 
-    Ri(a: number, b: boolean = false) {
-      if (b || (this.rc !== -1 && this.rc !== a)) {
+    gotoScene(sceneIndex: number, b: boolean = false) {
+      if (b || (this.currentSceneIndex !== -1 && this.currentSceneIndex !== sceneIndex)) {
         this.Al();
       }
       this.Xe = -1;
       this.Hi = -1;
-      if (b || this.rc !== a) {
-        var timelineID = "" + this.sceneTimelines[a];
+      if (b || this.currentSceneIndex !== sceneIndex) {
+        var timelineID = "" + this.sceneTimelines[sceneIndex];
         var timeline = this.assetPool.getTimeline(timelineID);
         this.stage.setDefinition(timeline);
         this.stage.play();
         this.numFrames = timeline.commands.length;
       }
-      this.rc = a;
+      this.currentSceneIndex = sceneIndex;
     }
 
     Al(b: boolean = false) {
       if (b) {
         this.stop();
-        this.rc = -1;
+        this.currentSceneIndex = -1;
       }
       if (this.stage)
         for (var i = this.stage.getNumChildren() - 1; i >= 0; i--) {

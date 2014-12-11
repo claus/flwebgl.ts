@@ -4,6 +4,7 @@
 /// <reference path="../Mesh.ts" />
 /// <reference path="../MeshInstanced.ts" />
 /// <reference path="../RenderTarget.ts" />
+/// <reference path="../IRenderable.ts" />
 /// <reference path="../shaders/IShader.ts" />
 /// <reference path="../shaders/ShaderImageSpaceStdDev.ts" />
 /// <reference path="../shaders/ShaderImageSpaceStdDevEmulated.ts" />
@@ -19,6 +20,7 @@ module flwebgl.e.renderers
   import Mesh = flwebgl.e.Mesh;
   import MeshInstanced = flwebgl.e.MeshInstanced;
   import RenderTarget = flwebgl.e.RenderTarget;
+  import IRenderable = flwebgl.e.IRenderable;
   import IShader = flwebgl.e.shaders.IShader;
   import ShaderImageSpaceStdDev = flwebgl.e.shaders.ShaderImageSpaceStdDev;
   import ShaderImageSpaceStdDevEmulated = flwebgl.e.shaders.ShaderImageSpaceStdDevEmulated;
@@ -59,10 +61,10 @@ module flwebgl.e.renderers
       return this.shader.setGL(gl) && this.shaderCoverage.setGL(gl);
     }
 
-    e(a) {
+    draw(renderables: IRenderable[], b?) {
       this.rl = this.gl.getRenderTarget();
       this.ld();
-      this.Qg(a);
+      this.Qg(renderables);
       this.nf(RenderPassIndex.oc);
       this.Ia(RenderPassIndex.oc, this.cg);
       for (var i = 0; i < this.Ab.length; i++) {
@@ -125,11 +127,11 @@ module flwebgl.e.renderers
       }
     }
 
-    Qg(renderables: MeshInstanced[]) {
+    Qg(renderables: IRenderable[]) {
       this.fe = 0;
       var z: lk;
       var x: lk;
-      var renderable: MeshInstanced;
+      var renderable: IRenderable;
       var numRenderables = renderables.length;
       for (var f = 0; f < numRenderables; f++) {
         renderable = renderables[f];
@@ -137,13 +139,13 @@ module flwebgl.e.renderers
         for (k = 0; k < renderable.ra(Mesh.INTERNAL); k++) {
           z = renderable.ab(Mesh.INTERNAL, k, this.gl);
           if (z.isOpaque) {
-            this.cg.Dc(z);
+            this.cg.add(z);
           }
         }
         for (k = 0; k < renderable.ra(Mesh.EXTERNAL); k++) {
           z = renderable.ab(Mesh.EXTERNAL, k, this.gl);
           if (z.isOpaque) {
-            this.cg.Dc(z);
+            this.cg.add(z);
           }
         }
       }
@@ -178,7 +180,7 @@ module flwebgl.e.renderers
                 y = y.concat(l);
               }
               for (var i = 0; i < y.length; i++) {
-                t.Dc(y[i]);
+                t.add(y[i]);
               }
               this.Ab.push({
                 type: RenderPassIndex.Tb,
@@ -240,7 +242,7 @@ module flwebgl.e.renderers
           }
           if (w.length > 0) {
             for (e = 0; e < w.length; ++e) {
-              q.Dc(w[e]);
+              q.add(w[e]);
             }
             this.Ab.push({
               type: RenderPassIndex.Mc,
@@ -249,7 +251,7 @@ module flwebgl.e.renderers
           }
         } else if (y.length > 0) {
           for (e = 0; e < y.length; ++e) {
-            t.Dc(y[e]);
+            t.add(y[e]);
           }
           this.Ab.push({
             type: RenderPassIndex.Tb,

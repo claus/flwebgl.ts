@@ -5,6 +5,7 @@
 /// <reference path="../geom/Rect.ts" />
 /// <reference path="../e/Mesh.ts" />
 /// <reference path="../e/MeshInstanced.ts" />
+/// <reference path="../e/IRenderable.ts" />
 /// <reference path="IDisplayObjectDefinition.ts" />
 /// <reference path="DisplayObject.ts" />
 
@@ -17,6 +18,7 @@ module flwebgl.sg
   import Rect = flwebgl.geom.Rect;
   import Mesh = flwebgl.e.Mesh;
   import MeshInstanced = flwebgl.e.MeshInstanced;
+  import IRenderable = flwebgl.e.IRenderable;
   import IDisplayObjectDefinition = flwebgl.sg.IDisplayObjectDefinition;
 
   export class Shape extends DisplayObject
@@ -37,10 +39,10 @@ module flwebgl.sg
       this.yc = <Mesh>obj;
     }
 
-    collectRenderables(a) {
+    collectRenderables(renderables: IRenderable[]) {
       if (this.isVisible()) {
         this.mf.dirty = this.dirty;
-        a.push(this.mf);
+        renderables.push(this.mf);
       }
       this._dirty = false;
     }
@@ -72,7 +74,7 @@ module flwebgl.sg
            : this.calculateBoundsAABB(edgeType, thisConcat);
     }
 
-    calculateBoundsAABB(a, transform) {
+    calculateBoundsAABB(a, transform): Rect {
       var bounds = new Rect();
       var k = this.yc.getGeometryCount(a);
       var p = new Point(0, 0);

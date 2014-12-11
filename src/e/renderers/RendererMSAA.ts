@@ -1,6 +1,7 @@
 /// <reference path="../GL.ts" />
 /// <reference path="../Pe.ts" />
 /// <reference path="../lk.ts" />
+/// <reference path="../IRenderable.ts" />
 /// <reference path="../shaders/IShader.ts" />
 /// <reference path="../shaders/ShaderMSAAStdDev.ts" />
 /// <reference path="../shaders/ShaderMSAAStdDevEmulated.ts" />
@@ -13,7 +14,7 @@ module flwebgl.e.renderers
   import Pe = flwebgl.e.Pe;
   import lk = flwebgl.e.lk;
   import Mesh = flwebgl.e.Mesh;
-  import MeshInstanced = flwebgl.e.MeshInstanced;
+  import IRenderable = flwebgl.e.IRenderable;
   import RenderTarget = flwebgl.e.RenderTarget;
   import IShader = flwebgl.e.shaders.IShader;
   import ShaderMSAAStdDev = flwebgl.e.shaders.ShaderMSAAStdDev;
@@ -36,25 +37,24 @@ module flwebgl.e.renderers
       this.qc[RenderPassIndex.oc] = new Pe();
       this.qc[RenderPassIndex.Tb] = new Pe();
       this.fg = [];
-      this.fg[RenderPassIndex.oc] = this.km;
-      this.fg[RenderPassIndex.Tb] = this.Yl;
+      this.fg[RenderPassIndex.oc] = RendererMSAA.sortByDepthAscending;
+      this.fg[RenderPassIndex.Tb] = RendererMSAA.sortByDepthDescending;
       return this.shader.setGL(gl);
     }
 
-    Yl(a, b): number {
+    static sortByDepthAscending(a, b): number {
+      return a.depth - b.depth;
+    }
+    static sortByDepthDescending(a, b): number {
       return b.depth - a.depth;
     }
 
-    km(a, b): number {
-      return a.depth - b.depth;
-    }
-
-    e(a, b?) {
+    draw(renderables: IRenderable[], b?) {
       this.ld();
-      this.Qg(a);
+      this.Qg(renderables);
       var passIndices = [ RenderPassIndex.oc, RenderPassIndex.Tb ];
-      for (var c = 0; c < passIndices.length; ++c) {
-        var passIndex = passIndices[c];
+      for (var i = 0; i < passIndices.length; i++) {
+        var passIndex = passIndices[i];
         this.nf(passIndex);
         this.Ia(passIndex);
       }
@@ -74,17 +74,20 @@ module flwebgl.e.renderers
       this.gl.setDepthTest(true);
     }
 
-    Qg(a: MeshInstanced[]) {
-      for (var c = 0; c < a.length; ++c) {
-        var f = a[c];
-        for (var e = 0; e < f.ra(Mesh.INTERNAL); e++) {
-          var k = f.ab(Mesh.INTERNAL, e, this.gl);
+    Qg(renderables: IRenderable[]) {
+      var i, j;
+      for (i = 0; i < renderables.length; i++) {
+        var renderable = renderables[i];
+        var numInternal = renderable.ra(Mesh.INTERNAL);
+        for (j = 0; j < numInternal; j++) {
+          var k = renderable.ab(Mesh.INTERNAL, j, this.gl);
           var l = k.isOpaque ? RenderPassIndex.oc : RenderPassIndex.Tb;
-          this.qc[l].Dc(k);
+          this.qc[l].add(k);
         }
-        for (e = 0; e < f.ra(Mesh.EXTERNAL); e++) {
-          k = f.ab(Mesh.EXTERNAL, e, this.gl);
-          this.qc[RenderPassIndex.Tb].Dc(k);
+        var numExternal = renderable.ra(Mesh.EXTERNAL);
+        for (j = 0; j < numExternal; j++) {
+          k = renderable.ab(Mesh.EXTERNAL, j, this.gl);
+          this.qc[RenderPassIndex.Tb].add(k);
         }
       }
     }

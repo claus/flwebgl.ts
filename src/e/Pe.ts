@@ -8,7 +8,7 @@ module flwebgl.e
       this.F = [];
     }
 
-    Dc(a: lk) {
+    add(a: lk) {
       this.F.push(a);
     }
 
@@ -21,9 +21,7 @@ module flwebgl.e
     }
 
     clear() {
-      while (this.F.length > 0) {
-        this.F.pop();
-      }
+      this.F.length = 0;
     }
   }
 }

@@ -1,5 +1,6 @@
 /// <reference path="../GL.ts" />
 /// <reference path="../lk.ts" />
+/// <reference path="../Pe.ts" />
 /// <reference path="../Uniform.ts" />
 /// <reference path="../Attribute.ts" />
 /// <reference path="../renderers/RenderPassIndex.ts" />
@@ -11,6 +12,7 @@
 module flwebgl.e.shaders
 {
   import GL = flwebgl.e.GL;
+  import Pe = flwebgl.e.Pe;
   import Uniform = flwebgl.e.Uniform;
   import Uniforms = flwebgl.e.Uniforms;
   import UniformValue = flwebgl.e.UniformValue;
@@ -64,12 +66,12 @@ module flwebgl.e.shaders
       for (var f = 0; f < c; ++f) {
         var l: lk = a.mc(f);
         if (l.dirty) {
-          var frameID = l.ka.name;
+          var frameID = l.geometry.name;
           var texture = this.gl.getTextureAtlasByFrameID(frameID);
           var frame = texture.getFrame(frameID);
           var cxform = l.getColorTransform();
           var samplerIndex = +l.atlasID;
-          var overflowType = l.ka.fillMode;
+          var overflowType = l.geometry.fillMode;
           var width = texture.width;
           var height = texture.height;
           this.modelViewMatrix.identity();
@@ -101,7 +103,7 @@ module flwebgl.e.shaders
         }
       }
       if (a.F.length > 0) {
-        this.gl.draw(this, a.mc(0).ka.attributeDefsArray, a.F);
+        this.gl.draw(this, a.mc(0).geometry.attributeDefsArray, a.F);
       }
     }
 

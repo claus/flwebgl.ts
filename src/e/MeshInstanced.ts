@@ -1,6 +1,7 @@
 /// <reference path="../geom/ColorTransform.ts" />
 /// <reference path="../geom/Matrix.ts" />
 /// <reference path="../util/Utils.ts" />
+/// <reference path="IRenderable.ts" />
 /// <reference path="Mesh.ts" />
 /// <reference path="GL.ts" />
 /// <reference path="lk.ts" />
@@ -14,7 +15,7 @@ module flwebgl.e
 
   interface LKMap { [edgeType: string]: lk[]; }
 
-  export class MeshInstanced
+  export class MeshInstanced implements IRenderable
   {
     private shape: Shape;
     private Gb: LKMap;

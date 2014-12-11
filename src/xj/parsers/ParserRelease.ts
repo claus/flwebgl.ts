@@ -209,7 +209,7 @@ module flwebgl.xj.parsers
         }
         this.assetPool.setTimeline(timeline);
       }
-      return true
+      return true;
     }
 
     static kSolid = "s";

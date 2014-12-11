@@ -3,6 +3,7 @@
 /// <reference path="../geom/Matrix.ts" />
 /// <reference path="../events/Event.ts" />
 /// <reference path="../e/Mesh.ts" />
+/// <reference path="../e/IRenderable.ts" />
 /// <reference path="../B/Timeline.ts" />
 /// <reference path="../B/commands/IFrameCommand.ts" />
 /// <reference path="../B/commands/PlaceObjectCommand.ts" />
@@ -17,6 +18,7 @@ module flwebgl.sg
   import Matrix = flwebgl.geom.Matrix;
   import Event = flwebgl.events.Event;
   import Mesh = flwebgl.e.Mesh;
+  import IRenderable = flwebgl.e.IRenderable;
   import Timeline = flwebgl.B.Timeline;
   import IDisplayObjectDefinition = flwebgl.sg.IDisplayObjectDefinition;
   import IFrameCommand = flwebgl.B.commands.IFrameCommand;
@@ -501,46 +503,46 @@ module flwebgl.sg
       this.df = true;
     }
 
-    collectRenderables(a) {
+    collectRenderables(renderables: IRenderable[]) {
       // do nothing if this mc is not visible
       if (this.isVisible()) {
         var e;
         if (this.pa === void 0) {
           // this mc is not cached as bitmap:
           // collect and add all children's renderables
-          var b = a.length;
+          var b = renderables.length;
           for (e = 0; e < this.children.length; ++e) {
-            this.children[e].collectRenderables(a);
+            this.children[e].collectRenderables(renderables);
           }
           // if this mc is dirty, make children's renderables dirty too
           if (this._dirty) {
-            for (e = b; e < a.length; ++e) {
-              a[e].dirty = true;
+            for (e = b; e < renderables.length; ++e) {
+              renderables[e].dirty = true;
             }
           }
         } else {
           // this mc is cached as bitmap:
           // collect all children's renderables separately
-          b = [];
+          var childRenderables: IRenderable[] = [];
           for (e = 0; e < this.children.length; ++e) {
-            this.children[e].collectRenderables(b);
+            this.children[e].collectRenderables(childRenderables);
           }
           // check if any of them is dirty
           var k = false;
-          for (e = 0; !k && e < b.length; ++e) {
-            k = b[e].dirty;
+          for (e = 0; !k && e < childRenderables.length; ++e) {
+            k = childRenderables[e].dirty;
           }
           if (k) {
             // if any of them is dirty,
             // kill cache as bitmap, make all of them dirty and add to list
             this.oi();
-            for (e = 0; e < b.length; ++e) {
-              b[e].dirty = true;
-              a.push(b[e]);
+            for (e = 0; e < childRenderables.length; ++e) {
+              childRenderables[e].dirty = true;
+              renderables.push(childRenderables[e]);
             }
           } else {
             // cache (?)
-            this.pa.collectRenderables(a);
+            this.pa.collectRenderables(renderables);
           }
         }
         this._dirty = false;

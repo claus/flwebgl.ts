@@ -181,9 +181,9 @@ declare module flwebgl.e {
         bounds: Rect;
         constructor(id: string);
         id: string;
-        Nb(edgeType: string, h: Geometry): void;
-        ra(edgeType: string): number;
-        yf(edgeType: string, i: number): Geometry;
+        setGeometry(edgeType: string, geometry: Geometry): void;
+        getGeometryCount(edgeType: string): number;
+        getGeometry(edgeType: string, i: number): Geometry;
         calculateBounds(): void;
         static INTERNAL: string;
         static EXTERNAL: string;
@@ -326,13 +326,24 @@ declare module flwebgl.util {
         static level: number;
     }
 }
+declare module flwebgl.e {
+    class Pe {
+        F: lk[];
+        constructor();
+        add(a: lk): void;
+        mc(i: number): lk;
+        sort(a: any): void;
+        clear(): void;
+    }
+}
 declare module flwebgl.e.shaders {
     import GL = flwebgl.e.GL;
+    import Pe = flwebgl.e.Pe;
     interface IShader {
         id: number;
         setGL(gl: GL): boolean;
         activate(): any;
-        draw(a: any, b?: any): any;
+        draw(a: Pe, b?: any): any;
         destroy(): any;
     }
 }
@@ -391,8 +402,8 @@ declare module flwebgl.e {
         private _id;
         private _atlasID;
         private parent;
-        private se;
-        ka: Geometry;
+        private uniformValuesMap;
+        geometry: Geometry;
         constructor(id: string, h: Geometry, atlasID: string, parent: MeshInstanced);
         id: string;
         atlasID: string;
@@ -641,29 +652,28 @@ declare module flwebgl.e {
         static TRIANGLES: any;
     }
 }
-declare module flwebgl.e.renderers {
-    import GL = flwebgl.e.GL;
-    interface IRenderer {
-        setGL(gl: GL): boolean;
-        e(a: any, b?: any): any;
-        destroy(): any;
+declare module flwebgl.e {
+    interface IRenderable {
+        depth: number;
+        dirty: boolean;
+        ra(edgeType: string): number;
+        ab(edgeType: string, i: number, gl: GL): lk;
     }
 }
-declare module flwebgl.e {
-    class Pe {
-        F: lk[];
-        constructor();
-        Dc(a: lk): void;
-        mc(i: number): lk;
-        sort(a: any): void;
-        clear(): void;
+declare module flwebgl.e.renderers {
+    import GL = flwebgl.e.GL;
+    import IRenderable = flwebgl.e.IRenderable;
+    interface IRenderer {
+        setGL(gl: GL): boolean;
+        draw(renderables: IRenderable[], b?: any): any;
+        destroy(): any;
     }
 }
 declare module flwebgl.e {
     import Matrix = flwebgl.geom.Matrix;
     import ColorTransform = flwebgl.geom.ColorTransform;
     import Shape = flwebgl.sg.Shape;
-    class MeshInstanced {
+    class MeshInstanced implements IRenderable {
         private shape;
         private Gb;
         dirty: boolean;
@@ -707,6 +717,7 @@ declare module flwebgl.e.renderers {
 }
 declare module flwebgl.e.shaders {
     import GL = flwebgl.e.GL;
+    import Pe = flwebgl.e.Pe;
     import Uniforms = flwebgl.e.Uniforms;
     import Attributes = flwebgl.e.Attributes;
     class ShaderImageSpaceStdDev implements IShader {
@@ -728,10 +739,10 @@ declare module flwebgl.e.shaders {
         attribs: Attributes;
         setGL(gl: GL): boolean;
         activate(): void;
-        draw(a: any, b: any): void;
-        xg(a: any): void;
-        zg(a: any): void;
-        yg(a: any): void;
+        draw(a: Pe, b: any): void;
+        xg(a: Pe): void;
+        zg(a: Pe): void;
+        yg(a: Pe): void;
         Fg(): void;
         Hg(): void;
         Gg(): void;
@@ -742,6 +753,7 @@ declare module flwebgl.e.shaders {
 }
 declare module flwebgl.e.shaders {
     import GL = flwebgl.e.GL;
+    import Pe = flwebgl.e.Pe;
     class ShaderImageSpaceStdDevEmulated implements IShader {
         private gl;
         private _id;
@@ -759,10 +771,10 @@ declare module flwebgl.e.shaders {
         id: number;
         setGL(gl: GL): boolean;
         activate(): void;
-        draw(a: any, b: any): void;
-        xg(a: any): void;
-        zg(a: any): void;
-        yg(a: any): void;
+        draw(a: Pe, b: any): void;
+        xg(a: Pe): void;
+        zg(a: Pe): void;
+        yg(a: Pe): void;
         Fg(): void;
         Hg(): void;
         Gg(): void;
@@ -773,6 +785,7 @@ declare module flwebgl.e.shaders {
 }
 declare module flwebgl.e.shaders {
     import GL = flwebgl.e.GL;
+    import Pe = flwebgl.e.Pe;
     class ShaderImageSpaceCoverage implements IShader {
         private gl;
         private _id;
@@ -792,7 +805,7 @@ declare module flwebgl.e.shaders {
         setGL(gl: GL): boolean;
         activate(): void;
         Eg(): void;
-        draw(a: any, b?: any): void;
+        draw(a: Pe, b?: any): void;
         setUniformValues(colorMapTexture: any, coverageMapTexture: any): void;
         setup(): boolean;
         destroy(): void;
@@ -801,7 +814,7 @@ declare module flwebgl.e.shaders {
 declare module flwebgl.e.renderers {
     import GL = flwebgl.e.GL;
     import Pe = flwebgl.e.Pe;
-    import MeshInstanced = flwebgl.e.MeshInstanced;
+    import IRenderable = flwebgl.e.IRenderable;
     class RendererImageSpace implements IRenderer {
         private gl;
         private shader;
@@ -817,11 +830,11 @@ declare module flwebgl.e.renderers {
         private We;
         constructor();
         setGL(gl: GL): boolean;
-        e(a: any): void;
+        draw(renderables: IRenderable[], b?: any): void;
         ld(): void;
         nf(passIndex: RenderPassIndex): void;
         Ia(passIndex: RenderPassIndex, b: Pe): void;
-        Qg(renderables: MeshInstanced[]): void;
+        Qg(renderables: IRenderable[]): void;
         Qi(passIndex: RenderPassIndex): void;
         ne(): void;
         yi(): any;
@@ -831,6 +844,7 @@ declare module flwebgl.e.renderers {
 }
 declare module flwebgl.e.shaders {
     import GL = flwebgl.e.GL;
+    import Pe = flwebgl.e.Pe;
     import Uniforms = flwebgl.e.Uniforms;
     import Attributes = flwebgl.e.Attributes;
     class ShaderMSAAStdDev implements IShader {
@@ -858,6 +872,7 @@ declare module flwebgl.e.shaders {
 }
 declare module flwebgl.e.shaders {
     import GL = flwebgl.e.GL;
+    import Pe = flwebgl.e.Pe;
     class ShaderMSAAStdDevEmulated implements IShader {
         private gl;
         private _id;
@@ -882,7 +897,7 @@ declare module flwebgl.e.shaders {
 }
 declare module flwebgl.e.renderers {
     import GL = flwebgl.e.GL;
-    import MeshInstanced = flwebgl.e.MeshInstanced;
+    import IRenderable = flwebgl.e.IRenderable;
     class RendererMSAA implements IRenderer {
         private gl;
         private shader;
@@ -890,12 +905,12 @@ declare module flwebgl.e.renderers {
         private fg;
         constructor();
         setGL(gl: GL): boolean;
-        Yl(a: any, b: any): number;
-        km(a: any, b: any): number;
-        e(a: any, b?: any): void;
+        static sortByDepthAscending(a: any, b: any): number;
+        static sortByDepthDescending(a: any, b: any): number;
+        draw(renderables: IRenderable[], b?: any): void;
         ld(): void;
         ne(): void;
-        Qg(a: MeshInstanced[]): void;
+        Qg(renderables: IRenderable[]): void;
         nf(passIndex: RenderPassIndex): void;
         Ia(passIndex: RenderPassIndex): void;
         Qi(passIndex: RenderPassIndex): void;
@@ -904,6 +919,7 @@ declare module flwebgl.e.renderers {
 }
 declare module flwebgl.e.shaders {
     import GL = flwebgl.e.GL;
+    import Pe = flwebgl.e.Pe;
     class ShaderBitmapCache {
         private gl;
         private _id;
@@ -922,7 +938,7 @@ declare module flwebgl.e.shaders {
         setGL(gl: GL): boolean;
         activate(): void;
         Eg(): void;
-        draw(a: any, b?: any): void;
+        draw(a: Pe, b?: any): void;
         ld(): void;
         setUniformValues(colorMapTexture: any): void;
         setup(): boolean;
@@ -931,6 +947,7 @@ declare module flwebgl.e.shaders {
 }
 declare module flwebgl.e.renderers {
     import GL = flwebgl.e.GL;
+    import IRenderable = flwebgl.e.IRenderable;
     class RendererBitmapCache implements IRenderer {
         private gl;
         private renderer;
@@ -938,7 +955,7 @@ declare module flwebgl.e.renderers {
         private shader;
         constructor();
         setGL(gl: GL): boolean;
-        e(a: any): void;
+        draw(renderables: IRenderable[], b?: any): void;
         ld(): void;
         ne(): void;
         destroy(): void;
@@ -953,7 +970,7 @@ declare module flwebgl.e {
         private renderer;
         private activeRenderer;
         private bitmapCacheRenderer;
-        private oa;
+        private renderables;
         private H;
         constructor(canvas: HTMLCanvasElement, options: PlayerOptions);
         setGL(): void;
@@ -972,7 +989,7 @@ declare module flwebgl.e {
         scissor(rect: Rect): void;
         ij(a?: number): void;
         lj(): void;
-        e(a: any, b?: any): void;
+        draw(renderable: IRenderable, b?: any): void;
         createRenderTarget(width: number, height: number): RenderTarget;
         activateRenderTarget(renderTarget: RenderTarget): RenderTarget;
         getRenderTarget(): RenderTarget;
@@ -1095,6 +1112,7 @@ declare module flwebgl.sg {
     import Rect = flwebgl.geom.Rect;
     import Matrix = flwebgl.geom.Matrix;
     import Event = flwebgl.events.Event;
+    import IRenderable = flwebgl.e.IRenderable;
     import Timeline = flwebgl.B.Timeline;
     import IDisplayObjectDefinition = flwebgl.sg.IDisplayObjectDefinition;
     import FrameLabel = flwebgl.B.FrameLabel;
@@ -1151,7 +1169,7 @@ declare module flwebgl.sg {
         setTransforms(transform: Matrix, colorTransform: ColorTransform): void;
         destroy(): void;
         resetPlayHead(a?: boolean): void;
-        collectRenderables(a: any): void;
+        collectRenderables(renderables: IRenderable[]): void;
         getBounds(target?: DisplayObject, fast?: boolean, edgeType?: string, k?: boolean): Rect;
         executeFrameScript(name: any): void;
     }
@@ -1161,6 +1179,7 @@ declare module flwebgl.sg {
     import Rect = flwebgl.geom.Rect;
     import Mesh = flwebgl.e.Mesh;
     import MeshInstanced = flwebgl.e.MeshInstanced;
+    import IRenderable = flwebgl.e.IRenderable;
     import IDisplayObjectDefinition = flwebgl.sg.IDisplayObjectDefinition;
     class Shape extends DisplayObject {
         yc: Mesh;
@@ -1168,7 +1187,7 @@ declare module flwebgl.sg {
         constructor();
         getDefinition(): IDisplayObjectDefinition;
         setDefinition(obj: IDisplayObjectDefinition): void;
-        collectRenderables(a: any): void;
+        collectRenderables(renderables: IRenderable[]): void;
         getBounds(target?: DisplayObject, fast?: boolean, edgeType?: string, k?: boolean): Rect;
         calculateBoundsAABB(a: any, transform: any): Rect;
         dispatch(event: Event): void;
@@ -1535,27 +1554,27 @@ declare module flwebgl {
         private startTime;
         private Xe;
         private Hi;
-        private rc;
+        private currentSceneIndex;
         private jd;
-        private oa;
+        private renderables;
         private mainLoop;
         private frameRenderListener;
         constructor();
         init(canvas: HTMLCanvasElement, content: any, textures: TextureAtlas[], callback: any, options?: any): number;
-        _texturesLoadedCBK(): void;
-        _soundsLoadedCBK(): void;
-        _checkComplete(): void;
+        private _texturesLoadedCBK();
+        private _soundsLoadedCBK();
+        private _checkComplete();
         getStageWidth(): number;
         getStageHeight(): number;
         setViewport(rect: Rect): void;
         play(scene?: string): boolean;
         stop(): void;
         _loop(): void;
-        Sl(): void;
-        Pk(): void;
-        me(): void;
+        collectRenderables(): void;
+        draw(): void;
+        initStateGL(): void;
         Gk(): void;
-        Ri(a: number, b?: boolean): void;
+        gotoScene(sceneIndex: number, b?: boolean): void;
         Al(b?: boolean): void;
         webglContextLostHandler(event: any): void;
         webglContextRestoredHandler(): void;
